@@ -2,7 +2,7 @@
 
 ## Auto-merge criteria
 
-Merge any PR that clears the bar below — `/autopilot` is standing consent for the run. (If `CLAUDE.md` forbids unattended merges, add an autopilot carve-out or use `/code`.)
+Merge any PR that clears the bar below — `/pod:autopilot` is standing consent for the run. (If `CLAUDE.md` forbids unattended merges, add an autopilot carve-out or use `/pod:code`.)
 
 A PR is **mechanically mergeable** only if **all** hold:
 
@@ -39,7 +39,7 @@ Verify the wave's combined slices on the wave head `<sprint-slug>-w<N>` **before
 
 ## Safety bounds
 
-Three caps from `/autopilot` args; hitting any → halt at gate 5:
+Three caps from `/pod:autopilot` args; hitting any → halt at gate 5:
 
 - `--max-sprints=<N>` — sprints completed. Default: unlimited (until no `planned` rows).
 - `--max-waves=<N>` — total waves dispatched. Default: `20`.

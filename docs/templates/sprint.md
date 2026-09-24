@@ -37,7 +37,7 @@ Wave membership lives in the **Wave** column — **computed by the planner, not 
 
 Appended by the orchestrator after the last wave completes, immediately before archive.
 
-- **Slices shipped:** <slice-code list> (each engineer browser-verified its own runtime per `docs/engineer-protocol.md`)
+- **Slices shipped:** <slice-code list> (each engineer browser-verified its own runtime per the pod engineer protocol)
 - **Reviewer:** <PR URL | clean> · severe findings: <N> (count of `SEVERE:` PENDING entries emitted)
 - **Queue entries:** resolved <N>, deferred <M> — link the deferred ones inline
 - **Approximate token cost:** <number or rough range>

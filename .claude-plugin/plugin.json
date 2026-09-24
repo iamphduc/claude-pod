@@ -1,0 +1,10 @@
+{
+  "name": "pod",
+  "description": "Ship a plan in waves of parallel Claude engineers: strategy → sprint → parallel waves → review, with you as the merge gate.",
+  "author": {
+    "name": "Duc Pham"
+  },
+  "homepage": "https://github.com/iamphduc/claude-pods",
+  "repository": "https://github.com/iamphduc/claude-pods",
+  "keywords": ["workflow", "agents", "worktrees", "sprints"]
+}

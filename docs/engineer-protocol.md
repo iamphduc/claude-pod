@@ -16,18 +16,18 @@ Any required field missing → minimal summary with a `BLOCKED` concern naming t
 
 ## Standalone invocation
 
-Only `/fix` dispatches you with just a task description. Derive the rest, don't block:
+Only `/pod:fix` dispatches you with just a task description. Derive the rest, don't block:
 
 - **parent-repo:** `git rev-parse --path-format=absolute --git-common-dir`, trailing `/.git` stripped. Never cwd.
 - **merge-target:** the `--merge-target=<branch>` you were passed, else origin's default branch (`git symbolic-ref refs/remotes/origin/HEAD`), else `main`. A fix cuts off trunk, never off a plan branch.
 - **naming:** slug is short kebab-case from the task — `sprint slug` = `fix`, `slice code` = `<slug>`, `branch` = `fix-<slug>`, worktree `<parent-repo>/.claude/worktrees/fix-<slug>/`.
 - **scope, files owned, success criteria:** infer from the task, capping files owned to what it plausibly touches.
-- **teardown:** `defer` — the `/fix` loop removes the worktree once the PR merges.
+- **teardown:** `defer` — the `/pod:fix` loop removes the worktree once the PR merges.
 - **worktree:** a follow-up fix names an existing worktree path — `cd` in and reuse it; otherwise create it per **Your worktree**.
 
 ## Your worktree
 
-The orchestrator normally pre-creates your worktree and passes its path; `cd` into it. If it doesn't exist (standalone `/fix`, or a pasted prompt), create it first:
+The orchestrator normally pre-creates your worktree and passes its path; `cd` into it. If it doesn't exist (standalone `/pod:fix`, or a pasted prompt), create it first:
 
 `git fetch origin && git worktree add <worktree-path> -b <branch-name> origin/<merge-target>`
 
@@ -51,7 +51,7 @@ Any `BLOCKED` → stop immediately: no push, no PR, no cleanup. Leave the worktr
 
 1. **Static checks.** Tests / typecheck / lint / build. Any failure → `BLOCKED`, including ones you didn't cause. No harness → say so in the summary, cap Confidence at `medium`.
 2. **Runtime verification.** Bring the app up per the `## Smoke recipe` in `docs/codebase-structure.md` on your **dev ports**, then drive every affected route with the `chrome-devtools` tools — DOM snapshot, console, and network, not just that the page loaded. Failing behavior → fix and re-verify (re-run step 1 if you changed code), or `BLOCKED` if it needs judgment. Stop every server you started; record what you drove. Nothing to drive, or no smoke recipe → say so, cap Confidence at `medium`.
-3. **Commit and push** (message prefixed with the slice code). Wave-loop slice → **no PR**, report the branch. `/fix` and the reviewer → open a PR against merge-target, report the URL.
+3. **Commit and push** (message prefixed with the slice code). Wave-loop slice → **no PR**, report the branch. `/pod:fix` and the reviewer → open a PR against merge-target, report the URL.
 4. **Clean up** when `teardown` is `immediate`: `cd "<parent-repo-path>"` → `git worktree remove <worktree-path>` → `git branch -d <branch-name>`. Never `git checkout` in the parent repo. Failure → `PENDING`, Cleanup `partial`. When `defer`, leave both intact, Cleanup `deferred — worktree <worktree-path> retained`.
 
 Never use `--force` or `-D` — if something blocks, let a human investigate.
@@ -62,7 +62,7 @@ End your turn with this summary inline — never written to a file:
 
 - **Slice:** `<slice-code>`
 - **Changed files:** path → one-line description per file
-- **Pushed branch / PR:** wave-loop → `<branch-name>` (pushed; no PR). `/fix` and reviewer → PR URL. Or `blocked` / `skipped — verification failed` / `clean`.
+- **Pushed branch / PR:** wave-loop → `<branch-name>` (pushed; no PR). `/pod:fix` and reviewer → PR URL. Or `blocked` / `skipped — verification failed` / `clean`.
 - **Concerns:** each as `[TYPE] one-line body`, or `none`
 - **Static checks:** commands run and results — or `no harness found` — or `failed — see concerns`
 - **Runtime verified:** behaviors you drove and confirmed (e.g. `/guide hard-loads`, `locale switch persists`) — or `none — pure static slice` — or `not verified — no smoke recipe`

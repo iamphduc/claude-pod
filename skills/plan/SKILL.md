@@ -1,6 +1,6 @@
 ---
 name: plan
-description: Use when the user types /plan or asks to create/update a strategic main plan under docs/plans/.
+description: Use when the user types /pod:plan or asks to create/update a strategic main plan under docs/plans/.
 ---
 
 Work in thinking mode. Produce a strategic main plan under `docs/plans/`. Do not implement, dispatch, or generate sprint files.
@@ -24,11 +24,11 @@ Work in thinking mode. Produce a strategic main plan under `docs/plans/`. Do not
 
 ## Main-plan format
 
-Read `docs/templates/main-plan.md` before drafting.
+Read `${CLAUDE_PLUGIN_ROOT}/docs/templates/main-plan.md` before drafting.
 
 ## End of turn
 
-After writing the plan, end your turn telling the user the slug and that `/sprint <slug>` drafts the first sprint.
+After writing the plan, end your turn telling the user the slug and that `/pod:sprint <slug>` drafts the first sprint.
 
 ## Discipline
 
