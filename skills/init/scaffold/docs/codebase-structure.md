@@ -20,6 +20,10 @@ The **`## Smoke recipe`** below tells each engineer how to bring the app up for 
 
 <!-- languages, frameworks, package manager, test runner; conventions that hold across the codebase -->
 
+## CI
+
+<!-- what runs on pull requests (from .github/workflows or other CI config): each check and its command — or `none` -->
+
 ## Key docs
 
 <!-- docs an agent should read before touching an area: path — what it answers -->

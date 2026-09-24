@@ -50,6 +50,7 @@ Sections:
 - **Parts** — each deployable or package: name, top-level folder, one-line role.
 - **How they connect** — who calls whom, shared database, queues, external services.
 - **Stack & conventions** — languages, frameworks, package manager, test runner; conventions that hold across the codebase (error handling, API style, state management, naming).
+- **CI** — what runs on pull requests, from step 2.3: each workflow or job, its trigger, and the commands it runs. No CI config, or none triggered by pull requests → write `none` (a plain word, not a placeholder).
 - **Key docs** — each doc from step 2.1 that an agent should read before touching its area: path — one line on what it answers. Skip docs that are stale or trivial.
 - **Smoke recipe** — start commands with ports as placeholders (`--port <web>`), DB setup, seeded login credentials, key URLs, and the headless verification command (`Verification:`), taken from CI where it exists.
 

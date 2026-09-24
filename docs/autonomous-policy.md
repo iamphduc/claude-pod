@@ -6,18 +6,27 @@ Merge any PR that clears the bar below — `/pod:autopilot` is standing consent 
 
 A PR is **mechanically mergeable** only if **all** hold:
 
-- `gh pr checks <url>` reports every required check as `pass`.
+- `gh pr checks <url>` reports **at least one** check, and every required check as `pass`. Zero checks is not a pass — it means nothing but the agents checked the code. (Skipped only under `--no-ci`.)
 - `gh pr view <url> --json mergeable,mergeStateStatus` returns `mergeable: MERGEABLE` and `mergeStateStatus: CLEAN`.
 - No reviews marked `CHANGES_REQUESTED`.
 - No unresolved review threads — `gh api graphql -f query='{repository(owner:"<owner>",name:"<repo>"){pullRequest(number:<n>){reviewThreads(first:100){nodes{isResolved}}}}}'` returns no node with `isResolved: false`.
 
 **Precondition.** Merge-target branch protection must **not** require a human approving review (else `mergeStateStatus` stays `BLOCKED` → gate 3).
 
+**CI precondition.** CI must run on pull requests: checked once at preflight (below). `--no-ci` opts out of this and of the at-least-one-check rule — the human's explicit choice to trust the agents' own checks alone.
+
 **Plan review (final PR only).** The final plan PR also needs `pod:reviewer`'s `pass` — on the first review or after the one fix pass. Still `fix` → halt (gate 2). Wave PRs have no reviewer: the mechanical criteria, inter-wave verification, and escalation valve are their gates.
 
 **Escalation valve.** **Withhold the merge and halt (gate 6)** if **any** slice in the wave reported `Confidence: low`.
 
 Otherwise merge (merge commit, not squash): `gh pr merge <url> --merge --delete-branch`. Wave PR → also delete the pushed slice branches (`git push origin --delete <branch>`), set the wave's PR cell `merged` and its slices `done`. Final plan PR → tear down `<plan-slug>`. Any failure → halt + notify (gate 3).
+
+## Preflight (before `/pod:code`'s own preflight)
+
+Halt at gate 3, naming what's missing, unless `--no-ci` was passed:
+
+- The brief's `## CI` section is not `none`, **and** the repo has CI that runs on pull requests — for GitHub Actions, a file in `.github/workflows/` whose `on:` includes `pull_request`, on the merge-target's current commit.
+- No CI → tell the human to run `/pod:init` (it offers a minimal workflow) or re-run with `--no-ci`.
 
 ## Halt gates
 
@@ -41,7 +50,7 @@ Verify the wave's combined slices on the wave head `<sprint-slug>-w<N>`, in its 
 
 ## Safety bounds
 
-Three caps from `/pod:autopilot` args; hitting any → halt at gate 5:
+Three caps from `/pod:autopilot` args (plus `--no-ci`, above); hitting any → halt at gate 5:
 
 - `--max-sprints=<N>` — sprints completed. Default: unlimited (until no `planned` rows).
 - `--max-waves=<N>` — total waves dispatched. Default: `20`.

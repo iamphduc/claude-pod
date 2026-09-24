@@ -62,7 +62,7 @@ rm -rf .claude/skills/{autopilot,code,fix,plan,sprint,wave-prompts,review,waves-
 | 2 | `/pod:sprint [slug]` | Drafts `docs/sprints/<slug>.md` — slices grouped into waves by file ownership |
 | — | *read the sprint doc* | **Your quality gate** — catch bad wave grouping or overlapping file ownership before any engineer runs |
 | 3 | `/pod:code [slug]` | Runs the **wave loop**: one worktree per slice, all engineers in the wave dispatched at once, then integrates them into **one PR** onto the plan branch, runs the smoke test on the combined wave, and halts for you to merge |
-| — | merge the wave's PR, reply `continue` | Next wave dispatches — repeat until the sprint's waves are done, then the sprint archives and `continue` chains into the next one |
+| — | merge the wave's PR, reply `continue` | Next wave dispatches — repeat until the sprint's waves are done, then the sprint archives and `continue` chains into the next one. Each new sprint starts by merging anything new on `main` into the plan branch |
 | 4 | *plan complete* | Opens one final PR (plan branch → `main`). The **reviewer** reads it wave by wave, then as a whole; blocking findings get one fix pass. Then it halts for you to merge, with the verdict and any leftover non-blocking findings |
 
 ### Which command, and what it branches off
@@ -78,7 +78,7 @@ The three execution commands differ by **base branch**, not by size of change:
 
 ## Autonomous flow — the waves ride themselves
 
-`/pod:autopilot [plan-slug] [--max-sprints=N] [--max-waves=N] [--max-runtime=Nh]` runs the whole plan unattended: dispatches each wave, integrates + verifies it, auto-merges the wave PR onto the plan branch (escalating risky ones), chains sprints, then opens the final plan→`main` PR, has the reviewer check it, and merges it on a pass — halting + notifying at each gate. Invoking it is your consent to the auto-merges. Criteria, defaults, and resume behavior live in the plugin's `docs/autonomous-policy.md`.
+`/pod:autopilot [plan-slug] [--max-sprints=N] [--max-waves=N] [--max-runtime=Nh] [--no-ci]` runs the whole plan unattended: dispatches each wave, integrates + verifies it, auto-merges the wave PR onto the plan branch (escalating risky ones), chains sprints, then opens the final plan→`main` PR, has the reviewer check it, and merges it on a pass — halting + notifying at each gate. Invoking it is your consent to the auto-merges. It requires CI that runs on pull requests — a PR with no checks is never auto-merged — unless you pass `--no-ci`; `/pod:init` offers a minimal CI workflow if your repo has none. Criteria, defaults, and resume behavior live in the plugin's `docs/autonomous-policy.md`.
 
 ```
                                        ┌────────────────────────────────── SPRINT LOOP (outer) ──────────────────────────────────┐

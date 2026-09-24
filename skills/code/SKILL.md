@@ -14,7 +14,7 @@ State on disk, re-read every resume: `docs/sprints/<sprint-slug>.md` (status boa
 - **Plan integration branch:** cut `<plan-slug>` off `origin/<merge-target>` once at plan start (Preflight), push it. Slice branches and wave heads cut off it; wave PRs target it. `<merge-target>` (default `main`) only sees the plan via **one** final PR at Plan complete.
 - **Dispatch:** one `Agent` call per slice in one message, **no `isolation`**; pass each its context per `${CLAUDE_PLUGIN_ROOT}/docs/engineer-protocol.md` with **merge-target `<plan-slug>`**, `teardown: defer`, and its **dev ports** — web `3000 + 10i`, api `3001 + 10i`, where *i* is the slice's 1-based row in the sprint doc's status board (not its position in this dispatch batch, so a re-dispatched slice keeps its ports). Offset 0 (`3000`/`3001`) is yours for wave-head verification; slice worktrees are still up under `teardown: defer`. Engineers push their branch and don't open PRs — you integrate the wave and open its one PR.
 - **Integrate a wave:** `git fetch origin`; per slice, `git diff --name-only origin/<plan-slug>...origin/<branch>` against its declared `Files owned` — anything outside → `PENDING` from `orchestrator` naming the stray paths. Build the wave head in **its own worktree** — never check out the wave head in the parent repo, whose `docs/` holds the uncommitted sprint state: `git worktree add <parent-repo>/.claude/worktrees/<sprint-slug>-w<N>/ -b <sprint-slug>-w<N> origin/<plan-slug>` (already there on resume → reuse it). In it, merge each pushed slice branch (`origin/<branch>`) **non-squash** (disjoint → clean; a conflict → halt `BLOCKED` from `orchestrator`); verify the combined wave there per the `## Smoke recipe` in `<parent-repo>/docs/codebase-structure.md` on ports `3000`/`3001` (failure → halt `BLOCKED`); push it, `gh pr create --base <plan-slug>` one PR titled `Wave <N>`. The wave-head worktree stays up until the PR merges.
-- **Hand back for merge:** end the turn with the wave's one PR as `- <label>: <PR URL>` under a one-line header plus a "reply `continue`" line. Don't poll, auto-merge, or proceed.
+- **Hand back for merge:** end the turn with the wave's one PR as `- <label>: <PR URL>` under a one-line header, its CI status from `gh pr checks <url>` (`passing`, `failing: <check names>`, `pending`, or `no CI checks — nothing but the agents checked this`), plus a "reply `continue`" line. Don't poll, auto-merge, or proceed.
 - **Confirm-on-resume:** `gh pr view <URL> --json mergedAt,state` the wave's PR; unmerged → re-end. Once merged: sync the plan branch (`git checkout <plan-slug> && git pull origin <plan-slug>`), set its PR/Status cells to `merged`/`done`, tear down the wave — each slice's worktree (`git worktree remove` → `git branch -d` → `git push origin --delete <branch>`) and the wave head (`git worktree remove` its worktree → `git branch -d` → delete the remote branch if it still exists). No `--force`/`-D`; on failure leave it and note it.
 - **Reset a worktree:** `git reset --hard origin/<plan-slug> && git clean -fd`, then re-run skipping pre-create.
 
@@ -32,6 +32,14 @@ Then **create the plan integration branch** (skip if `git ls-remote --heads orig
 ## The loop
 
 For each sprint row, read `docs/sprints/<sprint-slug>.md` (re-read on resume to find the next wave); if missing → halt and tell the human to run `/pod:sprint`, never draft it yourself.
+
+**Sync with the merge-target** (once at the start of each sprint, before its first wave; skip for the plan's first sprint — the plan branch was just cut). Anything that landed on `<merge-target>` since — a `/pod:fix`, the human's own commits — must reach the plan branch now, while the drift is small, not at the final PR.
+
+1. `git fetch origin`. `git rev-list --count origin/<plan-slug>..origin/<merge-target>` is `0` → nothing to do; note `up to date` for the Sprint summary.
+2. Otherwise, in its own worktree — never in the parent repo: `git worktree add --detach <parent-repo>/.claude/worktrees/<plan-slug>-sync origin/<plan-slug>`, then in it `git merge --no-ff origin/<merge-target> -m "Sync <merge-target> into <plan-slug>"`.
+3. A conflict → `git merge --abort`, halt `BLOCKED` from `orchestrator` naming the conflicting files; leave the worktree for the human.
+4. Verify the merged result per the `## Smoke recipe` in `<parent-repo>/docs/codebase-structure.md` on ports `3000`/`3001` (failure → halt `BLOCKED`, worktree left in place).
+5. `git push origin HEAD:<plan-slug>` (a plain fast-forward push — never force), `git pull origin <plan-slug>` in the parent repo, tear down the sync worktree. Note `synced <N> commits` for the Sprint summary.
 
 ### Per wave (run in order)
 

@@ -37,6 +37,7 @@ Wave membership lives in the **Wave** column — **computed by the planner, not 
 
 Appended by the orchestrator after the last wave completes, immediately before archive.
 
+- **Synced with merge-target:** <up to date | synced N commits> (at sprint start)
 - **Slices shipped:** <slice-code list> (each engineer browser-verified its own runtime per the pod engineer protocol)
 - **Queue entries:** resolved <N>, deferred <M> — link the deferred ones inline
 - **Approximate token cost:** <number or rough range>

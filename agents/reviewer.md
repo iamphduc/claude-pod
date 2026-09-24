@@ -49,7 +49,7 @@ Review quality drops sharply past a few hundred lines, so never read the plan as
 
 `git log --first-parent --reverse --format='%H %s' origin/<merge-target>..origin/<plan-slug>`
 
-Each first-parent commit is one wave's merge (or a sprint's docs commit — skip commits that only touch `docs/`). Match each to its wave in the sprint docs (the wave PR title is `Wave <N>`), then review `git diff <commit>^1 <commit>`:
+Each first-parent commit is one wave's merge — or something to skip: a sprint's docs commit (touches only `docs/`), or a sync merge (subject `Sync <merge-target> into <plan-slug>`), which brings in code already on the merge-target, not the plan's own. The fix pass's `Review fixes` merge is round 2's to check, not round 1's. Match each to its wave in the sprint docs (the wave PR title is `Wave <N>`), then review `git diff <commit>^1 <commit>`:
 
 1. **Success criteria** — each slice in that wave meets its criteria in code, not just in its engineer's report. A criterion with no code or test behind it is a finding.
 2. **Bugs** — off-by-one, unhandled errors and rejected promises, broken edge cases (empty, null, max, concurrent), half-finished branches. Look hardest at the **seams between that wave's slices** — a shared type, route, schema, config key, or event one slice produces and another consumes.

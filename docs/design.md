@@ -8,6 +8,8 @@ Why pod checks work where it does, what each check covers, and what we chose not
 - **End of plan: one reviewer, reading in pieces.** Before the final plan PR goes to `main`, `pod:reviewer` reviews each wave's diff on its own, then the plan as a whole, keeps only findings it can pin to a line, and posts them on the PR.
 - **One fix pass, then merge.** An engineer fixes the blocking findings on one branch; the reviewer checks those fixes once; the PR comes back to you. No loops.
 - **Keep plans small.** A few sprints each, so the end-of-plan review stays readable and late fixes stay cheap.
+- **The plan branch keeps up with `main`.** At the start of each sprint, anything new on `main` is merged into the plan branch and smoke-tested, so conflicts show up small and early.
+- **CI is a real gate.** Autopilot won't treat "no CI checks" as "all checks passed"; `/pod:init` offers a minimal CI workflow when a repo has none.
 - **`/pod:fix` PRs get the same reviewer.** They go straight to `main` with no plan around them, so each one is reviewed before it merges.
 
 ## The flow
@@ -38,7 +40,9 @@ Why pod checks work where it does, what each check covers, and what we chose not
 | Browser check | engineer | every slice | the slice's pages don't work |
 | Files owned | orchestrator | every wave | a slice edited files it doesn't own |
 | Smoke test | orchestrator | every wave | slices that work alone but break together |
-| Mechanical merge checks | autopilot | every PR | red CI, merge conflicts, open threads |
+| CI | GitHub Actions (or your CI) | every PR | the project's own build/test/lint, secrets committed by mistake — run by something other than the agent that wrote the code |
+| Mechanical merge checks | autopilot | every PR | red or **missing** CI, merge conflicts, open threads |
+| Sync with `main` | orchestrator | every sprint start | the plan drifting from `main` (merge conflicts, a `/pod:fix` the plan breaks) |
 | Low-confidence stop | autopilot | every wave | an engineer said it isn't sure |
 | **Code review** | **pod:reviewer** | **end of plan** | bugs, security, unmet goals, missing tests, one wave breaking another, duplicated code |
 | **Code review** | **pod:reviewer** | **every `/pod:fix` PR** | the task not done (or overdone), bugs, security, missing tests |
@@ -103,6 +107,23 @@ A `/pod:fix` change skips the whole plan machinery — no sprint doc, no smoke t
 - **Same fix pass.** Blocking findings go back to the **same engineer**, in its retained worktree; the PR updates in place; the reviewer re-checks just those fixes once.
 - **Then it's yours.** The PR comes back with the verdict — `Review still failing` if the fix pass didn't clear it — and you merge.
 - **Skip it on purpose: `/pod:fix --no-review <task>`.** For a typo or a one-line config value, a review costs more than it's worth, and you look at every fix PR before merging anyway. The skip is a flag you choose, never automatic by diff size: small isn't the same as safe — a one-line auth change is tiny and dangerous.
+
+## Keeping the plan branch in sync with `main`
+
+The plan branch lives for the whole plan. Meanwhile `main` keeps moving — a `/pod:fix` lands, or you commit something yourself. Without syncing, all of that meets the plan for the first time at the final PR: the worst moment for a conflict, and the plan's code was never tested against it.
+
+Real-world practice is to keep branches short-lived and merged often, because drift grows with time ([Atlassian](https://www.atlassian.com/continuous-delivery/continuous-integration/trunk-based-development)). pod's plan branch can't be as short-lived as a trunk-based branch, so it does the next best thing: **at the start of every sprint** (after the first), the orchestrator merges `origin/main` into the plan branch in its own worktree, runs the smoke test on the result, and pushes. A conflict or a failing smoke test stops the run while the drift is still one sprint's worth. It merges rather than rebases, so no one ever force-pushes the plan branch.
+
+## CI as a gate
+
+Engineers run tests, types, lint, and build on their own machine, and the orchestrator runs the smoke test. That's the agent checking its own work. Real-world setups add **required CI checks** on every PR — deterministic gates (lint, test, type, build) plus scanning (secrets, dependencies) — run by something other than the code's author ([Augment Code](https://www.augmentcode.com/guides/ai-agent-pre-merge-verification)).
+
+Before, autopilot's "every required check passes" rule was satisfied by a repo with **no CI at all** — zero checks, zero failures. Now:
+
+- **The scout records CI** in the brief: what runs on pull requests, or `none`.
+- **`/pod:init` offers a minimal workflow** when there's none: the smoke recipe's `Verification:` command on every PR, plus a secret scan. You say yes before anything is written.
+- **Autopilot requires CI**: its preflight halts if nothing runs on pull requests, and a PR with **zero** checks is not mergeable. `--no-ci` opts out, on purpose.
+- In `/pod:code` you merge, so there's no hard rule — but every hand-back shows the PR's CI status.
 
 ## Keep plans small
 
