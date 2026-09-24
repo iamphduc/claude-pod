@@ -10,7 +10,7 @@ Execute a scoped task on a dedicated branch in an isolated worktree. Report only
 - **parent-repo path** — absolute path of the main repo
 - **worktree path** — absolute path of your working dir
 - **dev ports** *(optional, default `web 3900` / `api 3901`)* — use exactly these; never pick your own, never retry on a neighbouring port. Already serving this worktree → reuse it; occupied by anything else → `BLOCKED`.
-- **review findings** *(optional)* — a **fix round**: the pr-reviewer's `FIX` findings for your slice. See **Fix round**.
+- **review findings** *(optional)* — a **review fix pass**: the end-of-plan reviewer's `FIX` findings. See **Review fix pass**.
 - **teardown** *(optional, default `immediate`)* — `defer` (leave the worktree after pushing; the orchestrator removes it post-merge) or `immediate` (remove it yourself once pushed).
 
 Any required field missing → minimal summary with a `BLOCKED` concern naming the gaps, skip all work, end. Never `BLOCKED` on `teardown` or `dev ports`, and never when dispatched standalone — derive those per the next section.
@@ -26,9 +26,9 @@ Only `/pod:fix` dispatches you with just a task description. Derive the rest, do
 - **teardown:** `defer` — the `/pod:fix` loop removes the worktree once the PR merges.
 - **worktree:** a follow-up fix names an existing worktree path — `cd` in and reuse it; otherwise create it per **Your worktree**.
 
-## Fix round
+## Review fix pass
 
-Dispatched with **review findings**, your slice is already built and pushed; the wave PR is open. Your worktree (pre-created by the orchestrator) is on your pushed branch. Fix **exactly** those findings — no other changes — then run **Shipping the work** as usual and push to the same branch; don't recreate the worktree or branch. A finding you believe is wrong → leave that code as is and explain why in a `PENDING`; the pr-reviewer weighs it on re-review.
+Dispatched with **review findings**, the whole plan is built and its final PR is open; the reviewer found problems. Your branch `<plan-slug>-fix` is fresh off the plan branch, in a worktree the orchestrator pre-created. Fix **exactly** those findings — no other changes — then run **Shipping the work** as usual and push; no PR (the orchestrator merges it). A finding you believe is wrong → leave that code as is and explain why in a `PENDING`; the reviewer weighs it on its re-check.
 
 ## Your worktree
 
@@ -38,7 +38,7 @@ The orchestrator normally pre-creates your worktree and passes its path; `cd` in
 
 ## Before you code
 
-Read, in your worktree: `docs/codebase-structure.md` (the project map), each `docs/known-issues/*.md` whose **Applies to** covers your files owned, and any doc its **Key docs** lists for your area. Don't re-derive what they already tell you; if one is wrong, say so as a `PENDING`.
+Read from the **main repo**, not your worktree — pod's docs live there and may be uncommitted: `<parent-repo-path>/docs/codebase-structure.md` (the project map), each `<parent-repo-path>/docs/known-issues/*.md` whose **Applies to** covers your files owned, and any doc its **Key docs** lists for your area. Don't re-derive what they already tell you; if one is wrong, say so as a `PENDING`.
 
 ## Path discipline
 
@@ -59,8 +59,8 @@ Any `BLOCKED` → stop immediately: no push, no PR, no cleanup. Leave the worktr
 ## Shipping the work (only when no BLOCKED)
 
 1. **Static checks.** Tests / typecheck / lint / build. Any failure → `BLOCKED`, including ones you didn't cause. No harness → say so in the summary, cap Confidence at `medium`.
-2. **Runtime verification.** Bring the app up per the `## Smoke recipe` in `docs/codebase-structure.md` on your **dev ports**, then drive every affected route with the `chrome-devtools` tools — DOM snapshot, console, and network, not just that the page loaded. Failing behavior → fix and re-verify (re-run step 1 if you changed code), or `BLOCKED` if it needs judgment. Stop every server you started; record what you drove. Nothing to drive, or no smoke recipe → say so, cap Confidence at `medium`.
-3. **Commit and push** (message prefixed with the slice code). Wave-loop slice → **no PR**, report the branch. `/pod:fix` and the sprint-reviewer → open a PR against merge-target, report the URL.
+2. **Runtime verification.** Bring the app up per the `## Smoke recipe` in `<parent-repo-path>/docs/codebase-structure.md` on your **dev ports**, then drive every affected route with the `chrome-devtools` tools — DOM snapshot, console, and network, not just that the page loaded. Failing behavior → fix and re-verify (re-run step 1 if you changed code), or `BLOCKED` if it needs judgment. Stop every server you started; record what you drove. Nothing to drive, or no smoke recipe → say so, cap Confidence at `medium`.
+3. **Commit and push** (message prefixed with the slice code). Wave-loop slice or review fix pass → **no PR**, report the branch. `/pod:fix` → open a PR against merge-target, report the URL.
 4. **Clean up** when `teardown` is `immediate`: `cd "<parent-repo-path>"` → `git worktree remove <worktree-path>` → `git branch -d <branch-name>`. Never `git checkout` in the parent repo. Failure → `PENDING`, Cleanup `partial`. When `defer`, leave both intact, Cleanup `deferred — worktree <worktree-path> retained`.
 
 Never use `--force` or `-D` — if something blocks, let a human investigate.
@@ -71,7 +71,7 @@ End your turn with this summary inline — never written to a file:
 
 - **Slice:** `<slice-code>`
 - **Changed files:** path → one-line description per file
-- **Pushed branch / PR:** wave-loop → `<branch-name>` (pushed; no PR). `/pod:fix` and sprint-reviewer → PR URL. Or `blocked` / `skipped — verification failed` / `clean`.
+- **Pushed branch / PR:** wave-loop → `<branch-name>` (pushed; no PR). `/pod:fix` → PR URL. Or `blocked` / `skipped — verification failed`.
 - **Concerns:** each as `[TYPE] one-line body`, or `none`
 - **Static checks:** commands run and results — or `no harness found` — or `failed — see concerns`
 - **Runtime verified:** behaviors you drove and confirmed (e.g. `/guide hard-loads`, `locale switch persists`) — or `none — pure static slice` — or `not verified — no smoke recipe`

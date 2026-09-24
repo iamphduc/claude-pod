@@ -28,9 +28,9 @@ Wave membership lives in the **Wave** column — **computed by the planner, not 
 - **Slice Status transitions:** `pending` → `pushed` → `done` (`blocked` terminal); `done` when the wave's PR merges.
 - **PR values (per wave):** `—` / the wave's PR URL (shared by its slices) / `blocked` / `skipped — verification failed` / `merged`.
 - **Branch naming** (all flat kebab — **no `/`**, so none D/F-collide):
-  - **Plan integration branch** `<plan-slug>` — cut off `main` once at plan start; all wave and sprint-reviewer PRs target it; one final PR merges it to `main` at plan end.
+  - **Plan integration branch** `<plan-slug>` — cut off `main` once at plan start; all wave PRs target it; one final PR merges it to `main` at plan end.
   - **Slice branch** `<sprint-slug>-<slice-code>` — an engineer's branch, off `<plan-slug>`.
-  - **Wave head** `<sprint-slug>-w<N>` — off `<plan-slug>`; the orchestrator merges the wave's slice branches in (non-squash, for `git bisect`) and opens the wave's one PR to `<plan-slug>`.
+  - **Wave head** `<sprint-slug>-w<N>` — off `<plan-slug>`, in its own worktree; the orchestrator merges the wave's slice branches in (non-squash, for `git bisect`) and opens the wave's one PR to `<plan-slug>`.
 - **Files owned:** explicit paths, verified to exist; cross-checked for disjointness within the wave.
 
 ## Sprint summary
@@ -38,7 +38,5 @@ Wave membership lives in the **Wave** column — **computed by the planner, not 
 Appended by the orchestrator after the last wave completes, immediately before archive.
 
 - **Slices shipped:** <slice-code list> (each engineer browser-verified its own runtime per the pod engineer protocol)
-- **PR reviews:** <N> waves passed first time · <M> needed a fix round · <K> handed back still failing
-- **Sprint reviewer:** <PR URL | clean> · severe findings: <N> (count of `SEVERE:` PENDING entries emitted)
 - **Queue entries:** resolved <N>, deferred <M> — link the deferred ones inline
 - **Approximate token cost:** <number or rough range>

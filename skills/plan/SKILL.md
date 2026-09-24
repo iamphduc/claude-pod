@@ -33,4 +33,5 @@ After writing the plan, end your turn telling the user the slug and that `/pod:s
 ## Discipline
 
 - **Honor prior decisions.** `docs/decisions.md` is authoritative. If your plan must contradict it, surface that in "Key decisions" as a deliberate override with rationale — never silently.
+- **Keep plans small — 2–4 sprints.** Code is reviewed once, at plan end, and a bug found then was built on for the rest of the plan. A bigger goal becomes several plans in a row, each merged to the merge-target before the next starts; say so in the plan's Scope.
 - **Strategic, not tactical.** Describe sprints by goal and dependency. If you find yourself naming individual files in the main plan, stop and trim — that detail belongs in the sprint doc.
