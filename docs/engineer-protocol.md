@@ -45,6 +45,23 @@ The orchestrator normally pre-creates your worktree and passes its path; `cd` in
 
 Read from the **main repo**, not your worktree — pod's docs live there and may be uncommitted: `<parent-repo-path>/docs/codebase-structure.md` (the project map), each `<parent-repo-path>/docs/known-issues/*.md` whose **Applies to** covers your files owned, and any doc its **Key docs** lists for your area. Don't re-derive what they already tell you; if one is wrong, say so as a `PENDING`.
 
+## Test first
+
+You work test-first, and the tests decide when you're done — not your own reading of the code.
+
+1. **Red.** For each `[test]` success criterion, write the test it names — asserting the behavior, not the implementation, with no mocking of the unit under test. Run it and **watch it fail for the right reason** (the behavior is missing, not a typo or import error). Commit the tests alone: `<slice-code> test: <criteria>`. That commit must come before any implementation commit — it's the evidence you worked test-first.
+2. **Green.** Write the least code that makes those tests pass. Commit: `<slice-code>: <what>`.
+3. **Refactor.** Clean up with the tests green; commit if anything changed.
+
+Rules:
+
+- **Done means green.** Every `[test]` test passes, and the rest of the suite still does. A criterion you believe is met but whose test won't pass is not met.
+- **Never weaken a test to pass it.** A test that's wrong (it asserts something the criterion doesn't ask) → fix the test in its own commit, say why in a `PENDING`.
+- **No code without a test behind it.** Logic you add that no criterion covers — an extra branch, error path, or edge case — gets its own test first too, in the same red → green order.
+- **`[manual]` criteria** are checked in the browser during **Runtime verification**, not by a test.
+- **Standalone `/pod:fix`:** the first test reproduces the bug or pins the new behavior; it must fail before your fix.
+- **No test runner in the project** → `BLOCKED` naming it, unless your slice is the one setting it up. Don't invent one inside a feature slice.
+
 ## Path discipline
 
 Never write into the parent repo. **Every `Edit`/`Write` path must be absolute and under `<worktree-path>` — never relative, never outside it. Verify before writing; if not, stop.** (`Read` outside is fine.)
@@ -63,7 +80,7 @@ Any `BLOCKED` → stop immediately: no push, no PR, no cleanup. Leave the worktr
 
 ## Shipping the work (only when no BLOCKED)
 
-1. **Static checks.** Tests / typecheck / lint / build. Any failure → `BLOCKED`, including ones you didn't cause. No harness → say so in the summary, cap Confidence at `medium`.
+1. **Static checks.** The full test suite / typecheck / lint / build. Any failure → `BLOCKED`, including ones you didn't cause.
 2. **Runtime verification.** Bring the app up per the `## Smoke recipe` in `<parent-repo-path>/docs/codebase-structure.md` on your **dev ports**, then drive every affected route with the `chrome-devtools` tools — DOM snapshot, console, and network, not just that the page loaded. Failing behavior → fix and re-verify (re-run step 1 if you changed code), or `BLOCKED` if it needs judgment. Stop every server you started; record what you drove. Nothing to drive, or no smoke recipe → say so, cap Confidence at `medium`.
 3. **Commit and push** (message prefixed with the slice code). Wave-loop slice or a plan's review fix pass → **no PR**, report the branch. `/pod:fix` → open a PR against merge-target, report the URL.
 4. **Clean up** when `teardown` is `immediate`: `cd "<parent-repo-path>"` → `git worktree remove <worktree-path>` → `git branch -d <branch-name>`. Never `git checkout` in the parent repo. Failure → `PENDING`, Cleanup `partial`. When `defer`, leave both intact, Cleanup `deferred — worktree <worktree-path> retained`.
@@ -78,7 +95,8 @@ End your turn with this summary inline — never written to a file:
 - **Changed files:** path → one-line description per file
 - **Pushed branch / PR:** wave-loop → `<branch-name>` (pushed; no PR). `/pod:fix` → PR URL. Or `blocked` / `skipped — verification failed`.
 - **Concerns:** each as `[TYPE] one-line body`, or `none`
-- **Static checks:** commands run and results — or `no harness found` — or `failed — see concerns`
+- **Tests first:** per `[test]` criterion — `<test name>`: red (`<why it failed>`) → green; the test commit's SHA. Per `[manual]` criterion — how you checked it. Extra logic you tested beyond the criteria, one line each
+- **Static checks:** commands run and results — or `failed — see concerns`
 - **Runtime verified:** behaviors you drove and confirmed (e.g. `/guide hard-loads`, `locale switch persists`) — or `none — pure static slice` — or `not verified — no smoke recipe`
 - **Cleanup:** `done` / `partial — see concerns` / `skipped — blocked` / `deferred — worktree <path> retained`
 - **Confidence:** high / medium / low — and why

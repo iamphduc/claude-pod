@@ -28,10 +28,10 @@ Assume the change is wrong until the code convinces you otherwise. Engineers saw
 
 One small change against the merge-target, so skip sections 1–3. Read `<parent-repo>/docs/codebase-structure.md` and the relevant `<parent-repo>/docs/known-issues/*.md` and `<parent-repo>/docs/decisions.md`, then review the PR diff (`gh pr diff <url>`) in one pass:
 
-1. **Task done** — the change does what the task asked, all of it, and nothing it didn't ask for. Unasked-for changes are `PENDING`, not `FIX`, unless they break something.
-2. **Bugs** — off-by-one, unhandled errors and rejected promises, broken edge cases (empty, null, max, concurrent), and callers of the changed code that now break.
-3. **Security** — injection, auth bypass, exposed secrets, unsafe deserialization, OWASP top-10 in changed code.
-4. **Tests** — the fixed behavior has a test that would fail without the fix.
+1. **Test first** — a test reproduces the bug (or pins the new behavior), was committed before the fix (`git log --reverse --format='%h %s' origin/<merge-target>..origin/<branch>`), and would fail without it. Missing or hollow → `FIX`; out of order → `PENDING`.
+2. **Task done** — the change does what the task asked, all of it, and nothing it didn't ask for. Unasked-for changes are `PENDING`, not `FIX`, unless they break something.
+3. **Beyond the tests** — logic the test doesn't pin down: other branches and inputs, code special-cased to pass the test, and callers of the changed code that now break.
+4. **Security** — injection, auth bypass, exposed secrets, unsafe deserialization, OWASP top-10 in changed code.
 
 Then filter and post per sections 4–5. Findings use `fix` as their location: `[FIX] fix: <file:line> — …`. Round 2 works the same as for a plan.
 
@@ -51,10 +51,13 @@ Review quality drops sharply past a few hundred lines, so never read the plan as
 
 Each first-parent commit is one wave's merge — or something to skip: a sprint's docs commit (touches only `docs/`), or a sync merge (subject `Sync <merge-target> into <plan-slug>`), which brings in code already on the merge-target, not the plan's own. The fix pass's `Review fixes` merge is round 2's to check, not round 1's. Match each to its wave in the sprint docs (the wave PR title is `Wave <N>`), then review `git diff <commit>^1 <commit>`:
 
-1. **Success criteria** — each slice in that wave meets its criteria in code, not just in its engineer's report. A criterion with no code or test behind it is a finding.
-2. **Bugs** — off-by-one, unhandled errors and rejected promises, broken edge cases (empty, null, max, concurrent), half-finished branches. Look hardest at the **seams between that wave's slices** — a shared type, route, schema, config key, or event one slice produces and another consumes.
-3. **Security** — injection, auth bypass, exposed secrets, unsafe deserialization, OWASP top-10 in changed code.
-4. **Tests** — new behavior has a test that would fail without it; no test asserts nothing or only mocks.
+Engineers work test-first: each `[test]` criterion names a test they wrote, watched fail, then made pass. The tests are their definition of done — your job is to check the tests are honest, then review everything the tests **don't** pin down.
+
+1. **Tests match the criteria** — each `[test]` criterion's named test exists in the diff and actually asserts that behavior: it would fail if the behavior broke, it doesn't mock the unit under test, and it isn't weaker than the criterion. A missing or hollow test is a `FIX`. Check the order too: `git log --reverse --format='%h %s' <commit>^1..<commit>` should show each slice's `<slice-code> test:` commit before its implementation — a slice without it is a `PENDING` (process, not correctness).
+2. **Beyond the tests** — the logic and implementation the tests don't cover: branches, error paths, and inputs no test exercises; code that works only for the values the tests use (special-cased or hard-coded to pass); extra logic no criterion asked for. Untested logic that could plausibly be wrong is a `FIX` (it needs a test); logic that is wrong is a `FIX` regardless.
+3. **Bugs** — off-by-one, unhandled errors and rejected promises, broken edge cases (empty, null, max, concurrent), half-finished branches. Look hardest at the **seams between that wave's slices** — a shared type, route, schema, config key, or event one slice produces and another consumes; tests written per slice rarely cover them.
+4. **Security** — injection, auth bypass, exposed secrets, unsafe deserialization, OWASP top-10 in changed code. Tests almost never check this; read for it.
+5. **`[manual]` criteria** — the engineer's report says how each was checked, and the code plausibly does it.
 
 A single wave diff over ~400 lines → review it file by file, not in one read.
 
@@ -70,10 +73,10 @@ Now `git diff origin/<merge-target>...origin/<plan-slug>`, looking only for:
 
 Keep a finding only if you can point at it: `file:line`, what goes wrong, what it should do. Everything else you worried about but couldn't confirm is `PENDING`, never `FIX`.
 
-- **`FIX`** (blocking) — a real bug, a security hole, an unmet plan goal or success criterion, or new behavior with no test.
+- **`FIX`** (blocking) — a real bug, a security hole, an unmet plan goal or success criterion, a missing or hollow criterion test, or logic no test covers that could plausibly be wrong.
 - **`PENDING`** (non-blocking) — duplication, a simpler shape, naming, an unconfirmed risk. They go to the human; they never block the merge.
 
-Style preferences are neither — leave them out. Rank `FIX` findings: security → correctness → unmet goal or criterion → missing test.
+Style preferences are neither — leave them out. Rank `FIX` findings: security → correctness → unmet goal or criterion → missing or hollow test → untested logic.
 
 **Round 2:** check only that each round-1 `FIX` is resolved and the fix didn't break its neighbours (`git diff` of the fix commit). Don't open new lines of review; a new bug the fix introduced is a `FIX`, anything else is `PENDING`. The fix engineer's `PENDING` disagreeing with a finding → weigh it: convinced → drop the finding; not → keep it as `FIX`.
 

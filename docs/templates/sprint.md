@@ -14,8 +14,10 @@ Wave membership lives in the **Wave** column — **computed by the planner, not 
 
 ### <slice-code>: <title>
 - **Scope:** what to do; what NOT to do
-- **Files owned:** explicit paths (disjoint within the same wave)
-- **Success criteria:** concrete checks
+- **Files owned:** explicit paths, **test files included** (disjoint within the same wave)
+- **Success criteria:** one line each —
+  - `[test] <behavior> — <test file> › <test name>` — the test the engineer writes **first**
+  - `[manual] <behavior> — <how to check it in the browser>` — only when no test can check it (visual layout, feel)
 - **Depends on:** <slice codes or —>
 
 ---
@@ -31,7 +33,8 @@ Wave membership lives in the **Wave** column — **computed by the planner, not 
   - **Plan integration branch** `<plan-slug>` — cut off `main` once at plan start; all wave PRs target it; one final PR merges it to `main` at plan end.
   - **Slice branch** `<sprint-slug>-<slice-code>` — an engineer's branch, off `<plan-slug>`.
   - **Wave head** `<sprint-slug>-w<N>` — off `<plan-slug>`, in its own worktree; the orchestrator merges the wave's slice branches in (non-squash, for `git bisect`) and opens the wave's one PR to `<plan-slug>`.
-- **Files owned:** explicit paths, verified to exist; cross-checked for disjointness within the wave.
+- **Files owned:** explicit paths, verified to exist (new files, including new test files, marked `(new)`); cross-checked for disjointness within the wave. A slice's test files are owned by that slice like any other file.
+- **Success criteria:** each is `[test]` or `[manual]`. `[test]` names the test file and test name the engineer writes before any code — pick a behavior a test can pin down, stated so it can fail. `[manual]` is the exception, for what a test genuinely can't check; the engineer verifies it in the browser. A slice with only `[manual]` criteria needs a reason in its Scope.
 
 ## Sprint summary
 

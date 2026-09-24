@@ -10,6 +10,7 @@ Why pod checks work where it does, what each check covers, and what we chose not
 - **Keep plans small.** A few sprints each, so the end-of-plan review stays readable and late fixes stay cheap.
 - **The plan branch keeps up with `main`.** At the start of each sprint, anything new on `main` is merged into the plan branch and smoke-tested, so conflicts show up small and early.
 - **CI is a real gate.** Autopilot won't treat "no CI checks" as "all checks passed"; `/pod:init` offers a minimal CI workflow when a repo has none.
+- **Test first, real TDD.** Every success criterion names a test; engineers write it, watch it fail, then make it pass, and the tests decide when they're done. The reviewer checks the tests are honest and reviews what they don't cover.
 - **`/pod:fix` PRs get the same reviewer.** They go straight to `main` with no plan around them, so each one is reviewed before it merges.
 
 ## The flow
@@ -36,6 +37,7 @@ Why pod checks work where it does, what each check covers, and what we chose not
 
 | Check | Who | When | Catches |
 |---|---|---|---|
+| Test first | engineer | every slice | a success criterion not actually met — each has a test written before the code |
 | Static checks | engineer | every slice | broken tests, types, lint, build |
 | Browser check | engineer | every slice | the slice's pages don't work |
 | Files owned | orchestrator | every wave | a slice edited files it doesn't own |
@@ -107,6 +109,25 @@ A `/pod:fix` change skips the whole plan machinery — no sprint doc, no smoke t
 - **Same fix pass.** Blocking findings go back to the **same engineer**, in its retained worktree; the PR updates in place; the reviewer re-checks just those fixes once.
 - **Then it's yours.** The PR comes back with the verdict — `Review still failing` if the fix pass didn't clear it — and you merge.
 - **Skip it on purpose: `/pod:fix --no-review <task>`.** For a typo or a one-line config value, a review costs more than it's worth, and you look at every fix PR before merging anyway. The skip is a flag you choose, never automatic by diff size: small isn't the same as safe — a one-line auth change is tiny and dangerous.
+
+## Test first
+
+Success criteria used to be prose, and the reviewer judged them by reading code. Now they're tests, written first:
+
+- **The sprint-planner names a test per criterion** — `[test] <behavior> — <file> › <test name>` — and puts the test files in the slice's **Files owned**. `[manual]` is kept for what a test genuinely can't check, like visual layout, and those get checked in the browser.
+- **Engineers do real TDD.** Red: write the named tests and watch them fail for the right reason, then commit the tests alone. Green: the least code that passes them. Refactor with the tests green. Any extra logic no criterion covers gets its own test first too. Engineers never weaken a test to make it pass.
+- **The tests decide "done".** An engineer doesn't judge its own work by reading it; a slice is done when its criteria's tests pass along with the rest of the suite.
+- **The commit order is the evidence.** Each slice's `test:` commit lands before its implementation, so the reviewer can see test-first happened.
+- **No test runner → set one up first.** The sprint-planner makes that the sprint's first, solo slice; a feature slice never invents one.
+
+This is how spec-driven setups work — the written spec drives what gets built and checked ([GitHub Spec Kit](https://github.com/github/spec-kit)) — carried one step further, into tests that run.
+
+**What the reviewer does with it.** Tests an agent writes for its own code can be honest and still miss things, so the reviewer does two jobs:
+
+1. **Check the tests are honest** — each criterion's test exists, asserts the behavior (not the implementation, no mocking the unit under test), would fail if the behavior broke, and came first.
+2. **Review what the tests don't cover** — branches, error paths, and inputs no test exercises; code special-cased to pass the tests' values; logic nobody asked for; bugs at the seams between slices; security, which tests rarely check.
+
+One cost: the red test commits enter the plan branch's history, so a plain `git bisect` can land on one. Use `git bisect --first-parent`, which steps wave by wave.
 
 ## Keeping the plan branch in sync with `main`
 

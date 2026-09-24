@@ -22,4 +22,6 @@ Work in thinking mode. Draft the next `planned` sprint from `docs/plans/<plan-sl
 
 Write `docs/sprints/<sprint-slug>.md` per `${CLAUDE_PLUGIN_ROOT}/docs/templates/sprint.md`.
 
+**Criteria are tests.** Engineers work test-first: they write each `[test]` criterion's test before any code and stop when it passes. So every success criterion names its test — file and test name, following the project's test layout and runner from the brief's **Stack & conventions** — and the test files go in the slice's **Files owned**. Use `[manual]` only for what a test genuinely can't check. No test runner in the brief → the sprint's first wave is a single slice that sets one up (its criterion: a sample test runs red, then green); every other slice depends on it.
+
 End your turn telling the user to review the sprint doc, then run `/pod:code` (or `/pod:autopilot`).
