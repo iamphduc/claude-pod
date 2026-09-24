@@ -52,7 +52,7 @@ rm -rf .claude/skills/{autopilot,code,fix,plan,sprint,wave-prompts,review,waves-
 | `pod:scout` | `/pod:init` | Reads the whole codebase and its docs; drafts `docs/codebase-structure.md` and `docs/known-issues/`, proving the smoke recipe works |
 | `pod:sprint-planner` | `/pod:sprint`, `/pod:autopilot` | Turns the next plan row into a sprint doc: slices grouped into waves |
 | `pod:engineer` | `/pod:code`, `/pod:autopilot`, `/pod:fix` | Builds one slice in its own worktree, tests it, checks it in the browser |
-| `pod:reviewer` | `/pod:code`, `/pod:autopilot` | Reviews the whole plan once, at the final PR: wave by wave, then as a whole; one fix pass for blocking findings. Never edits code |
+| `pod:reviewer` | `/pod:code`, `/pod:autopilot`, `/pod:fix` | Reviews the whole plan once, at the final PR (wave by wave, then as a whole), and every `/pod:fix` PR; one fix pass for blocking findings. Never edits code |
 
 ## Manual flow — you ride each wave
 
@@ -72,9 +72,9 @@ The three execution commands differ by **base branch**, not by size of change:
 | Command | Cuts off | Lands on | Cleans up after itself |
 |---|---|---|---|
 | `/pod:code`, `/pod:autopilot` | the plan branch | plan branch, one PR per wave | the orchestrator, post-merge |
-| `/pod:fix <task>` | trunk (`origin`'s default branch, or `--merge-target=`) | trunk, one PR | the `/pod:fix` loop, after you merge |
+| `/pod:fix <task>` | trunk (`origin`'s default branch, or `--merge-target=`) | trunk, one PR — reviewed, with one fix pass, before it comes to you (`--no-review` skips it for trivial changes) | the `/pod:fix` loop, after you merge |
 
-`/pod:fix` is for work that stands alone — it never touches a plan branch, so running it mid-plan gives you a change that diverges from the plan until both land on trunk. The reviewer has no command of its own: `/pod:code` dispatches it on the final plan PR. Waves are trusted to their engineers' checks and the smoke test; the code is reviewed once, at plan end — see [`docs/design.md`](docs/design.md) for why.
+`/pod:fix` is for work that stands alone — it never touches a plan branch, so running it mid-plan gives you a change that diverges from the plan until both land on trunk. The reviewer has no command of its own: `/pod:code` dispatches it on the final plan PR, and `/pod:fix` on its PR. Waves are trusted to their engineers' checks and the smoke test; the code is reviewed once, at plan end — see [`docs/design.md`](docs/design.md) for why.
 
 ## Autonomous flow — the waves ride themselves
 

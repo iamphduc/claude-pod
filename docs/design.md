@@ -8,6 +8,7 @@ Why pod checks work where it does, what each check covers, and what we chose not
 - **End of plan: one reviewer, reading in pieces.** Before the final plan PR goes to `main`, `pod:reviewer` reviews each wave's diff on its own, then the plan as a whole, keeps only findings it can pin to a line, and posts them on the PR.
 - **One fix pass, then merge.** An engineer fixes the blocking findings on one branch; the reviewer checks those fixes once; the PR comes back to you. No loops.
 - **Keep plans small.** A few sprints each, so the end-of-plan review stays readable and late fixes stay cheap.
+- **`/pod:fix` PRs get the same reviewer.** They go straight to `main` with no plan around them, so each one is reviewed before it merges.
 
 ## The flow
 
@@ -40,6 +41,7 @@ Why pod checks work where it does, what each check covers, and what we chose not
 | Mechanical merge checks | autopilot | every PR | red CI, merge conflicts, open threads |
 | Low-confidence stop | autopilot | every wave | an engineer said it isn't sure |
 | **Code review** | **pod:reviewer** | **end of plan** | bugs, security, unmet goals, missing tests, one wave breaking another, duplicated code |
+| **Code review** | **pod:reviewer** | **every `/pod:fix` PR** | the task not done (or overdone), bugs, security, missing tests |
 
 ## Why no reviewer per wave
 
@@ -92,6 +94,15 @@ One review pass, one fix pass, then merge — no endless loops ([Tembo](https://
 3. The orchestrator opens a PR from `<plan-slug>-fix` into the plan branch and merges it; the final PR updates in place.
 4. The reviewer re-checks **only those fixes** (round 2).
 5. Pass → merge the final PR. Still failing → it comes to you marked `review still failing` (autopilot halts at gate 2). You decide: fix by hand, merge as is, or re-plan.
+
+## Reviewing `/pod:fix` PRs
+
+A `/pod:fix` change skips the whole plan machinery — no sprint doc, no smoke test on a combined wave, no end-of-plan review — and lands straight on `main`. So it gets its own review, with the same reviewer and the same rules, in a lighter shape:
+
+- **One pass, no pieces.** A fix is one small diff, so there's no per-wave or whole-plan pass. The reviewer checks it against the **task** as you gave it: done, not overdone, no bugs, no security holes, a test for the fixed behavior.
+- **Same fix pass.** Blocking findings go back to the **same engineer**, in its retained worktree; the PR updates in place; the reviewer re-checks just those fixes once.
+- **Then it's yours.** The PR comes back with the verdict — `Review still failing` if the fix pass didn't clear it — and you merge.
+- **Skip it on purpose: `/pod:fix --no-review <task>`.** For a typo or a one-line config value, a review costs more than it's worth, and you look at every fix PR before merging anyway. The skip is a flag you choose, never automatic by diff size: small isn't the same as safe — a one-line auth change is tiny and dangerous.
 
 ## Keep plans small
 

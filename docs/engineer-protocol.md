@@ -10,7 +10,7 @@ Execute a scoped task on a dedicated branch in an isolated worktree. Report only
 - **parent-repo path** — absolute path of the main repo
 - **worktree path** — absolute path of your working dir
 - **dev ports** *(optional, default `web 3900` / `api 3901`)* — use exactly these; never pick your own, never retry on a neighbouring port. Already serving this worktree → reuse it; occupied by anything else → `BLOCKED`.
-- **review findings** *(optional)* — a **review fix pass**: the end-of-plan reviewer's `FIX` findings. See **Review fix pass**.
+- **review findings** *(optional)* — a **review fix pass**: the reviewer's `FIX` findings, on a plan's final PR or a `/pod:fix` PR. See **Review fix pass**.
 - **teardown** *(optional, default `immediate`)* — `defer` (leave the worktree after pushing; the orchestrator removes it post-merge) or `immediate` (remove it yourself once pushed).
 
 Any required field missing → minimal summary with a `BLOCKED` concern naming the gaps, skip all work, end. Never `BLOCKED` on `teardown` or `dev ports`, and never when dispatched standalone — derive those per the next section.
@@ -28,7 +28,12 @@ Only `/pod:fix` dispatches you with just a task description. Derive the rest, do
 
 ## Review fix pass
 
-Dispatched with **review findings**, the whole plan is built and its final PR is open; the reviewer found problems. Your branch `<plan-slug>-fix` is fresh off the plan branch, in a worktree the orchestrator pre-created. Fix **exactly** those findings — no other changes — then run **Shipping the work** as usual and push; no PR (the orchestrator merges it). A finding you believe is wrong → leave that code as is and explain why in a `PENDING`; the reviewer weighs it on its re-check.
+Dispatched with **review findings**, a PR is open and the reviewer found problems in it:
+
+- **Plan's final PR:** your branch `<plan-slug>-fix` is fresh off the plan branch, in a worktree the orchestrator pre-created. Push; no PR (the orchestrator merges it).
+- **`/pod:fix` PR:** you're back in your retained worktree on your own branch. Push; the open PR updates in place.
+
+Either way, fix **exactly** those findings — no other changes — and run **Shipping the work** as usual before pushing. A finding you believe is wrong → leave that code as is and explain why in a `PENDING`; the reviewer weighs it on its re-check.
 
 ## Your worktree
 
@@ -60,7 +65,7 @@ Any `BLOCKED` → stop immediately: no push, no PR, no cleanup. Leave the worktr
 
 1. **Static checks.** Tests / typecheck / lint / build. Any failure → `BLOCKED`, including ones you didn't cause. No harness → say so in the summary, cap Confidence at `medium`.
 2. **Runtime verification.** Bring the app up per the `## Smoke recipe` in `<parent-repo-path>/docs/codebase-structure.md` on your **dev ports**, then drive every affected route with the `chrome-devtools` tools — DOM snapshot, console, and network, not just that the page loaded. Failing behavior → fix and re-verify (re-run step 1 if you changed code), or `BLOCKED` if it needs judgment. Stop every server you started; record what you drove. Nothing to drive, or no smoke recipe → say so, cap Confidence at `medium`.
-3. **Commit and push** (message prefixed with the slice code). Wave-loop slice or review fix pass → **no PR**, report the branch. `/pod:fix` → open a PR against merge-target, report the URL.
+3. **Commit and push** (message prefixed with the slice code). Wave-loop slice or a plan's review fix pass → **no PR**, report the branch. `/pod:fix` → open a PR against merge-target, report the URL.
 4. **Clean up** when `teardown` is `immediate`: `cd "<parent-repo-path>"` → `git worktree remove <worktree-path>` → `git branch -d <branch-name>`. Never `git checkout` in the parent repo. Failure → `PENDING`, Cleanup `partial`. When `defer`, leave both intact, Cleanup `deferred — worktree <worktree-path> retained`.
 
 Never use `--force` or `-D` — if something blocks, let a human investigate.
