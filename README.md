@@ -76,7 +76,7 @@ The three execution commands differ by **base branch**, not by size of change:
 
 `/pod:fix` is for work that stands alone — it never touches a plan branch, so running it mid-plan gives you a change that diverges from the plan until both land on trunk. The reviewer has no command of its own: `/pod:code` dispatches it on the final plan PR, and `/pod:fix` on its PR. Waves are trusted to their engineers' checks and the smoke test; the code is reviewed once, at plan end — see [`docs/design.md`](docs/design.md) for why.
 
-Prefer to run each engineer yourself, in a terminal you can watch? `/pod:create-wave-prompts [sprint-slug] [wave]` prints the worktree commands plus one paste-ready block per slice: open a terminal per slice at the project root, run `claude --agent pod:engineer`, and paste its block. It only writes text — combining the wave and opening its PR is then up to you.
+Prefer to run each engineer yourself, in a terminal you can watch? `/pod:create-wave-prompts [sprint-slug] [wave]` works out the current wave from git and GitHub (a merged `Wave <N>` PR marks a wave done), then prints the worktree commands plus one paste-ready block per slice: open a terminal per slice at the project root, run `claude --agent pod:engineer`, and paste its block. It only writes text — combining the wave and opening its PR is then up to you.
 
 ## Autonomous flow — the waves ride themselves
 
