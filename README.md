@@ -61,7 +61,7 @@ rm -rf .claude/skills/{autopilot,code,fix,plan,sprint,wave-prompts,review,waves-
 | — | *read the sprint doc* | **Your quality gate** — catch bad wave grouping or overlapping file ownership before any engineer runs |
 | 3 | `/pod:code [slug]` | Runs the **wave loop**: one worktree per slice, all engineers in the wave dispatched at once, then integrates them into **one PR** onto the plan branch and halts for you to merge |
 | — | merge the wave's PR, reply `continue` | Next wave dispatches — repeat until the sprint's waves are done |
-| 4 | *reviewer (auto)* | Code audit; opens a follow-up PR onto the plan branch or returns `PR: clean` |
+| 4 | *reviewer (auto)* | Reads the whole sprint — delivered scope, bugs where slices meet, security, simpler code and tests; opens one follow-up PR onto the plan branch or returns `PR: clean` |
 | — | merge review PR, reply `continue` | Sprint archives; `continue` chains into the next sprint |
 | 5 | *plan complete* | One final PR merges the plan branch → `main` |
 
