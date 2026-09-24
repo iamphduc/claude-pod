@@ -15,11 +15,12 @@ Requires Claude Code, `git`, and an authenticated `gh` CLI. pod is a Claude Code
 
 Then, from your project root (new or existing repo), run `/pod:init`. It creates the files your project owns — it never overwrites one that already exists:
 
-- `docs/codebase-structure.md` — your codebase brief; the **`## Smoke recipe`** section is required (engineers use it to bring the app up and browser-verify each slice before shipping).
+- `docs/codebase-structure.md` — a high-level codebase brief (what it is, its parts, how they connect — no file lists). The **scout** agent reads your whole codebase and its docs, drafts the brief (including a **Key docs** list), and runs its **`## Smoke recipe`** once to prove it works. Engineers read the brief before coding and use the recipe to browser-verify each slice.
 - `docs/decisions.md` — architectural decisions, as you make them.
-- `docs/handoff-queue.md`, plus empty `docs/plans/`, `docs/sprints/archive/`, `docs/known-issues/`.
+- `docs/known-issues/` — durable gotchas (codegen before typecheck, tests need Docker, …); the scout seeds it, one file each.
+- `docs/handoff-queue.md`, plus empty `docs/plans/` and `docs/sprints/archive/`.
 
-Fill in the first two. The agents, skills, templates, and policy docs stay inside the plugin — nothing else is copied into your repo.
+Review the scout's draft and fill anything it left open. The agents, skills, templates, and policy docs stay inside the plugin — nothing else is copied into your repo.
 
 To use a local clone instead of GitHub, pass its path: `/plugin marketplace add /path/to/claude-pods`. For a one-off session without installing: `claude --plugin-dir /path/to/claude-pods`.
 
@@ -48,6 +49,7 @@ rm -rf .claude/skills/{autopilot,code,fix,plan,sprint,wave-prompts,review,waves-
 
 | Agent | Called by | Job |
 |---|---|---|
+| `pod:scout` | `/pod:init` | Reads the whole codebase and its docs; drafts `docs/codebase-structure.md` and `docs/known-issues/`, proving the smoke recipe works |
 | `pod:sprint-planner` | `/pod:sprint`, `/pod:autopilot` | Turns the next plan row into a sprint doc: slices grouped into waves |
 | `pod:engineer` | `/pod:code`, `/pod:autopilot`, `/pod:fix` | Builds one slice in its own worktree, tests it, checks it in the browser |
 | `pod:reviewer` | `/pod:code`, `/pod:autopilot` | Reviews the whole sprint at its end and ships one follow-up PR |
@@ -112,7 +114,7 @@ docs/
 |-- sprints/
 |   |-- archive/          # completed sprints
 |   `-- <slug>.md         # active sprint — status board + per-slice detail
-|-- codebase-structure.md # codebase brief (you maintain)
+|-- codebase-structure.md # high-level codebase brief (scout drafts, you maintain)
 |-- decisions.md          # architectural decisions, authoritative (you maintain)
 `-- handoff-queue.md      # inter-agent comms — BLOCKED halts, PENDING defers, SOLVED informational
 ```

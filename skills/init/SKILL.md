@@ -13,10 +13,12 @@ cp -rn "${CLAUDE_PLUGIN_ROOT}/skills/init/scaffold/docs/." docs/
 
 `-n` skips files that already exist. Then report which files were created and which were already there.
 
-Finish by telling the human to fill in:
+**Draft the brief.** If `docs/codebase-structure.md` still has `<!-- … -->` placeholders, dispatch the `pod:scout` subagent via the Agent tool to map the project (prompt: the repo root path). It drafts the brief and records gotchas under `docs/known-issues/`. Relay its summary: what it wrote, its coverage, the known issues it found, whether the smoke recipe was verified, and what's left for the human.
 
-- `docs/codebase-structure.md` — the codebase brief; its **`## Smoke recipe`** section is required (engineers use it to bring the app up and browser-verify each slice).
-- `docs/decisions.md` — architectural decisions, as they're made.
+Finish by telling the human to:
+
+- review `docs/codebase-structure.md` and any new `docs/known-issues/` files — the scout's draft is a starting point; its **`## Smoke recipe`** section is required (engineers use it to bring the app up and browser-verify each slice). Fill anything the scout left open.
+- add to `docs/decisions.md` — architectural decisions, as they're made.
 
 Then `/pod:plan` to start.
 

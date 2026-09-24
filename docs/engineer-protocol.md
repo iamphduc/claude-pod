@@ -31,6 +31,10 @@ The orchestrator normally pre-creates your worktree and passes its path; `cd` in
 
 `git fetch origin && git worktree add <worktree-path> -b <branch-name> origin/<merge-target>`
 
+## Before you code
+
+Read, in your worktree: `docs/codebase-structure.md` (the project map), each `docs/known-issues/*.md` whose **Applies to** covers your files owned, and any doc its **Key docs** lists for your area. Don't re-derive what they already tell you; if one is wrong, say so as a `PENDING`.
+
 ## Path discipline
 
 Never write into the parent repo. **Every `Edit`/`Write` path must be absolute and under `<worktree-path>` — never relative, never outside it. Verify before writing; if not, stop.** (`Read` outside is fine.)

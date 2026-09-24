@@ -1,8 +1,28 @@
 # Codebase structure
 
-> Stub — fill this in for your project. Keep it short and navigable: top-level layout, key modules, how the pieces fit.
+> High-level overview only — what the system is and how its parts fit. No file lists or deep directory trees: those change every sprint, and agents read the code for detail. Name a path only for a part's top-level folder.
 
 The **`## Smoke recipe`** below tells each engineer how to bring the app up for browser verification (per the pod engineer protocol). Fill it in — without it, engineers can't verify their slices and cap confidence at `medium`.
+
+## What it is
+
+<!-- one or two sentences: what the product does and who uses it -->
+
+## Parts
+
+<!-- one line per deployable or package: name, top-level folder, what it does. e.g. `web` (apps/web) — Next.js frontend -->
+
+## How they connect
+
+<!-- request/data flow between the parts: who calls whom, shared database, queues, external services -->
+
+## Stack & conventions
+
+<!-- languages, frameworks, package manager, test runner; conventions that hold across the codebase -->
+
+## Key docs
+
+<!-- docs an agent should read before touching an area: path — what it answers -->
 
 ## Smoke recipe
 
