@@ -10,7 +10,7 @@ Parse from args: the sprint slug (if any), the wave number (default `1`), and `-
 ## Inputs
 
 - `docs/sprints/<slug>.md` — status board (Wave / Slice / Branch columns) + per-slice detail (scope, files owned, success criteria).
-- `${CLAUDE_PLUGIN_ROOT}/docs/engineer-protocol.md` — the Required dispatch context fields each prompt must carry.
+- `${CLAUDE_PLUGIN_ROOT}/agents/engineer.md` — its **Required dispatch context** lists the fields each prompt must carry.
 
 ## Preflight (read-only)
 
@@ -20,11 +20,11 @@ Check `origin` exists (`git remote get-url origin`), the merge-target is on orig
 
 Select the requested wave's slices (grouped by the **Wave** column). If that wave has no slices, say so and stop. Otherwise:
 
-1. Print a header: the wave number; the slices in it; then one `git worktree add <parent>/.claude/worktrees/<slug>-<code>/ -b <branch> origin/<plan-slug>` line per slice, to be run **before** any session launches — concurrent sessions creating their own worktrees contend on one `.git`. Then the reminder — *launch one session per block **at the project root**, paste it; when all slices are pushed and green, append each session's `Concerns` lines to `docs/handoff-queue.md` (nothing else files them), integrate the wave (cut a wave head off `<plan-slug>`, merge the slice branches into it, verify, open one PR `--base <plan-slug>`), then re-run `/pod:wave-prompts <slug> <next-wave>`. After the plan's last wave, run `/pod:code <plan-slug>` — at **Plan complete** it opens the final PR `<plan-slug>` → `<merge-target>` and runs the end-of-plan review.*
+1. Print a header: the wave number; the slices in it; then one `git worktree add <parent>/.claude/worktrees/<slug>-<code>/ -b <branch> origin/<plan-slug>` line per slice, to be run **before** any session launches — concurrent sessions creating their own worktrees contend on one `.git`. Then the reminder — *launch one session per block **at the project root** with `claude --agent pod:engineer` (the session then runs with the engineer's full instructions), paste the block; when all slices are pushed and green, append each session's `Concerns` lines to `docs/handoff-queue.md` (nothing else files them), integrate the wave (cut a wave head off `<plan-slug>`, merge the slice branches into it, verify, open one PR `--base <plan-slug>`), then re-run `/pod:wave-prompts <slug> <next-wave>`. After the plan's last wave, run `/pod:code <plan-slug>` — at **Plan complete** it opens the final PR `<plan-slug>` → `<merge-target>` and runs the end-of-plan review.*
 2. Print one fenced block per slice, filled from the sprint doc (if a slice lacks scope, files owned, or success criteria, flag it in the header instead of emitting a blank field):
 
    ```
-   You are implementing one slice of sprint `<slug>`. Read and follow ${CLAUDE_PLUGIN_ROOT}/docs/engineer-protocol.md exactly.
+   You are implementing one slice of sprint `<slug>`.
 
    - sprint slug:      <slug>
    - slice code:       <code>
@@ -38,7 +38,7 @@ Select the requested wave's slices (grouped by the **Wave** column). If that wav
    - success criteria: <criteria>
    - teardown:         defer
 
-   Your worktree is pre-created — `cd` into it (create it per the protocol only
+   Your worktree is pre-created — `cd` into it (create it per your instructions only
    if it's missing), then push your branch — do NOT open a PR (the wave is
    integrated into one PR afterward). Leave the worktree
    intact (teardown: defer) so this session can apply follow-up fixes to the

@@ -78,7 +78,7 @@ The three execution commands differ by **base branch**, not by size of change:
 
 ## Autonomous flow — the waves ride themselves
 
-`/pod:autopilot [plan-slug] [--max-sprints=N] [--max-waves=N] [--max-runtime=Nh] [--no-ci]` runs the whole plan unattended: dispatches each wave, integrates + verifies it, auto-merges the wave PR onto the plan branch (escalating risky ones), chains sprints, then opens the final plan→`main` PR, has the reviewer check it, and merges it on a pass — halting + notifying at each gate. Invoking it is your consent to the auto-merges. It requires CI that runs on pull requests — a PR with no checks is never auto-merged — unless you pass `--no-ci`; `/pod:init` offers a minimal CI workflow if your repo has none. Criteria, defaults, and resume behavior live in the plugin's `docs/autonomous-policy.md`.
+`/pod:autopilot [plan-slug] [--max-sprints=N] [--max-waves=N] [--max-runtime=Nh] [--no-ci]` runs the whole plan unattended: dispatches each wave, integrates + verifies it, auto-merges the wave PR onto the plan branch (escalating risky ones), chains sprints, then opens the final plan→`main` PR, has the reviewer check it, and merges it on a pass — halting + notifying at each gate. Invoking it is your consent to the auto-merges. It requires CI that runs on pull requests — a PR with no checks is never auto-merged — unless you pass `--no-ci`; `/pod:init` offers a minimal CI workflow if your repo has none. Criteria, defaults, and resume behavior live in the plugin's `skills/autopilot/policy.md`.
 
 ```
                                        ┌────────────────────────────────── SPRINT LOOP (outer) ──────────────────────────────────┐
@@ -117,4 +117,4 @@ docs/
 `-- handoff-queue.md      # inter-agent comms — BLOCKED halts, PENDING defers, SOLVED informational
 ```
 
-The rules the agents follow live in the plugin, not your repo, so they update with it: `docs/engineer-protocol.md` (engineer contract), `docs/autonomous-policy.md` (autopilot's merge criteria and halt gates), and `docs/templates/` (plan and sprint doc templates).
+The rules the agents follow live in the plugin, not your repo, so they update with it. Each agent's full instructions are in its own file under `agents/` — they load automatically when the agent starts, so background agents never have to go read a separate file. Skill-only rules sit next to their skill: `skills/autopilot/policy.md` (autopilot's merge criteria and halt gates) and `skills/plan/template.md` (the plan template).

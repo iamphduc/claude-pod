@@ -1,6 +1,6 @@
 # pod design: how work gets checked
 
-Why pod checks work where it does, what each check covers, and what we chose not to do. Written for people changing pod; agents follow the skills and protocol, not this file.
+Why pod checks work where it does, what each check covers, and what we chose not to do. Written for people changing pod; agents follow their own instructions and the skills, not this file.
 
 ## The short version
 
@@ -145,6 +145,12 @@ Before, autopilot's "every required check passes" rule was satisfied by a repo w
 - **`/pod:init` offers a minimal workflow** when there's none: the smoke recipe's `Verification:` command on every PR, plus a secret scan. You say yes before anything is written.
 - **Autopilot requires CI**: its preflight halts if nothing runs on pull requests, and a PR with **zero** checks is not mergeable. `--no-ci` opts out, on purpose.
 - In `/pod:code` you merge, so there's no hard rule — but every hand-back shows the PR's CI status.
+
+## Where rules live
+
+An agent's markdown body **is** its system prompt: Claude Code loads it when the agent starts ([Claude Code docs](https://code.claude.com/docs/en/sub-agents)). So every rule a **background agent** needs lives inside its own file — the engineer's contract in `agents/engineer.md`, the sprint doc template in `agents/sprint-planner.md`. An agent never has to remember to read a separate file, never hits a permission prompt for a file outside the project (a background agent can't answer one), and never depends on a path being filled in.
+
+Rules only a **skill** needs sit next to that skill (`skills/autopilot/policy.md`, `skills/plan/template.md`); skills run in the main session, where reading a plugin file is fine. Skills that dispatch an agent read the fields to pass from the agent's own file. `/pod:wave-prompts` sessions start with `claude --agent pod:engineer`, so a hand-launched engineer gets the same instructions as a dispatched one.
 
 ## Keep plans small
 

@@ -24,7 +24,7 @@ Work in thinking mode. Produce a strategic main plan under `docs/plans/`. Do not
 
 ## Main-plan format
 
-Read `${CLAUDE_PLUGIN_ROOT}/docs/templates/main-plan.md` before drafting.
+Read `${CLAUDE_PLUGIN_ROOT}/skills/plan/template.md` before drafting.
 
 ## End of turn
 

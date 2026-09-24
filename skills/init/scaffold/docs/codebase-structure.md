@@ -2,7 +2,7 @@
 
 > High-level overview only — what the system is and how its parts fit. No file lists or deep directory trees: those change every sprint, and agents read the code for detail. Name a path only for a part's top-level folder.
 
-The **`## Smoke recipe`** below tells each engineer how to bring the app up for browser verification (per the pod engineer protocol). Fill it in — without it, engineers can't verify their slices and cap confidence at `medium`.
+The **`## Smoke recipe`** below tells each engineer how to bring the app up for browser verification (per `pod:engineer`'s instructions). Fill it in — without it, engineers can't verify their slices and cap confidence at `medium`.
 
 ## What it is
 
