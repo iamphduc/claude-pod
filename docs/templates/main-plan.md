@@ -26,7 +26,7 @@ Status values: `planned` / `active` / `done`. The orchestrator only flips its ro
 
 The `Depends on` column is the **only** cross-sprint dependency signal. Wave ordering and per-slice deps live inside the sprint doc and are opaque from here.
 
-**Integration:** the orchestrator cuts one **plan integration branch** (named for this plan's slug) off `main`. All wave and reviewer PRs land on it; one final PR merges it to `main` when the last sprint completes. The slug doubles as a branch name — keep it flat kebab-case.
+**Integration:** the orchestrator cuts one **plan integration branch** (named for this plan's slug) off `main`. All wave and sprint-reviewer PRs land on it; one final PR merges it to `main` when the last sprint completes. The slug doubles as a branch name — keep it flat kebab-case.
 
 ## Key decisions
 - <decision and rationale; link to docs/decisions.md entry if one exists or should be created>

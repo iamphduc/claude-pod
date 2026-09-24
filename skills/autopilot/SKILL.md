@@ -11,7 +11,7 @@ Dispatch engineers with `teardown: immediate` — they remove their own worktree
 
 ## Auto-merge
 
-Don't hand back any PR — wave PR, reviewer PR, or final plan PR. Apply the policy's auto-merge criteria + escalation valve: merge if clean; a failed criterion or risk-flagged PR halts.
+Don't hand back any PR — wave PR, sprint-reviewer PR, or final plan PR. Apply the policy's auto-merge criteria + escalation valve: merge if clean; a failed criterion or risk-flagged PR halts. A wave PR also needs the pr-reviewer's `pass` — run `/pod:code`'s **PR review** (with its one fix round) as usual; still `fix` after round 2 → halt at the pr-review gate (policy gate 8) instead of handing back.
 
 ## Between sprints
 

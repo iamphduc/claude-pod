@@ -52,7 +52,8 @@ rm -rf .claude/skills/{autopilot,code,fix,plan,sprint,wave-prompts,review,waves-
 | `pod:scout` | `/pod:init` | Reads the whole codebase and its docs; drafts `docs/codebase-structure.md` and `docs/known-issues/`, proving the smoke recipe works |
 | `pod:sprint-planner` | `/pod:sprint`, `/pod:autopilot` | Turns the next plan row into a sprint doc: slices grouped into waves |
 | `pod:engineer` | `/pod:code`, `/pod:autopilot`, `/pod:fix` | Builds one slice in its own worktree, tests it, checks it in the browser |
-| `pod:reviewer` | `/pod:code`, `/pod:autopilot` | Reviews the whole sprint at its end and ships one follow-up PR |
+| `pod:pr-reviewer` | `/pod:code`, `/pod:autopilot` | Reads each wave PR before it merges; blocking findings go back to the slice's engineer for one fix round. Never edits code |
+| `pod:sprint-reviewer` | `/pod:code`, `/pod:autopilot` | Reviews the whole sprint across waves at its end and ships one follow-up PR |
 
 ## Manual flow — you ride each wave
 
@@ -61,9 +62,9 @@ rm -rf .claude/skills/{autopilot,code,fix,plan,sprint,wave-prompts,review,waves-
 | 1 | `/pod:plan` | Planner interviews you, writes `docs/plans/<slug>.md` |
 | 2 | `/pod:sprint [slug]` | Drafts `docs/sprints/<slug>.md` — slices grouped into waves by file ownership |
 | — | *read the sprint doc* | **Your quality gate** — catch bad wave grouping or overlapping file ownership before any engineer runs |
-| 3 | `/pod:code [slug]` | Runs the **wave loop**: one worktree per slice, all engineers in the wave dispatched at once, then integrates them into **one PR** onto the plan branch and halts for you to merge |
+| 3 | `/pod:code [slug]` | Runs the **wave loop**: one worktree per slice, all engineers in the wave dispatched at once, then integrates them into **one PR** onto the plan branch. The **pr-reviewer** reads it; blocking findings go back to the engineers for one fix round. Then it halts for you to merge, with the review's verdict |
 | — | merge the wave's PR, reply `continue` | Next wave dispatches — repeat until the sprint's waves are done |
-| 4 | *reviewer (auto)* | Reads the whole sprint — delivered scope, bugs where slices meet, security, simpler code and tests; opens one follow-up PR onto the plan branch or returns `PR: clean` |
+| 4 | *sprint-reviewer (auto)* | Reads the whole sprint across waves — delivered scope, bugs where waves meet, security, simpler code and tests; opens one follow-up PR onto the plan branch or returns `PR: clean` |
 | — | merge review PR, reply `continue` | Sprint archives; `continue` chains into the next sprint |
 | 5 | *plan complete* | One final PR merges the plan branch → `main` |
 
@@ -76,18 +77,18 @@ The three execution commands differ by **base branch**, not by size of change:
 | `/pod:code`, `/pod:autopilot` | the plan branch | plan branch, one PR per wave | the orchestrator, post-merge |
 | `/pod:fix <task>` | trunk (`origin`'s default branch, or `--merge-target=`) | trunk, one PR | the `/pod:fix` loop, after you merge |
 
-`/pod:fix` is for work that stands alone — it never touches a plan branch, so running it mid-plan gives you a change that diverges from the plan until both land on trunk. The reviewer has no command of its own: `/pod:code` dispatches it automatically at sprint end, and re-runs it on resume if its PR isn't merged.
+`/pod:fix` is for work that stands alone — it never touches a plan branch, so running it mid-plan gives you a change that diverges from the plan until both land on trunk. The reviewers have no command of their own: `/pod:code` dispatches the pr-reviewer on every wave PR, and the sprint-reviewer at sprint end (re-running it on resume if its PR isn't merged).
 
 ## Autonomous flow — the waves ride themselves
 
-`/pod:autopilot [plan-slug] [--max-sprints=N] [--max-waves=N] [--max-runtime=Nh]` runs the whole plan unattended: dispatches each wave, integrates + verifies it, auto-merges the wave PR onto the plan branch (escalating risky ones), chains sprints, then opens and merges the final plan→`main` PR — halting + notifying at each gate. Invoking it is your consent to the auto-merges. Criteria, defaults, and resume behavior live in the plugin's `docs/autonomous-policy.md`.
+`/pod:autopilot [plan-slug] [--max-sprints=N] [--max-waves=N] [--max-runtime=Nh]` runs the whole plan unattended: dispatches each wave, integrates + verifies it, auto-merges the wave PR onto the plan branch once the pr-reviewer passes it (escalating risky ones), chains sprints, then opens and merges the final plan→`main` PR — halting + notifying at each gate. Invoking it is your consent to the auto-merges. Criteria, defaults, and resume behavior live in the plugin's `docs/autonomous-policy.md`.
 
 ```
                                        ┌────────────────────────────────── SPRINT LOOP (outer) ──────────────────────────────────┐
                                        v                                                                                         │
 ┌───────────┐   ┌────────────┐   ┌────────────┐   ╔═══════════ WAVE LOOP (inner) ═══════════╗   ┌───────────┐   ┌───────────┐    │
-│ autopilot │──>│ Read policy│──>│ Read sprint│──>║ ┌──────────┐   ┌──────────┐   ┌───────┐ ║──>│ Reviewer  │──>│ Archive   │    │
-│ plan-slug │   │ + bounds   │   │ doc        │   ║ │ Dispatch │──>│Integrate │──>│ Merge │ ║   │ +auto-mrg │   │ +mark     │    │
+│ autopilot │──>│ Read policy│──>│ Read sprint│──>║ ┌──────────┐   ┌──────────┐   ┌───────┐ ║──>│ Sprint    │──>│ Archive   │    │
+│ plan-slug │   │ + bounds   │   │ doc        │   ║ │ Dispatch │──>│Integrate │──>│ Merge │ ║   │ reviewer  │   │ +mark     │    │
 └───────────┘   └────────────┘   └────────────┘   ║ │ engineers│   │+ verify  │   │wave PR│ ║   └───────────┘   │ plan row  │    │
                                                   ║ └──────────┘   └──────────┘   └───┬───┘ ║                   └─────┬─────┘    │
                                                   ║      ^                            │     ║                         │          │
@@ -119,4 +120,4 @@ docs/
 `-- handoff-queue.md      # inter-agent comms — BLOCKED halts, PENDING defers, SOLVED informational
 ```
 
-The rules the agents follow live in the plugin, not your repo, so they update with it: `docs/engineer-protocol.md` (engineer/reviewer contract), `docs/autonomous-policy.md` (autopilot's merge criteria and halt gates), and `docs/templates/` (plan and sprint doc templates).
+The rules the agents follow live in the plugin, not your repo, so they update with it: `docs/engineer-protocol.md` (engineer and sprint-reviewer contract), `docs/autonomous-policy.md` (autopilot's merge criteria and halt gates), and `docs/templates/` (plan and sprint doc templates).

@@ -4,7 +4,7 @@ description: Only for mapping a project, dispatched by /pod:init. Reads the whol
 model: opus
 ---
 
-Map the project so every later agent — planner, sprint-planner, engineers, reviewer — starts from a true picture. You write two things in the repo root (`git rev-parse --show-toplevel`), then stop:
+Map the project so every later agent — planner, sprint-planner, engineers, reviewers — starts from a true picture. You write two things in the repo root (`git rev-parse --show-toplevel`), then stop:
 
 - `docs/codebase-structure.md` — the brief, from its template.
 - `docs/known-issues/<slug>.md` — one file per durable gotcha.
