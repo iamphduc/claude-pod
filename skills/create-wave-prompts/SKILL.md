@@ -1,6 +1,6 @@
 ---
-name: wave-prompts
-description: Use when the user types /pod:wave-prompts or asks to emit per-wave dispatch prompts to run engineers in separate Claude Code sessions (session fan-out instead of subagent dispatch).
+name: create-wave-prompts
+description: Use when the user types /pod:create-wave-prompts or asks to emit per-wave dispatch prompts to run engineers in separate Claude Code sessions (session fan-out instead of subagent dispatch).
 ---
 
 Read-only and one-shot: read the sprint doc and emit one paste-ready dispatch prompt per slice in the requested wave, then stop. Do **not** dispatch subagents, create worktrees, write the status board / handoff-queue, or merge PRs.
@@ -20,7 +20,7 @@ Check `origin` exists (`git remote get-url origin`), the merge-target is on orig
 
 Select the requested wave's slices (grouped by the **Wave** column). If that wave has no slices, say so and stop. Otherwise:
 
-1. Print a header: the wave number; the slices in it; then one `git worktree add <parent>/.claude/worktrees/<slug>-<code>/ -b <branch> origin/<plan-slug>` line per slice, to be run **before** any session launches — concurrent sessions creating their own worktrees contend on one `.git`. Then the reminder — *launch one session per block **at the project root** with `claude --agent pod:engineer` (the session then runs with the engineer's full instructions), paste the block; when all slices are pushed and green, append each session's `Concerns` lines to `docs/handoff-queue.md` (nothing else files them), integrate the wave (cut a wave head off `<plan-slug>`, merge the slice branches into it, verify, open one PR `--base <plan-slug>`), then re-run `/pod:wave-prompts <slug> <next-wave>`. After the plan's last wave, run `/pod:code <plan-slug>` — at **Plan complete** it opens the final PR `<plan-slug>` → `<merge-target>` and runs the end-of-plan review.*
+1. Print a header: the wave number; the slices in it; then one `git worktree add <parent>/.claude/worktrees/<slug>-<code>/ -b <branch> origin/<plan-slug>` line per slice, to be run **before** any session launches — concurrent sessions creating their own worktrees contend on one `.git`. Then the reminder — *launch one session per block **at the project root** with `claude --agent pod:engineer` (the session then runs with the engineer's full instructions), paste the block; when all slices are pushed and green, append each session's `Concerns` lines to `docs/handoff-queue.md` (nothing else files them), integrate the wave (cut a wave head off `<plan-slug>`, merge the slice branches into it, verify, open one PR `--base <plan-slug>`), then re-run `/pod:create-wave-prompts <slug> <next-wave>`. After the plan's last wave, run `/pod:code <plan-slug>` — at **Plan complete** it opens the final PR `<plan-slug>` → `<merge-target>` and runs the end-of-plan review.*
 2. Print one fenced block per slice, filled from the sprint doc (if a slice lacks scope, files owned, or success criteria, flag it in the header instead of emitting a blank field):
 
    ```
