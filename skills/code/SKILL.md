@@ -51,7 +51,7 @@ For each sprint row, read `docs/sprints/<sprint-slug>.md` (re-read on resume to 
 2. **Check disjointness, then pre-create worktrees.** Intersect the wave's `Files owned` sets pairwise; any overlap → halt `BLOCKED` from `orchestrator` naming the two slices and the shared path, before dispatching anything. Then per slice, `git worktree add <parent-repo>/.claude/worktrees/<sprint-slug>-<slice-code>/ -b <branch-name> origin/<plan-slug>` — branch names from the sprint doc's Branch column.
 3. **Dispatch** per the Dispatch convention, subagent_type `pod:engineer` for every slice, and start the stall timer (**Watch for stalls**).
 4. **Translate concerns:** append each engineer's `Concerns` lines (`[TYPE] body`) to `docs/handoff-queue.md` per its template (`from: engineer`).
-5. **Update the status board:** set each slice's Status to `pushed` (or `blocked`) per the **Field rules** in `${CLAUDE_PLUGIN_ROOT}/agents/sprint-planner.md`; the PR cell is filled in step 6.
+5. **Update the status board:** set each slice's Status to `pushed` (or `blocked`) and its Confidence to the level the engineer reported, per the **Field rules** in `${CLAUDE_PLUGIN_ROOT}/agents/sprint-planner.md`; the PR cell is filled in step 6.
 6. **Integrate & open the wave PR.** Halt instead if any slice reported a `BLOCKED` concern, naming the trigger and its queue entry; when >50% of the wave ended `blocked`, first append a wave-summary `BLOCKED` entry from `orchestrator` and point the halt at that rather than at one slice. Otherwise integrate per convention — running the **Wave fix** when a defect shows — and set the wave's slices' PR cell to its URL.
 7. **Hand back for merge** per convention (header `Wave <N> of sprint <sprint-slug> awaiting merge` → reply `continue` to proceed).
 

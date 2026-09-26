@@ -35,9 +35,9 @@ _From plan: docs/plans/<plan-slug>.md · Slug: <sprint-slug> · Status: <active 
 
 ## Status board
 
-| Wave | Slice | Title | Branch | PR | Status | Depends on |
-|------|-------|-------|--------|----|--------|------------|
-| 1 | <slice-code> | <one-line> | <branch-name> | — | pending | — |
+| Wave | Slice | Title | Branch | PR | Status | Confidence | Depends on |
+|------|-------|-------|--------|----|--------|------------|------------|
+| 1 | <slice-code> | <one-line> | <branch-name> | — | pending | — | — |
 
 Wave membership lives in the **Wave** column — **computed by the planner, not authored** (see Field semantics). Slices in a wave run in parallel and own disjoint files. Authored levels: **plan → sprint → slice**. Engineers push branches; the orchestrator integrates each wave into **one PR** on the plan branch (see **Branch naming**).
 
@@ -60,13 +60,14 @@ The orchestrator appends a **Sprint summary** at archive time (see the end of th
 - **Slug:** matches the row in the main plan's Sprint sequence (`docs/plans/<plan-slug>.md`).
 - **Sprint doc Status:** `active` while in `docs/sprints/`; flipped to `archived` immediately before `mv` to `docs/sprints/archive/`.
 - **Slice Status transitions:** `pending` → `pushed` → `done` (`blocked` terminal); `done` when the wave's PR merges.
+- **Confidence:** `—` until the engineer reports; then its `Confidence:` level (`high` / `medium` / `low`), filled by the orchestrator. It stays in the archived doc so a later review can compare it with what was found.
 - **PR values (per wave):** `—` / the wave's PR URL (shared by its slices) / `blocked` / `skipped — verification failed` / `merged`.
 - **Branch naming** (all flat kebab — **no `/`**, so none D/F-collide):
   - **Plan integration branch** `<plan-slug>` — cut off `main` once at plan start; all wave PRs target it; one final PR merges it to `main` at plan end.
   - **Slice branch** `<sprint-slug>-<slice-code>` — an engineer's branch, off `<plan-slug>`.
   - **Wave head** `<sprint-slug>-w<N>` — off `<plan-slug>`, in its own worktree; the orchestrator merges the wave's slice branches in (non-squash, for `git bisect`) and opens the wave's one PR to `<plan-slug>`.
 - **Files owned:** explicit paths, verified to exist (new files, including new test files, marked `(new)`); cross-checked for disjointness within the wave. A slice's test files are owned by that slice like any other file.
-- **Success criteria:** each is `[test]` or `[manual]`. `[test]` names the test file and test name the engineer writes before any code — pick a behavior a test can pin down, stated so it can fail. `[manual]` is the exception, for what a test genuinely can't check; the engineer verifies it in the browser. A slice with only `[manual]` criteria needs a reason in its Scope.
+- **Success criteria:** each is `[test]` or `[manual]`. `[test]` names the test file and test name the engineer writes before any code — pick a behavior a test can pin down, stated so it can fail. `[manual]` is the exception, for what a test genuinely can't check — how it looks, how it feels; the engineer verifies it in the browser. Static checks (`test`/`typecheck`/`lint`/`build` pass) are not criteria — every slice runs them anyway. **Logic is never `[manual]`:** when a slice needs conditions, retries, state, or formatting in hard-to-test glue (DOM wiring, an entry file like `main.ts`, handlers), put that logic in a small module of its own — named in Files owned, `(new)` — with `[test]` criteria, and keep the glue's criteria `[manual]` for the wiring only. A slice with only `[manual]` criteria needs a reason in its Scope.
 
 ## Sprint summary (the orchestrator's, for reference)
 
