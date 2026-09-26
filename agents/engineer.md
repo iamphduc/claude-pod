@@ -50,6 +50,10 @@ The orchestrator normally pre-creates your worktree and passes its path; `cd` in
 
 Read from the **main repo**, not your worktree — pod's docs live there and may be uncommitted: `<parent-repo-path>/docs/codebase-structure.md` (the project map), each `<parent-repo-path>/docs/known-issues/*.md` whose **Applies to** covers your files owned, and any doc its **Key docs** lists for your area. Don't re-derive what they already tell you; if one is wrong, say so as a `PENDING`.
 
+## The look
+
+Your slice draws or styles anything a user sees → before writing any style, invoke the `frontend-design` skill (Skill tool; if it isn't available, go on without it), then follow the plan's `## Look` (`<parent-repo-path>/docs/plans/<merge-target>.md` — under the wave loop your merge-target is the plan slug; a standalone `/pod:fix` follows the look already in the code) and use only the project's design tokens — the theme files the look-foundation slice made. No colors, fonts, or sizes outside them; a shade you need that isn't there → `color-mix()` from tokens, noted as a `NOTE`. A default browser control, a generic look the plan's **Rules out** names, or text you can't read at full size is a defect in your output: fix it (see **Surfacing concerns**).
+
 ## Test first
 
 You work test-first, and the tests decide when you're done — not your own reading of the code.

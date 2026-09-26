@@ -5,7 +5,7 @@ description: Use when the user types /pod:plan or asks to create/update a strate
 
 Work in thinking mode. Produce a strategic main plan under `docs/plans/`. Do not implement, dispatch, or generate sprint files.
 
-## Your job (3 steps)
+## Your job (4 steps)
 
 1. **Ground in the docs layout.** Read whichever exist:
    - `docs/codebase-structure.md` — codebase brief
@@ -20,7 +20,11 @@ Work in thinking mode. Produce a strategic main plan under `docs/plans/`. Do not
 
 2. **Interview the user.** Invoke the `grill-me` skill via the `Skill` tool. If unavailable, interview the user manually until you both share the same path through the decision tree — same goal, scope, constraints, trade-offs accepted. Mark `Grilled-with: grill-me` or `Grilled-with: manual` in the plan header. Do not commit a plan to disk before this is done.
 
-3. **Write the plan** to `docs/plans/<slug>.md`. `<slug>` is short kebab-case (e.g. `parent-portal-mvp`). If the file already exists, ask the user: update or new?
+3. **Pick the look — with the human, before anything is built** (skip when the plan has no user interface; write `## Look` as `none — no UI`). Left to themselves, agents build the safest, most generic interface they know; one choice made up front fixes that for every slice. Invoke the `frontend-design` skill (Skill tool; if it isn't available, follow the same brief yourself), then:
+   - Propose **three clearly different directions**, each: a one-sentence visual thesis (mood, material, energy), a palette of 5–7 named colors, a display + body font pairing (self-hostable, readable at 16 px — check that look-alike glyphs like C/O, 5/S, 2/8, 1/l stay distinct), the layout of the main screen, and the one detail someone will remember.
+   - Write a **preview page** — `docs/look-preview.html`, self-contained (inline CSS, fonts from a local fallback or a clear note that the real font ships later) — showing each direction side by side on a small, real piece of this app (for a game: a few board cells, the score, a button; for a dashboard: a card and a table row). Tell the human to open it (`start docs/look-preview.html` on Windows).
+   - Ask the human to pick one, or mix. Their choice, in their words plus the concrete tokens, goes in the plan's `## Look`. Delete `docs/look-preview.html` once the plan is written — the plan holds the decision.
+4. **Write the plan** to `docs/plans/<slug>.md`. `<slug>` is short kebab-case (e.g. `parent-portal-mvp`). If the file already exists, ask the user: update or new?
    - **Update** → `Edit`; preserve `_Generated:_`, add an `_Updated:_` line.
    - **New** → pick a different slug; never silently overwrite.
 

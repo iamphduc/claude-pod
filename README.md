@@ -58,12 +58,12 @@ rm -rf .claude/skills/{autopilot,code,fix,plan,sprint,wave-prompts,review,waves-
 
 | Step | Skill | What happens |
 |---|---|---|
-| 1 | `/pod:plan` | Planner interviews you, writes `docs/plans/<slug>.md` |
+| 1 | `/pod:plan` | Planner interviews you, has you pick the **look** from three directions shown side by side (when there's a UI), writes `docs/plans/<slug>.md` |
 | 2 | `/pod:sprint [slug]` | Drafts `docs/sprints/<slug>.md` — slices grouped into waves by file ownership |
 | — | *read the sprint doc* | **Your quality gate** — catch bad wave grouping or overlapping file ownership before any engineer runs |
 | 3 | `/pod:code [slug]` | Runs the **wave loop**: one worktree per slice, all engineers in the wave dispatched at once, then integrates them into **one PR** onto the plan branch, runs the smoke test on the combined wave, and halts for you to merge |
 | — | merge the wave's PR, reply `continue` | Next wave dispatches — repeat until the sprint's waves are done, then the sprint archives and `continue` chains into the next one. Each new sprint starts by merging anything new on `main` into the plan branch |
-| 4 | *plan complete* | Opens one final PR (plan branch → `main`). The **reviewer** reads it wave by wave, then as a whole; blocking findings get one fix pass. Then it halts for you to merge, with the verdict and any leftover non-blocking findings |
+| 4 | *plan complete* | Opens one final PR (plan branch → `main`). The **reviewer** reads it wave by wave, then as a whole; blocking findings get one fix pass. Then it halts for you to merge, with the verdict, the leftover non-blocking findings sorted, and an **HTML report** of the plan (`docs/reports/<slug>.html`: key features, key decisions, data structures, and how the agents worked together — also `/pod:report [slug]` any time) |
 
 ### Which command, and what it branches off
 
