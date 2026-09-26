@@ -178,6 +178,8 @@ A second look at the engineers found four smaller problems in how they judged th
 
 **The queue filled with FYIs.** By the end, 33 of its 51 entries were open; about two in three were engineers noting a default they chose or how a test went — nothing anyone had to act on. Noise trains people to skim past the one entry that matters, the same way noisy review bots do ([DEV — alert fatigue in code review](https://dev.to/pyor/alert-fatigue-comes-for-code-review-16kj), [TechTarget](https://www.techtarget.com/it-strategy/news/366649960/The-human-in-the-loop-is-falling-asleep)), and deferred items that sit in a pile rarely get done ([Deviera](https://deviera.dev/blog/todo-comments-technical-debt)). So engineers now split `PENDING` (someone must act) from `NOTE` (FYI, goes in the wave PR body), the reviewer tags each non-blocking finding `now` / `before hosting` / `someday`, and at plan end the orchestrator resolves what's obsolete and hands back a short sorted list instead of the raw queue.
 
+**The end of a plan left loose ends.** After each plan, the human had to ask "Is everything finished?", "archive the plan too", and "start the dev server so I can test it": the plan doc still said `active`, the plan-complete queue line was written after the merge and left uncommitted on `main`, and a browser page was still open. Now the orchestrator archives the plan and writes its last queue line on the plan branch *before* the merge, so the final PR carries them; checks that nothing is left running or uncommitted; and ends by offering to start the app.
+
 The per-wave pr-reviewer stays out: the end-of-plan review found one blocking problem across both plans, and it was one the wave check had already seen.
 
 ## Choices we made on purpose
