@@ -32,7 +32,7 @@ Halt at gate 3, naming what's missing, unless `--no-ci` was passed:
 
 | # | Name | Trigger | Queue type |
 |---|---|---|---|
-| 1 | blocked-concern | `BLOCKED` concern from any engineer or from you | `BLOCKED` |
+| 1 | blocked-concern | `BLOCKED` concern from any engineer or from you (incl. an agent that stalled twice — `/pod:code`'s **Watch for stalls**) | `BLOCKED` |
 | 2 | plan-review-fail | Final plan PR still has reviewer `FIX` findings after the fix pass | `BLOCKED` |
 | 3 | auto-merge-fail | Auto-merge fails per criteria above | `BLOCKED` |
 | 4 | inter-wave-verify | Inter-wave verification fails | `BLOCKED` |
@@ -46,7 +46,7 @@ On halt: append a one-line `docs/handoff-queue.md` entry from `orchestrator` nam
 
 ## Inter-wave verification
 
-Verify the wave's combined slices on the wave head `<sprint-slug>-w<N>`, in its worktree, **before** opening the wave PR (the Integrate step) — pre-merge, so a bad wave never reaches the plan branch. Bring the app up and exercise the merged slices, else run the project's verification command (`Verification:` in `docs/codebase-structure.md`, else detect from repo files). Failure → halt + notify (gate 4). It's autopilot's only check that the wave **runs** — exercise behavior, not just a clean merge. The code itself is read once, at plan end (Plan review, above).
+Verify the wave's combined slices on the wave head `<sprint-slug>-w<N>`, in its worktree, **before** opening the wave PR (the Integrate step) — pre-merge, so a bad wave never reaches the plan branch. Bring the app up and exercise the merged slices, else run the project's verification command (`Verification:` in `docs/codebase-structure.md`, else detect from repo files). Failure → halt + notify (gate 4). A defect the recipe doesn't fail on (a user would notice it, but nothing errors) → `/pod:code`'s **Wave fix** before opening the PR, not a halt. It's autopilot's only check that the wave **runs** — exercise behavior, not just a clean merge. The code itself is read once, at plan end (Plan review, above).
 
 ## Safety bounds
 

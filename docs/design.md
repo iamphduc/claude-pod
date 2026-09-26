@@ -4,8 +4,9 @@ Why pod checks work where it does, what each check covers, and what we chose not
 
 ## The short version
 
-- **Each wave: automated gates, no reviewer.** Engineers test their own slice and check it in the browser; the orchestrator checks file ownership and runs the smoke test on the combined wave before opening its PR. Then it merges (you, or autopilot).
-- **End of plan: one reviewer, reading in pieces.** Before the final plan PR goes to `main`, `pod:reviewer` reviews each wave's diff on its own, then the plan as a whole, keeps only findings it can pin to a line, and posts them on the PR.
+- **Each wave: automated gates, no reviewer.** Engineers test their own slice and check it in the browser; the orchestrator checks file ownership and runs the smoke test on the combined wave before opening its PR. Anything wrong it can see there gets fixed there, by one wave-fix engineer, not deferred. Then it merges (you, or autopilot).
+- **Nothing hangs quietly.** The orchestrator checks on its background agents every 15 minutes and restarts one that has stopped making progress.
+- **End of plan: one reviewer, reading in pieces and running the checks.** Before the final plan PR goes to `main`, `pod:reviewer` runs the tests and the smoke recipe's scripted checks, reviews each wave's diff on its own, then the plan as a whole, keeps only findings it can pin to a line, and posts them on the PR.
 - **One fix pass, then merge.** An engineer fixes the blocking findings on one branch; the reviewer checks those fixes once; the PR comes back to you. No loops.
 - **Keep plans small.** A few sprints each, so the end-of-plan review stays readable and late fixes stay cheap.
 - **The plan branch keeps up with `main`.** At the start of each sprint, anything new on `main` is merged into the plan branch and smoke-tested, so conflicts show up small and early.
@@ -42,11 +43,13 @@ Why pod checks work where it does, what each check covers, and what we chose not
 | Browser check | engineer | every slice | the slice's pages don't work |
 | Files owned | orchestrator | every wave | a slice edited files it doesn't own |
 | Smoke test | orchestrator | every wave | slices that work alone but break together |
+| Wave fix | orchestrator + one engineer | every wave, when needed | a defect you'd see on the combined wave that no check fails on (wrong behavior, unreadable text) — fixed before the wave PR |
+| Stall watch | orchestrator | every 15 min while agents run | an agent hung in one tool call |
 | CI | GitHub Actions (or your CI) | every PR | the project's own build/test/lint, secrets committed by mistake — run by something other than the agent that wrote the code |
 | Mechanical merge checks | autopilot | every PR | red or **missing** CI, merge conflicts, open threads |
 | Sync with `main` | orchestrator | every sprint start | the plan drifting from `main` (merge conflicts, a `/pod:fix` the plan breaks) |
 | Low-confidence stop | autopilot | every wave | an engineer said it isn't sure |
-| **Code review** | **pod:reviewer** | **end of plan** | bugs, security, unmet goals, missing tests, one wave breaking another, duplicated code |
+| **Code review** | **pod:reviewer** | **end of plan** | bugs, security, unmet goals, missing tests, one wave breaking another, duplicated code — plus a re-run of the tests and scripted smoke checks on the final code |
 | **Code review** | **pod:reviewer** | **every `/pod:fix` PR** | the task not done (or overdone), bugs, security, missing tests |
 
 ## Why no reviewer per wave
@@ -71,9 +74,9 @@ A plan's final PR is easily thousands of lines. The fix, used by GitHub itself, 
 
 ## How the reviewer works
 
-`pod:reviewer` is read-only: it never edits, pushes, merges, or approves.
+`pod:reviewer` never edits, pushes, merges, or approves. It does run things: the only files it leaves behind are build output and caches in its own worktree.
 
-1. **Read the ground truth** from the main repo: the plan (goals, scope, **Verification** section), every archived sprint doc for the plan (each slice's success criteria), the codebase brief, known issues, and decisions.
+1. **Read the ground truth** from the main repo: the plan (goals, scope, **Verification** section), every archived sprint doc for the plan (each slice's success criteria), the codebase brief, known issues, and decisions. Then **run the checks**: the smoke recipe's `Verification:` command, and every scripted check it lists that works without a browser. A failing check is a blocking finding.
 2. **Per-wave pass.** For each first-parent commit on the plan branch (skipping docs-only commits), review `git diff <commit>^1 <commit>`:
    - **Success criteria** — each slice in that wave meets its criteria in code, not just in its engineer's report.
    - **Bugs** — edge cases, unhandled errors, and the seams between that wave's slices.
@@ -88,7 +91,7 @@ A plan's final PR is easily thousands of lines. The fix, used by GitHub itself, 
 
 Findings are either:
 
-- **`FIX`** (blocking) — a real bug, a security hole, an unmet plan goal or success criterion, or new behavior with no test.
+- **`FIX`** (blocking) — a real bug, a security hole, an unmet plan goal or success criterion, a failing check, or new behavior with no test. Wrong logic is always blocking, even in an app that only runs locally; "local only" excuses missing hardening like rate limits, not bugs.
 - **`PENDING`** (non-blocking) — duplication, simpler shapes, risks it couldn't confirm. These go to the handoff queue and are listed for you at hand-back; the next plan can pick them up.
 
 ## The fix pass
@@ -158,6 +161,16 @@ Reviewing at the end has one real cost: a bug found then was built on for the re
 
 So `/pod:plan` aims for **2–4 sprints per plan**. Bigger goals become several plans in a row, each merged to `main` before the next starts. That keeps the final review readable and the plan branch short-lived.
 
+## What the first real run changed
+
+pod's first real run (two plans, 5 sprints, 11 waves, a Flappy Bird game with a server) worked: every plan check held, no merge conflicts, test-first in almost every slice. Reading its transcripts found three problems, each now fixed:
+
+- **An agent hung for 1h53m and nobody noticed.** One engineer's browser call waited inside the page and never answered; the whole wave sat idle, and the engineer's report didn't mention it. A tool call with no timeout just keeps waiting, because no error ever fires to trigger recovery — the standard fix is a watchdog that checks whether the work is still producing output, not whether the process is alive ([DEV — stalled tasks](https://dev.to/bobrenze/how-ai-agents-handle-stalled-tasks-and-timeouts-lessons-from-my-production-failure-1jj9), [DEV — watchdog pattern](https://dev.to/mukesh_13/the-watchdog-pattern-keeping-a-long-running-ai-agent-alive-on-a-bare-vps-56o2), [AgentCenter](https://www.agentcenter.cloud/blogs/how-to-detect-agent-stuck-or-looping)). So: the orchestrator checks each agent's transcript file every 15 minutes and restarts one that hasn't moved; engineers keep browser calls short and report any time lost.
+- **A visible defect was found twice during the waves, then left for the final review.** An engineer, and later the orchestrator, saw that the chosen pixel font made "C" read as "O" and "5" as "S". Both logged it and moved on; the final review then flagged it, costing a fix pass and a second review round. Defects cost more the later they're fixed ([Functionize](https://www.functionize.com/blog/the-cost-of-finding-bugs-later-in-the-sdlc), [ContextQA](https://contextqa.com/blog/cost-of-defects-in-software-testing/)). So: a **wave fix** — one engineer, once per wave, before the wave PR — for what the orchestrator can see on the running wave.
+- **The reviewer never ran anything.** "Never run anything that writes" read as "don't run the tests"; it also filed a real bug (rejected events never resent) as non-blocking because the app only runs locally. Reading code tells you whether it looks right; running it tells you whether it works, and an AI reviewer tends to miss what the AI author missed ([TestMu](https://www.testmuai.com/blog/ai-code-review-vs-verification/), [Endor Labs](https://www.endorlabs.com/learn/ai-code-review-how-to-actually-review-code-an-agent-wrote)). So: the reviewer runs the test suite and the smoke recipe's scripted checks, and wrong logic is always blocking.
+
+The per-wave pr-reviewer stays out: the end-of-plan review found one blocking problem across both plans, and it was one the wave check had already seen.
+
 ## Choices we made on purpose
 
 - **One reviewer, not several in parallel.** Claude Code Review runs several reviewers at once, one per concern, then filters. More thorough, but costs several times more; one agent reading small pieces gets most of the benefit. Revisit if end-of-plan reviews start missing things.
@@ -177,3 +190,10 @@ So `/pod:plan` aims for **2–4 sprints per plan**. Bigger goals become several 
 - [Anthropic — Building effective agents](https://www.anthropic.com/engineering/building-effective-agents)
 - [Atlassian — Trunk-based development](https://www.atlassian.com/continuous-delivery/continuous-integration/trunk-based-development)
 - [Ardalis — Trunk-based development vs long-lived feature branches](https://ardalis.com/trunk-based-development-vs-long-lived-feature-branches/)
+- [DEV — How AI agents handle stalled tasks and timeouts](https://dev.to/bobrenze/how-ai-agents-handle-stalled-tasks-and-timeouts-lessons-from-my-production-failure-1jj9)
+- [DEV — The watchdog pattern for long-running AI agents](https://dev.to/mukesh_13/the-watchdog-pattern-keeping-a-long-running-ai-agent-alive-on-a-bare-vps-56o2)
+- [AgentCenter — How to detect when an AI agent is stuck or looping](https://www.agentcenter.cloud/blogs/how-to-detect-agent-stuck-or-looping)
+- [Functionize — The cost of finding bugs later in the SDLC](https://www.functionize.com/blog/the-cost-of-finding-bugs-later-in-the-sdlc)
+- [ContextQA — Cost of defects in software testing](https://contextqa.com/blog/cost-of-defects-in-software-testing/)
+- [TestMu — AI code review vs verification](https://www.testmuai.com/blog/ai-code-review-vs-verification/)
+- [Endor Labs — How to review code an agent wrote](https://www.endorlabs.com/learn/ai-code-review-how-to-actually-review-code-an-agent-wrote)
