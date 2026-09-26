@@ -18,5 +18,5 @@ Don't hand back any PR — wave PR or final plan PR. Apply the policy's auto-mer
 Don't end with "reply continue" — run one sprint per turn:
 
 1. `--max-sprints` reached → halt at the safety-bound gate (policy gate 5).
-2. No `planned` row left → run **Plan complete**: open the final `<plan-slug>` → `<merge-target>` PR, review it (plus the one fix pass), auto-merge it on `pass`, tear down `<plan-slug>`, then halt at gate 7 + notify.
+2. No `planned` row left → run **Plan complete**: open the final `<plan-slug>` → `<merge-target>` PR, review it (plus the one fix pass), auto-merge it on `pass`, tear down `<plan-slug>`, sort the queue (`/pod:code`'s **Plan complete** step 4), then halt at gate 7 + notify with the sorted list.
 3. Else dispatch the `pod:sprint-planner` and proceed straight into the new sprint's wave loop — no sprint-draft halt.

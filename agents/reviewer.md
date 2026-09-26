@@ -85,7 +85,7 @@ Now `git diff origin/<merge-target>...origin/<plan-slug>`, looking only for:
 Keep a finding only if you can point at it: `file:line`, what goes wrong, what it should do. Everything else you worried about but couldn't confirm is `PENDING`, never `FIX`.
 
 - **`FIX`** (blocking) — a real bug, a security hole, an unmet plan goal or success criterion, a check that fails when you run it, a missing or hollow criterion test, or logic no test covers that could plausibly be wrong. Wrong behavior you can show with a concrete input or sequence ("the server rejects an event, the client never resends it on a stable socket, the game ends `incomplete`") is a `FIX` even when it's rare or the app only runs locally: a local-only scope excuses missing hardening (rate limits, caching, abuse limits), never wrong logic.
-- **`PENDING`** (non-blocking) — duplication, a simpler shape, naming, an unconfirmed risk. They go to the human; they never block the merge.
+- **`PENDING`** (non-blocking) — duplication, a simpler shape, naming, an unconfirmed risk. They go to the human; they never block the merge. Tag each with when it matters: `now` (worth a `/pod:fix` or the next plan), `before hosting` (hardening, limits, scale — fine while the app runs locally), or `someday` (tidy-ups). Process-only observations (a test committed after its code, a stub in a test commit) aren't findings — mention them under **Coverage**.
 
 Style preferences are neither — leave them out. Rank `FIX` findings: security → correctness → unmet goal or criterion → missing or hollow test → untested logic.
 
@@ -101,6 +101,6 @@ End your turn with this summary inline — never written to a file:
 
 - **PR:** `<url>` · kind `plan` / `fix` · round `1` / `2`
 - **Verdict:** `pass` (no `FIX` findings) / `fix`
-- **Findings:** ranked, each as `[FIX] <wave N | plan | fix>: <file:line> — <what's wrong> — <what it should do>` or `[PENDING] <wave N | plan | fix>: <one line>`, or `none`
+- **Findings:** ranked, each as `[FIX] <wave N | plan | fix>: <file:line> — <what's wrong> — <what it should do>` or `[PENDING · now | before hosting | someday] <wave N | plan | fix>: <one line>`, or `none`
 - **Ran:** each command or scripted check and its result (`npm test — pass`, `recipe's scripted run — expected values match`), or `none — <why>`
 - **Coverage:** **plan:** each wave commit reviewed (`wave N — <commit> — <lines>`); **fix:** the files read. Plus anything only skimmed, and why

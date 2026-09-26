@@ -176,6 +176,8 @@ A second look at the engineers found four smaller problems in how they judged th
 - **Confidence was always high** — 17 high, 6 medium, 0 low across 23 reports, and every medium came from broken tooling, not doubt. Several "high"s hid a problem the engineer knew about. LLMs rate themselves above their results in general ([arXiv 2512.24661](https://arxiv.org/pdf/2512.24661)). So Confidence is now defined by what was checked, an open concern about your own output caps it at medium, reports list what wasn't checked, and the level goes on the status board so later reviews can compare it with what was found.
 - **Screenshots hid the font problem.** Full-page phone screenshots were shrunk about 2× before the model saw them; only close-up crops showed "C" reading as "O". Vision models downscale large images and blur small text ([DEV — screenshot cropping](https://dev.to/aaroncarlisle94/i-built-a-00005-screenshot-cropper-that-saves-ai-agents-95-on-vision-llm-costs-2c41), [Hugging Face](https://huggingface.co/blog/visheratin/vlm-resolution-curse)). Visual slices now read changed text in full-size close-ups. And slices with no UI no longer run a browser check just to keep "high".
 
+**The queue filled with FYIs.** By the end, 33 of its 51 entries were open; about two in three were engineers noting a default they chose or how a test went — nothing anyone had to act on. Noise trains people to skim past the one entry that matters, the same way noisy review bots do ([DEV — alert fatigue in code review](https://dev.to/pyor/alert-fatigue-comes-for-code-review-16kj), [TechTarget](https://www.techtarget.com/it-strategy/news/366649960/The-human-in-the-loop-is-falling-asleep)), and deferred items that sit in a pile rarely get done ([Deviera](https://deviera.dev/blog/todo-comments-technical-debt)). So engineers now split `PENDING` (someone must act) from `NOTE` (FYI, goes in the wave PR body), the reviewer tags each non-blocking finding `now` / `before hosting` / `someday`, and at plan end the orchestrator resolves what's obsolete and hands back a short sorted list instead of the raw queue.
+
 The per-wave pr-reviewer stays out: the end-of-plan review found one blocking problem across both plans, and it was one the wave check had already seen.
 
 ## Choices we made on purpose
@@ -204,6 +206,9 @@ The per-wave pr-reviewer stays out: the end-of-plan review found one blocking pr
 - [ContextQA — Cost of defects in software testing](https://contextqa.com/blog/cost-of-defects-in-software-testing/)
 - [TestMu — AI code review vs verification](https://www.testmuai.com/blog/ai-code-review-vs-verification/)
 - [Endor Labs — How to review code an agent wrote](https://www.endorlabs.com/learn/ai-code-review-how-to-actually-review-code-an-agent-wrote)
+- [DEV — Alert fatigue comes for code review](https://dev.to/pyor/alert-fatigue-comes-for-code-review-16kj)
+- [TechTarget — The human in the loop is falling asleep](https://www.techtarget.com/it-strategy/news/366649960/The-human-in-the-loop-is-falling-asleep)
+- [Deviera — TODO comments: the silent technical debt accumulator](https://deviera.dev/blog/todo-comments-technical-debt)
 - [anthropics/claude-code#94753 — Compiler errors treated as satisfying the TDD red gate](https://github.com/anthropics/claude-code/issues/94753)
 - [Martin Fowler — Humble Object](https://martinfowler.com/bliki/HumbleObject.html)
 - [xUnit Patterns — Humble Object](http://xunitpatterns.com/Humble%20Object.html)

@@ -80,8 +80,11 @@ Never write into the parent repo. **Every `Edit`/`Write` path must be absolute a
 Never silently fill ambiguity — flag it. A defect you find in your own slice's output — wrong behavior, broken or unreadable UI — that you can fix within your files owned, **fix it**; don't just log it. A concern is for what you can't or shouldn't fix yourself. In your summary, list each as `[TYPE] one-line body`:
 
 - `BLOCKED` — you cannot proceed, or verification failed.
-- `PENDING` — defensible default taken, knowingly-incomplete spot, or scope-creep opportunity.
+- `PENDING` — **someone has to act on it later**: a decision the human should make (a behavior the spec left open that matters to users), knowingly-incomplete work, a risk that needs fixing before some point (before hosting, before the next plan), a doc that's wrong outside your files. Goes to the handoff queue, which the human reads.
+- `NOTE` — **nobody has to act**: a default you chose inside the spec, an extra id or error code, how your red run went, a stub in the test commit, a width you couldn't emulate. Goes in the wave PR body, not the queue. A `NOTE` a later slice needs (an API detail, a locked test value, how to wire your module) says so: `NOTE for <slice-code>:` — the orchestrator passes it on.
 - `SOLVED` — only alongside a `BLOCKED` or `PENDING`: marks a related thing resolved inline.
+
+Pick with one question: **if nobody ever reads it, does anything go wrong?** Yes → `PENDING`. No → `NOTE`. Most of what you notice is a `NOTE`; a queue full of FYIs buries the few entries that need the human.
 
 Any `BLOCKED` → stop immediately: no push, no PR, no cleanup. Leave the worktree intact for inspection.
 
@@ -107,7 +110,7 @@ End your turn with this summary inline — never written to a file:
 - **Slice:** `<slice-code>`
 - **Changed files:** path → one-line description per file
 - **Pushed branch / PR:** wave-loop → `<branch-name>` (pushed; no PR). `/pod:fix` → PR URL. Or `blocked` / `skipped — verification failed`.
-- **Concerns:** each as `[TYPE] one-line body`, or `none`
+- **Concerns:** each as `[TYPE] one-line body` (`BLOCKED` / `PENDING` / `NOTE` / `SOLVED`), or `none`
 - **Tests first:** per `[test]` criterion — `<test name>`: red (`<why it failed>`) → green; the test commit's SHA. Per `[manual]` criterion — how you checked it. Extra logic you tested beyond the criteria, one line each
 - **Static checks:** commands run and results — or `failed — see concerns`
 - **Runtime verified:** behaviors you drove and confirmed (e.g. `/guide hard-loads`, `locale switch persists`) — or `none — no UI change` plus what you ran instead — or `not verified — <why>`
