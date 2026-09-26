@@ -13,6 +13,8 @@ cp -rn "${CLAUDE_PLUGIN_ROOT}/skills/init/scaffold/docs/." docs/
 
 `-n` skips files that already exist. Then report which files were created and which were already there.
 
+**Empty repo?** No application code yet — `git ls-files` shows nothing outside `docs/`, `.github/`, and dotfiles or config like `README*`, `LICENSE`, `.gitignore` → **skip the scout and the CI offer**: there's nothing to map and no stack to run. Tell the human the plan's first sprint will **bootstrap** the project — skeleton, test runner, smoke recipe, CI — and leave the brief's placeholders for it. Go straight to **Ready to run**.
+
 **Draft the brief.** If `docs/codebase-structure.md` still has `<!-- … -->` placeholders, dispatch the `pod:scout` subagent via the Agent tool to map the project (prompt: the repo root path). It drafts the brief and records gotchas under `docs/known-issues/`. Relay its summary: what it wrote, its coverage, the known issues it found, whether the smoke recipe was verified, and what's left for the human.
 
 **Offer CI if there's none.** If the brief's `## CI` section says `none`, tell the human pod's checks are otherwise all run by the agents themselves, and **ask** whether to add a minimal GitHub Actions workflow. Only on a yes, write `.github/workflows/pod-ci.yml`, triggered on `pull_request` and on `push` to the merge-target, with two jobs:
@@ -21,6 +23,13 @@ cp -rn "${CLAUDE_PLUGIN_ROOT}/skills/init/scaffold/docs/." docs/
 - **secrets** — `actions/checkout@v4` with `fetch-depth: 0`, then `gitleaks/gitleaks-action@v2` with `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}` in `env`. Tell the human it's free for personal repos; an organization repo needs a `GITLEAKS_LICENSE` secret.
 
 Don't commit it — list it with the other new files, and update the brief's `## CI` section to describe it.
+
+**Ready to run.** `/pod:code` and `/pod:autopilot` need a GitHub remote and a pushed first commit; check both now so they don't halt later. For each that fails, show the exact fix and **ask** before running it — it creates things outside this machine:
+
+- `git remote get-url origin` fails → `gh repo create <owner>/<name> --private --source . --remote origin` (or the human's own remote).
+- No commit on the merge-target (`git rev-parse --verify HEAD` fails) or it's not on origin (`git ls-remote --heads origin <merge-target>` empty) → commit the new pod files as the first commit and `git push -u origin <merge-target>`. This is the one commit pod makes on the merge-target itself; say so.
+
+Report each as `ready` / `fixed` / `missing — <fix>`.
 
 Finish by telling the human to:
 

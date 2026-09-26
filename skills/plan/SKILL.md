@@ -16,6 +16,8 @@ Work in thinking mode. Produce a strategic main plan under `docs/plans/`. Do not
 
    If `docs/` is empty, note it in the plan's Assumptions and ground in the codebase via `Read`, `Grep`, `Glob`.
 
+   **No application code yet** (only docs and config) → the plan's first sprint starts with a **bootstrap**: the thinnest runnable skeleton of the chosen stack, its test runner, the brief's `## Smoke recipe` and `## CI` filled in, and a CI workflow on pull requests. Put it in that sprint's Goal; the sprint-planner makes it wave 1's only slice, and `/pod:autopilot` accepts the missing smoke recipe and CI until it lands.
+
 2. **Interview the user.** Invoke the `grill-me` skill via the `Skill` tool. If unavailable, interview the user manually until you both share the same path through the decision tree — same goal, scope, constraints, trade-offs accepted. Mark `Grilled-with: grill-me` or `Grilled-with: manual` in the plan header. Do not commit a plan to disk before this is done.
 
 3. **Write the plan** to `docs/plans/<slug>.md`. `<slug>` is short kebab-case (e.g. `parent-portal-mvp`). If the file already exists, ask the user: update or new?

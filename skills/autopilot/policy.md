@@ -27,6 +27,8 @@ Halt at gate 3, naming what's missing, unless `--no-ci` was passed:
 
 - The brief's `## CI` section is not `none`, **and** the repo has CI that runs on pull requests — for GitHub Actions, a file in `.github/workflows/` whose `on:` includes `pull_request`, on the merge-target's current commit.
 - No CI → tell the human to run `/pod:init` (it offers a minimal workflow) or re-run with `--no-ci`.
+- **Bootstrap exception:** the first sprint's wave 1 is a `B1` `Bootstrap:` slice (empty repo) → skip this check at preflight. `B1` adds the workflow, which runs on its own wave PR, so the at-least-one-check rule still holds for that PR. Re-check after `B1`'s wave merges (the workflow must now be on `<plan-slug>`); still missing → halt at gate 3.
+- **Escalation valve on the bootstrap wave:** `B1`'s `medium` is expected (it had no smoke recipe to verify with) — don't halt on it; `low` still halts.
 
 ## Halt gates
 

@@ -27,7 +27,8 @@ Before pre-creating worktrees, halt naming the first check that fails:
 - `origin` remote exists (`git remote get-url origin`).
 - The merge-target is on origin (`git ls-remote --heads origin <merge-target>` returns a ref).
 - Every non-slice prerequisite (new dependencies, the plan/sprint docs) is committed and pushed to the merge-target.
-- `docs/codebase-structure.md`'s `## Smoke recipe` is filled in — no `<!-- … -->` placeholders left. Unfilled, every engineer caps Confidence at `medium` and ships unverified, and gate 6 doesn't catch it.
+- `docs/codebase-structure.md`'s `## Smoke recipe` is filled in — no `<!-- … -->` placeholders left. Unfilled, every engineer caps Confidence at `medium` and ships unverified, and gate 6 doesn't catch it. **Exception — bootstrap:** the first sprint's wave 1 is a `B1` `Bootstrap:` slice (an empty repo; see `${CLAUDE_PLUGIN_ROOT}/agents/sprint-planner.md`). Skip this check; `B1` fills the recipe. Re-check it once `B1`'s wave merges, before wave 2 — still unfilled → halt `BLOCKED` from `orchestrator`.
+- Missing `origin` or a first commit → tell the human to run `/pod:init`, which checks both and offers the fix.
 
 Then **create the plan integration branch** (skip if `git ls-remote --heads origin <plan-slug>` exists — resuming): `git fetch origin && git branch <plan-slug> origin/<merge-target> && git push -u origin <plan-slug>`.
 
@@ -44,6 +45,8 @@ For each sprint row, read `docs/sprints/<sprint-slug>.md` (re-read on resume to 
 5. `git push origin HEAD:<plan-slug>` (a plain fast-forward push — never force), `git pull origin <plan-slug>` in the parent repo, tear down the sync worktree. Note `synced <N> commits` for the Sprint summary.
 
 ### Per wave (run in order)
+
+**Bootstrap wave** (`B1` alone): the parent repo's brief has no smoke recipe yet — verify the wave head with the one `B1` wrote (the wave-head worktree's `docs/codebase-structure.md`); `B1` itself verifies without one, so its Confidence cap at `medium` is expected, not a stop.
 
 **Resume a halted wave:** re-dispatch each `blocked` slice fresh — reset its worktree if it exists (per convention) else recreate it (step 2); dispatch (step 3) with any still-`pending` slice. Skip `pushed`, `merged`, and `done`.
 
