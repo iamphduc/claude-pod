@@ -9,7 +9,7 @@ A *wave* is a batch of slices with non-overlapping file ownership, built concurr
 Requires Claude Code, `git`, and an authenticated `gh` CLI. pod is a Claude Code plugin. Inside Claude Code, run:
 
 ```
-/plugin marketplace add iamphduc/claude-pods
+/plugin marketplace add iamphduc/claude-pod
 /plugin install pod@pod
 ```
 
@@ -22,7 +22,7 @@ Then, from your project root (new or existing repo), run `/pod:init`. It creates
 
 Review the scout's draft and fill anything it left open. The agents, skills, templates, and policy docs stay inside the plugin — nothing else is copied into your repo.
 
-To use a local clone instead of GitHub, pass its path: `/plugin marketplace add /path/to/claude-pods`. For a one-off session without installing: `claude --plugin-dir /path/to/claude-pods`.
+To use a local clone instead of GitHub, pass its path: `/plugin marketplace add /path/to/claude-pod`. For a one-off session without installing: `claude --plugin-dir /path/to/claude-pod`.
 
 ### Update
 
