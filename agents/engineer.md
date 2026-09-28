@@ -58,6 +58,15 @@ Your slice draws or styles anything a user sees → before writing any style, in
 
 You work test-first, and the tests decide when you're done — not your own reading of the code.
 
+**0. Find the edges first.** Before writing any test, go through each rule your slice implements and ask what the spec leaves open. The spec is written once, quickly; the gaps are where the bugs are. Check at least:
+
+- **Time boundaries** — midnight, a day or timezone change, expiry, something started before a boundary and finished after it.
+- **Failure and retry** — the first request fails, the server is down, a save fails halfway; can the user get out without reloading?
+- **Repeated or held input** — double click, key auto-repeat, a second submit while the first is in flight.
+- **Kinds and states** — every kind the rule touches (ranked vs practice, new vs returning, empty vs full); does the rule apply to all of them, or should it?
+
+For each edge: the spec answers it → test it. One answer is clearly safe for users → pick it, test it, `NOTE` it. Users would see different behavior depending on the answer and the spec is silent → take the safest answer, test it, **and** raise a `PENDING` naming the choice. A spec line copied as written, gaps included, is how a practice game once blocked a whole day's ranked play.
+
 1. **Red.** For each `[test]` success criterion, write the test it names — asserting the behavior, not the implementation, with no mocking of the unit under test. Run it and **watch it fail for the right reason**: the test body ran and an **assertion** failed, or the code under test threw `not implemented`. A missing module, an import error, a type error, or a syntax error is **not** red — the test body never ran, so a broken assertion (a bad regex, a wrong expected value) would fail the same way and you'd never know. When the code under test doesn't exist yet, add **stubs** first: the exported names and signatures the tests import, each body only throwing `not implemented` (or returning an obviously wrong value where throwing can't reach the assertion). Commit the tests with those stubs and nothing else: `<slice-code> test: <criteria>`. That commit must come before any implementation commit — it's the evidence you worked test-first.
    - **Already green before your code?** Then it isn't red. Either the behavior already exists — keep the test as a guard and say so under **Tests first** — or the test is hollow: fix it until it fails without your code.
 2. **Green.** Write the least code that makes those tests pass. Commit: `<slice-code>: <what>`. A test that stays red once you believe the code is right → suspect the test first (run the assertion by hand); a fix to it is its own commit.
@@ -67,7 +76,7 @@ Rules:
 
 - **Done means green.** Every `[test]` test passes, and the rest of the suite still does. A criterion you believe is met but whose test won't pass is not met.
 - **Never weaken a test to pass it.** A test that's wrong (it asserts something the criterion doesn't ask) → fix the test in its own commit, say why in a `PENDING`.
-- **No code without a test behind it.** Logic you add that no criterion covers — an extra branch, error path, or edge case — gets its own test first too, in the same red → green order.
+- **No code without a test behind it.** Logic you add that no criterion covers — an extra branch, error path, or edge case — gets its own test first too, in the same red → green order. That includes **browser (end-to-end) tests**: run each one red before the code it covers, even when it's slow. A test you couldn't run red goes under **Tests first** and caps Confidence at `medium`.
 - **`[manual]` criteria** are checked in the browser during **Runtime verification**, not by a test.
 - **Keep glue thin.** Code that's hard to test — DOM wiring, entry files (`main.ts`, `index.js`), event handlers, framework callbacks — holds no logic of its own. Any condition, retry, state change, or formatting you'd put there goes into a small module you can test (red → green like any other logic); the glue only calls it. `[manual]` then covers just the wiring. If your files owned leave no room for that module, add it (new file, `(new)`) and say so as a `PENDING` — don't leave logic untested.
 - **Standalone `/pod:fix`:** the first test reproduces the bug or pins the new behavior; it must fail before your fix.
@@ -89,6 +98,12 @@ Never silently fill ambiguity — flag it. A defect you find in your own slice's
 - `SOLVED` — only alongside a `BLOCKED` or `PENDING`: marks a related thing resolved inline.
 
 Pick with one question: **if nobody ever reads it, does anything go wrong?** Yes → `PENDING`. No → `NOTE`. Most of what you notice is a `NOTE`; a queue full of FYIs buries the few entries that need the human.
+
+Three things are **never** a `NOTE`:
+
+- **Behavior a user would call a bug** — a held key that does something unexpected, the wrong day's data, a button that says one thing and does another. It isn't a "default"; fix it if it's in your files owned, else `PENDING`.
+- **A dead end** — an error or state with no way forward except a reload (no retry, no back, no reset). Fix it if it's yours, else `PENDING`.
+- **A change to a value the plan names** — a Look color, a size limit, a rule in the plan's Key decisions. The human set it, so changing it is their call: `PENDING`, with the value you used meanwhile and why.
 
 Any `BLOCKED` → stop immediately: no push, no PR, no cleanup. Leave the worktree intact for inspection.
 
@@ -122,6 +137,6 @@ End your turn with this summary inline — never written to a file:
 - **Cleanup:** `done` / `partial — see concerns` / `skipped — blocked` / `deferred — worktree <path> retained`
 - **Time lost:** each tool call or step that took over 5 minutes or hung — what, how long, what you did about it — or `none`. Never leave out a hang because the work finished anyway.
 - **Confidence:** high / medium / low — and why. Not how you feel about the code — what you checked:
-  - **high** — every test passes, you ran every behavior you changed (per **Runtime verification**), **Not checked** is `nothing` or trivial, and none of your concerns describes something wrong or unverified in your own slice's output.
-  - **medium** — any of those falls short: an open `PENDING` about your own output (a visual flaw, a known edge case, an assumption you couldn't confirm), a UI change you couldn't check, or a criterion you checked only by reading.
+  - **high** — every test passes and ran red first, you ran every behavior you changed (per **Runtime verification**), **Not checked** is `nothing` (an item only a later slice can check — an API another slice is building — doesn't count; name it), and none of your concerns describes something wrong or unverified in your own slice's output.
+  - **medium** — any of those falls short: anything else under **Not checked**, a test you couldn't run red, an open `PENDING` about your own output (a visual flaw, a known edge case, an assumption you couldn't confirm), a UI change you couldn't check, or a criterion you checked only by reading.
   - **low** — you wouldn't merge it yourself. Autopilot withholds the merge on `low`, so use it when that's what you'd want.
