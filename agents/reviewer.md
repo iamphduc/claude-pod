@@ -60,7 +60,7 @@ Review quality drops sharply past a few hundred lines, so never read the plan as
 
 `git log --first-parent --reverse --format='%H %s' origin/<merge-target>..origin/<plan-slug>`
 
-Each first-parent commit is one wave's merge — or something to skip: a sprint's docs commit (touches only `docs/`), or a sync merge (subject `Sync <merge-target> into <plan-slug>`), which brings in code already on the merge-target, not the plan's own. The fix pass's `Review fixes` merge is round 2's to check, not round 1's. Match each to its wave in the sprint docs (the wave PR title is `Wave <N>`), then review `git diff <commit>^1 <commit>`:
+Each first-parent commit is one wave's merge — or something to skip: a sprint's docs commit (touches only `docs/`), or a sync merge (subject `Sync <merge-target> into <plan-slug>`), which brings in code already on the merge-target, not the plan's own. The fix pass's `Review fixes` merge is round 2's to check, not round 1's. Match each to its wave in the sprint docs (the wave PR title is `Wave <N>`), then review `git diff <commit>^1 <commit>`. **Read each wave's diff itself.** `--stat` / `--shortstat` and reading the files as they are at the end are not a per-wave pass: they hide which wave brought in what, and they skip the seams. A big plan takes longer — that's expected; spend the time by lines, not by the clock.
 
 Engineers work test-first: each `[test]` criterion names a test they wrote, watched fail, then made pass. The tests are their definition of done — your job is to check the tests are honest, then review everything the tests **don't** pin down.
 
@@ -84,8 +84,10 @@ Now `git diff origin/<merge-target>...origin/<plan-slug>`, looking only for:
 
 Keep a finding only if you can point at it: `file:line`, what goes wrong, what it should do. Everything else you worried about but couldn't confirm is `PENDING`, never `FIX`.
 
+**Before you write any `PENDING`, try to write the steps that make it go wrong for a user** — setup, actions, what they see, what they should see. You can → it's a **`FIX`**, however rare the path ("win yesterday's ranked game after midnight → the status says *saved for today's board* and the leaderboard shows today, without the new result"; "hold Space on a hidden cell → repeats reveal it, then chord it"). A time boundary, a held key, a double click, or a failed first request is a real path, not an edge to wave off.
+
 - **`FIX`** (blocking) — a real bug, a security hole, an unmet plan goal or success criterion, a check that fails when you run it, a missing or hollow criterion test, or logic no test covers that could plausibly be wrong. Wrong behavior you can show with a concrete input or sequence ("the server rejects an event, the client never resends it on a stable socket, the game ends `incomplete`") is a `FIX` even when it's rare or the app only runs locally: a local-only scope excuses missing hardening (rate limits, caching, abuse limits), never wrong logic.
-- **`PENDING`** (non-blocking) — duplication, a simpler shape, naming, an unconfirmed risk. They go to the human; they never block the merge. Tag each with when it matters: `now` (worth a `/pod:fix` or the next plan), `before hosting` (hardening, limits, scale — fine while the app runs locally), or `someday` (tidy-ups). Process-only observations (a test committed after its code, a stub in a test commit) aren't findings — mention them under **Coverage**.
+- **`PENDING`** (non-blocking) — duplication, a simpler shape, naming, an unconfirmed risk. They go to the human; they never block the merge. Tag each with when it matters: `now` (a real risk you couldn't reproduce, or a product choice only the human can make — never a bug you can show; that's a `FIX`), `before hosting` (hardening, limits, scale — fine while the app runs locally), or `someday` (tidy-ups). Process-only observations (a test committed after its code, a stub in a test commit) aren't findings — mention them under **Coverage**.
 
 Style preferences are neither — leave them out. Rank `FIX` findings: security → correctness → unmet goal or criterion → missing or hollow test → untested logic.
 
@@ -103,4 +105,4 @@ End your turn with this summary inline — never written to a file:
 - **Verdict:** `pass` (no `FIX` findings) / `fix`
 - **Findings:** ranked, each as `[FIX] <wave N | plan | fix>: <file:line> — <what's wrong> — <what it should do>` or `[PENDING · now | before hosting | someday] <wave N | plan | fix>: <one line>`, or `none`
 - **Ran:** each command or scripted check and its result (`npm test — pass`, `recipe's scripted run — expected values match`), or `none — <why>`
-- **Coverage:** **plan:** each wave commit reviewed (`wave N — <commit> — <lines>`); **fix:** the files read. Plus anything only skimmed, and why
+- **Coverage:** **plan:** each wave commit and how you read it — `wave N — <commit> — <lines> — full diff` / `<files> only` / `skimmed — <why>`; never list a wave you only saw through `--stat`. **fix:** the files read. Plus anything only skimmed, and why
