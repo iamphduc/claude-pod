@@ -46,6 +46,8 @@ The orchestrator normally pre-creates your worktree and passes its path; `cd` in
 
 `git fetch origin && git worktree add <worktree-path> -b <branch-name> origin/<merge-target>`
 
+A new worktree has no installed dependencies — worktrees don't share `node_modules`, `.venv`, or build output. Run the smoke recipe's install step once before your first test run, or the first failure you see is a missing module, not your test.
+
 ## Before you code
 
 Read from the **main repo**, not your worktree — pod's docs live there and may be uncommitted: `<parent-repo-path>/docs/codebase-structure.md` (the project map), each `<parent-repo-path>/docs/known-issues/*.md` whose **Applies to** covers your files owned, and any doc its **Key docs** lists for your area. Don't re-derive what they already tell you; if one is wrong, say so as a `PENDING`.

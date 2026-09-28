@@ -17,6 +17,8 @@ Work in thinking mode. Draft the next `planned` sprint from `docs/plans/<plan-sl
    - `docs/known-issues/*.md` — durable constraints
    - `docs/handoff-queue.md` — fold relevant unresolved `PENDING` entries into this sprint; any pending `BLOCKED` entry → stop and tell the human. A `PENDING` that waits on the human's choice (confirm a value, pick a rule) isn't work to fold: build on the value already in use, don't re-ask it, and leave it for the plan-end sort. A choice this sprint can't be planned without → stop and ask. When you change a value the plan's `## Look` names (e.g. a color that fails contrast), raise it as a `PENDING` with each option as exact values and the reason — the orchestrator turns it into a design draft for the human.
    - Existing `docs/sprints/<sprint-slug>.md` — if a draft exists, stop and surface it; don't overwrite.
+   - **Earlier sprints of this plan** (`docs/sprints/archive/`) — only their **Shared contract** and **Sprint summary** sections. Not the per-slice detail: it's history, and reading it in full makes every sprint's planning cost more than the last.
+   - **The code** — only what this sprint's slices will touch or build on: find it with `Grep`/`Glob`, read those files. Not a tour of the whole codebase; the brief already gives the map.
 
 ## Output
 
@@ -26,7 +28,7 @@ Write `docs/sprints/<sprint-slug>.md` from the **Sprint doc template** below, fo
 
 **The look.** Read the plan's `## Look`. When it isn't `none`, the first sprint that builds user interface gets a **look foundation** slice (`L1`, title starting `Look:`) in the earliest wave it can join, and every slice that draws or styles UI depends on it. `L1` turns the Look into code once: palette and type scale as design tokens (CSS custom properties, plus a TS/JS/Python mirror if the code needs them), self-hosted font files, spacing, and base styles for the controls the app uses — it owns those theme files, and no other slice edits them. Its criteria: `[test]` every token the Look names exists with its value, text/background pairs meet 4.5:1 contrast, fonts load from the app's own origin; `[manual]` a close-up at full size shows the display and body fonts, and look-alike glyphs (C/O, 5/S, 2/8, 1/l) read clearly. Every UI slice's Scope then says: **invoke the `frontend-design` skill before styling, use only the tokens, and follow the plan's Look**; its `[manual]` criteria name what to look at, at 1280 px and 375 px.
 
-**Bootstrap (no application code yet — `git ls-files` shows only docs and config).** Wave 1 is one slice, code `B1`, title starting `Bootstrap:`, that every other slice depends on. It builds the walking skeleton: the thinnest version of the stack that starts, answers, and has one passing test. Its Files owned include the project skeleton, the test runner config, `docs/codebase-structure.md` (it fills **Stack & conventions**, **`## Smoke recipe`** — start commands, ports read from env, a `Verification:` command — and **`## CI`**), and `.github/workflows/pod-ci.yml`. The workflow triggers on `pull_request` and on `push` to the merge-target, with a **verify** job (checkout, runtime setup, install, the smoke recipe's `Verification:` command) and a **secrets** job (`gitleaks/gitleaks-action@v2`, checkout with `fetch-depth: 0`, `GITHUB_TOKEN` in `env`). Criteria: `[test]` the sample test runs red, then green; `[manual]` the app starts per the recipe and answers on its ports; `[manual]` the recipe's `Verification:` command passes from a clean install. Because the workflow is in the wave's own PR, CI runs on that PR.
+**Bootstrap (no application code yet — `git ls-files` shows only docs and config).** Wave 1 is one slice, code `B1`, title starting `Bootstrap:`, that every other slice depends on. It builds the walking skeleton: the thinnest version of the stack that starts, answers, and has one passing test. Its Files owned include the project skeleton, the test runner config, `docs/codebase-structure.md` (it fills **Stack & conventions**, **`## Smoke recipe`** — start commands, ports read from env, a `Verification:` command, an install step — and **`127.0.0.1`, not `localhost`**, in the recipe, tests, and scripts: on Windows `localhost` tries IPv6 first, and a server listening on IPv4 costs about 2 s per connection — and **`## CI`**), and `.github/workflows/pod-ci.yml`. The workflow triggers on `pull_request` and on `push` to the merge-target, with a **verify** job (checkout, runtime setup, install, the smoke recipe's `Verification:` command) and a **secrets** job (`gitleaks/gitleaks-action@v2`, checkout with `fetch-depth: 0`, `GITHUB_TOKEN` in `env`). Criteria: `[test]` the sample test runs red, then green; `[manual]` the app starts per the recipe and answers on its ports; `[manual]` the recipe's `Verification:` command passes from a clean install. Because the workflow is in the wave's own PR, CI runs on that PR.
 
 End your turn telling the user to review the sprint doc, then run `/pod:code` (or `/pod:autopilot`).
 
@@ -45,10 +47,14 @@ _From plan: docs/plans/<plan-slug>.md · Slug: <sprint-slug> · Status: <active 
 
 Wave membership lives in the **Wave** column — **computed by the planner, not authored** (see Field semantics). Slices in a wave run in parallel and own disjoint files. Authored levels: **plan → sprint → slice**. Engineers push branches; the orchestrator integrates each wave into **one PR** on the plan branch (see **Branch naming**).
 
+## Shared contract
+
+What more than one slice depends on, stated once: shared types and their fields, API routes (method, path, request → response, errors), storage shapes, and every rule slices must agree on — each with its edges (see **Rules name their edges**). Slices point here instead of restating it; the next sprint's planner reads this section, not the slices.
+
 ## Per-slice detail
 
 ### <slice-code>: <title>
-- **Scope:** what to do; what NOT to do
+- **Scope:** what to do; what NOT to do — *what*, not *how*. Name plan values and contract items ("the Look's number colors", "`GET /api/daily` from the contract"); don't copy them in.
 - **Files owned:** explicit paths, **test files included** (disjoint within the same wave)
 - **Success criteria:** one line each —
   - `[test] <behavior> — <test file> › <test name>` — the test the engineer writes **first**
@@ -57,6 +63,8 @@ Wave membership lives in the **Wave** column — **computed by the planner, not 
 ````
 
 The orchestrator appends a **Sprint summary** at archive time (see the end of this file) — don't write one.
+
+**Keep the doc under ~20 KB.** Every engineer in the sprint reads it whole, and so does the next planner and the reviewer; a 40 KB doc is paid for many times over. Cut restated plan values and implementation detail before cutting criteria.
 
 ## Field rules
 
@@ -81,4 +89,4 @@ Appended by the orchestrator after the last wave completes, immediately before a
 - **Slices shipped:** <slice-code list> (each engineer worked test-first and browser-verified its own runtime)
 - **Queue entries:** resolved <N>, deferred <M> — link the deferred ones inline
 - **Slice log:** one line per slice — `<slice-code>: <Confidence> · test-first <yes | partly — why | n/a> · runtime <what was driven> · <N> NOTEs · time lost <none | what>` — plus each wave fix and stall. `/pod:report` builds its agent timeline from this
-- **Approximate token cost:** <number or rough range>
+- **Agent context at hand-back:** <sum of the `subagent_tokens` each agent's completion reports> — *each agent's final context size, not tokens billed*; say so wherever it's quoted
