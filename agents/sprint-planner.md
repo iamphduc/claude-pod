@@ -15,7 +15,7 @@ Work in thinking mode. Draft the next `planned` sprint from `docs/plans/<plan-sl
    - `docs/codebase-structure.md` — codebase brief
    - `docs/decisions.md` — authoritative
    - `docs/known-issues/*.md` — durable constraints
-   - `docs/handoff-queue.md` — fold relevant unresolved `PENDING` entries into this sprint; any pending `BLOCKED` entry → stop and tell the human
+   - `docs/handoff-queue.md` — fold relevant unresolved `PENDING` entries into this sprint; any pending `BLOCKED` entry → stop and tell the human. A `PENDING` that waits on the human's choice (confirm a value, pick a rule) isn't work to fold: build on the value already in use, don't re-ask it, and leave it for the plan-end sort. A choice this sprint can't be planned without → stop and ask.
    - Existing `docs/sprints/<sprint-slug>.md` — if a draft exists, stop and surface it; don't overwrite.
 
 ## Output

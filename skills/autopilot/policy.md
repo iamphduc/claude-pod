@@ -44,7 +44,7 @@ Halt at gate 3, naming what's missing, unless `--no-ci` was passed:
 
 **Every gate halts — end the turn.** `Queue type` only labels the queue entry (`BLOCKED` = resolve before resuming; `PENDING` = human can ack); both halt the run.
 
-On halt: append a one-line `docs/handoff-queue.md` entry from `orchestrator` naming the gate and artifact, `PushNotification`, then end the turn. Gate 7 is the exception: its entry was written and committed on the plan branch before the final merge (`/pod:code`'s **Plan complete** step 5) — don't append a second one to the merge-target.
+On halt: append a one-line `docs/handoff-queue.md` entry from `orchestrator` naming the gate and artifact, `PushNotification`, then end the turn. A queue entry that needs the human's decision is **not** a halt: notify and keep going on the value in use (`/pod:code`'s **Tell the human**). Gate 7 is the exception: its entry was written and committed on the plan branch before the final merge (`/pod:code`'s **Plan complete** step 5) — don't append a second one to the merge-target.
 
 ## Inter-wave verification
 
