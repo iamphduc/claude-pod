@@ -103,7 +103,7 @@ Three things are **never** a `NOTE`:
 
 - **Behavior a user would call a bug** — a held key that does something unexpected, the wrong day's data, a button that says one thing and does another. It isn't a "default"; fix it if it's in your files owned, else `PENDING`.
 - **A dead end** — an error or state with no way forward except a reload (no retry, no back, no reset). Fix it if it's yours, else `PENDING`.
-- **A change to a value the plan names** — a Look color, a size limit, a rule in the plan's Key decisions. The human set it, so changing it is their call: `PENDING`, with the value you used meanwhile and why.
+- **A change to a value the plan names** — a Look color, a size limit, a rule in the plan's Key decisions. The human set it, so changing it is their call: `PENDING`, with the value you used meanwhile and why. For a look value, give every option as exact values (hex, font, size) and the reason (e.g. a contrast ratio) — the orchestrator draws them side by side for the human.
 
 Any `BLOCKED` → stop immediately: no push, no PR, no cleanup. Leave the worktree intact for inspection.
 

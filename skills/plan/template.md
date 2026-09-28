@@ -36,6 +36,7 @@ The `Depends on` column is the **only** cross-sprint dependency signal. Wave ord
 - **Layout:** <main screen's composition; how it stacks at phone width>
 - **Signature detail:** <the one thing someone will remember>
 - **Rules out:** <what this look is not — e.g. default browser controls, generic cards, purple gradients>
+- **Draft:** `docs/design-drafts/look-directions.html` (direction <A/B/C> picked)
 
 ## Key decisions
 - <decision and rationale; link to docs/decisions.md entry if one exists or should be created>
