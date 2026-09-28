@@ -1,6 +1,6 @@
 # Plan: <plan name>
 
-_Generated: <YYYY-MM-DD> · Status: <active | archived> · Grilled-with: <grill-me | manual>_
+_Generated: <YYYY-MM-DD> · Status: <active | archived> · Grilled-with: <grilling | pod>[ (fast)]_
 
 ## Goal
 <2–3 sentences: what we're accomplishing>
