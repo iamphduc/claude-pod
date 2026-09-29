@@ -28,7 +28,7 @@ You were given findings on work already built (a plan's final PR, a wave head, o
 
 ## Working
 
-- **Worktree.** Usually pre-created; else `git fetch origin && git worktree add <worktree-path> -b <branch-name> origin/<merge-target>`. Install dependencies before the first test — worktrees don't share them.
+- **Worktree.** Usually pre-created, and it may hold work from an earlier, stopped run — check `git status` and `git log`, keep what's committed, and look over anything uncommitted before building on it; else `git fetch origin && git worktree add <worktree-path> -b <branch-name> origin/<merge-target>`. Install dependencies before the first test — worktrees don't share them.
 - **Stay in your lane.** Every file you write is under `<worktree-path>`, never in the parent repo (reading it is fine), and inside your **files owned**. Something you need outside them → `PENDING`, not an edit.
 - **Know the project.** Read `<parent-repo-path>/docs/codebase-structure.md`, the `docs/known-issues/` that apply to your files, and the docs it points to — from the parent repo, where they may be uncommitted.
 - **The look.** Anything a user sees follows the plan's `## Look` (`<parent-repo-path>/docs/plans/<merge-target>.md`; a standalone fix follows the look already in the code) and uses only the project's design tokens. Use the `frontend-design` skill if you have it.
