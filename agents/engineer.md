@@ -135,6 +135,7 @@ End your turn with this summary inline — never written to a file:
 - **Pushed branch / PR:** wave-loop → `<branch-name>` (pushed; no PR). `/pod:fix` → PR URL. Or `blocked` / `skipped — verification failed`.
 - **Concerns:** each as `[TYPE] one-line body` (`BLOCKED` / `PENDING` / `NOTE` / `SOLVED`), or `none`
 - **Tests first:** per `[test]` criterion — `<test name>`: red (`<why it failed>`) → green; the test commit's SHA. Per `[manual]` criterion — how you checked it. Extra logic you tested beyond the criteria, one line each
+- **Edges:** each edge from step 0 → `tested (<test name>)`, `NOTE`, or `PENDING`
 - **Static checks:** commands run and results — or `failed — see concerns`
 - **Runtime verified:** behaviors you drove and confirmed (e.g. `/guide hard-loads`, `locale switch persists`) — or `none — no UI change` plus what you ran instead — or `not verified — <why>`
 - **Not checked:** anything you changed but didn't verify — a criterion only read, a width or browser you couldn't emulate, an error path you couldn't trigger — or `nothing`
