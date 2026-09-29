@@ -10,7 +10,7 @@ Args: the plan slug (none → list `docs/plans/*.md` not `Status: archived` and 
 ## Guardrails
 
 - **One plan branch, one final PR.** `<plan-slug>` is cut off `origin/<merge-target>` once; slices and wave heads branch off it and wave PRs target it. The merge-target sees the plan only through the final PR.
-- **Never work in the parent repo's checkout.** Its `docs/` holds uncommitted sprint state. Wave heads, the sync, the fix pass, and the review each get their own worktree under `<parent-repo>/.claude/worktrees/`. Run teardown from the parent repo, never from inside a worktree.
+- **The parent repo only holds docs.** It sits on `<plan-slug>` for the whole plan and its `docs/` holds uncommitted sprint state, so it only takes `docs/` commits and pulls. Code is built and merged in worktrees: wave heads, the sync, the fix pass, and the review each get their own under `<parent-repo>/.claude/worktrees/`. Run teardown from the parent repo, never from inside a worktree.
 - **Disjoint files.** Before dispatching a wave, intersect its slices' `Files owned`; any overlap → halt `BLOCKED` naming both slices and the path. When integrating, a slice that touched files outside its own → a `NOTE` naming them (a `PENDING` if another slice owns them).
 - **Nothing broken moves forward.** A merge conflict, a failed smoke recipe, or a slice's `BLOCKED` → halt `BLOCKED` from `orchestrator`, naming the cause and its queue entry.
 - **No force.** No `--force`, `-D`, or force-push. A teardown that fails is left in place and named in the hand-back.
@@ -34,7 +34,7 @@ Halt on the first that fails: `origin` exists; the merge-target is on origin; th
 
 On Windows, run `git config core.longpaths true` once: dependency folders in a worktree pass the 260-character path limit, and without it `git worktree remove` fails with "Filename too long".
 
-Then create `<plan-slug>` off `origin/<merge-target>` and push it (skip if it's already on origin).
+Then create `<plan-slug>` off `origin/<merge-target>` and push it (skip if it's already on origin), and check it out in the parent repo — uncommitted docs come with it.
 
 ## The loop
 
@@ -77,4 +77,4 @@ Code is reviewed once, here, on the whole plan (why: `${CLAUDE_PLUGIN_ROOT}/docs
 
 **Try it:** `try` → start the app from the parent repo per the smoke recipe on `3000`/`3001` in the background and reply with the URL(s) and any login. `stop` → stop it and confirm the ports are free.
 
-**On resume:** final PR open with no reviewer comment → step 2; reviewed → end the turn pointing at it; merged → pull `<merge-target>`, delete `<plan-slug>` locally and on origin, re-run step 6's checks, and end `Plan <plan-slug> merged to <merge-target>. Done.` with the **Try it** line.
+**On resume:** final PR open with no reviewer comment → step 2; reviewed → end the turn pointing at it; merged → check out and pull `<merge-target>`, delete `<plan-slug>` locally and on origin, re-run step 6's checks, and end `Plan <plan-slug> merged to <merge-target>. Done.` with the **Try it** line.
