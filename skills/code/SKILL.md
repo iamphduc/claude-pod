@@ -48,6 +48,8 @@ Before pre-creating worktrees, halt naming the first check that fails:
 - `docs/codebase-structure.md`'s `## Smoke recipe` is filled in — no `<!-- … -->` placeholders left. Unfilled, every engineer caps Confidence at `medium` and ships unverified, and gate 6 doesn't catch it. **Exception — bootstrap:** the first sprint's wave 1 is a `B1` `Bootstrap:` slice (an empty repo; see `${CLAUDE_PLUGIN_ROOT}/agents/sprint-planner.md`). Skip this check; `B1` fills the recipe. Re-check it once `B1`'s wave merges, before wave 2 — still unfilled → halt `BLOCKED` from `orchestrator`.
 - Missing `origin` or a first commit → tell the human to run `/pod:init`, which checks both and offers the fix.
 
+On Windows, run `git config core.longpaths true` once: dependency folders in a worktree (`node_modules`) pass the 260-character path limit, and without it `git worktree remove` fails with "Filename too long".
+
 Then **create the plan integration branch** (skip if `git ls-remote --heads origin <plan-slug>` exists — resuming): `git fetch origin && git branch <plan-slug> origin/<merge-target> && git push -u origin <plan-slug>`.
 
 ## The loop
