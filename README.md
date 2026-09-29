@@ -9,7 +9,7 @@ A *wave* is a batch of slices with non-overlapping file ownership, built concurr
 Requires Claude Code, `git`, and an authenticated `gh` CLI. pod is a Claude Code plugin. Inside Claude Code, run:
 
 ```
-/plugin marketplace add iamphduc/claude-pods
+/plugin marketplace add iamphduc/claude-pod
 /plugin install pod@pod
 ```
 
@@ -22,7 +22,13 @@ Then, from your project root (new or existing repo), run `/pod:init`. It creates
 
 Review the scout's draft and fill anything it left open. The agents, skills, templates, and policy docs stay inside the plugin — nothing else is copied into your repo.
 
-To use a local clone instead of GitHub, pass its path: `/plugin marketplace add /path/to/claude-pods`. For a one-off session without installing: `claude --plugin-dir /path/to/claude-pods`.
+To use a local clone instead of GitHub, pass its path: `/plugin marketplace add /path/to/claude-pod`. For a one-off session without installing: `claude --plugin-dir /path/to/claude-pod`.
+
+**Optional:** install the `grilling` skill for a deeper `/pod:plan` interview. Without it, pod runs its own shorter interview.
+
+```
+npx -y skills add mattpocock/skills -g -s grilling -y
+```
 
 ### Update
 
@@ -32,7 +38,7 @@ To use a local clone instead of GitHub, pass its path: `/plugin marketplace add 
 
 The plugin is replaced as a whole, so retired agents and skills disappear on their own. Your `docs/` files are never touched.
 
-### Moving from install.sh
+### Moving from the old copy-based install
 
 The old scripts copied everything into your repo, and those copies take priority over the plugin's skills. Delete them, then install the plugin as above (keep your `codebase-structure.md`, `decisions.md`, `handoff-queue.md`, plans, and sprints):
 
@@ -58,12 +64,12 @@ rm -rf .claude/skills/{autopilot,code,fix,plan,sprint,wave-prompts,review,waves-
 
 | Step | Skill | What happens |
 |---|---|---|
-| 1 | `/pod:plan` | Planner interviews you, writes `docs/plans/<slug>.md` |
+| 1 | `/pod:plan` | Planner interviews you (answer *How deep?* with the fast path to take its recommended answer on anything with a safe default). When there's a UI, it writes an HTML draft, `docs/design-drafts/look-directions.html`, with three **look** directions and every component in every state, and you pick one. Then it writes `docs/plans/<slug>.md` |
 | 2 | `/pod:sprint [slug]` | Drafts `docs/sprints/<slug>.md` — slices grouped into waves by file ownership |
 | — | *read the sprint doc* | **Your quality gate** — catch bad wave grouping or overlapping file ownership before any engineer runs |
-| 3 | `/pod:code [slug]` | Runs the **wave loop**: one worktree per slice, all engineers in the wave dispatched at once, then integrates them into **one PR** onto the plan branch, runs the smoke test on the combined wave, and halts for you to merge |
+| 3 | `/pod:code [slug]` | Runs the **wave loop**: one worktree per slice, all engineers in the wave dispatched at once, then integrates them into **one PR** onto the plan branch, runs the smoke test on the combined wave, checks the **look** at desktop and phone widths on UI waves (noted in the PR), and halts for you to merge |
 | — | merge the wave's PR, reply `continue` | Next wave dispatches — repeat until the sprint's waves are done, then the sprint archives and `continue` chains into the next one. Each new sprint starts by merging anything new on `main` into the plan branch |
-| 4 | *plan complete* | Opens one final PR (plan branch → `main`). The **reviewer** reads it wave by wave, then as a whole; blocking findings get one fix pass. Then it halts for you to merge, with the verdict and any leftover non-blocking findings |
+| 4 | *plan complete* | Opens one final PR (plan branch → `main`). The **reviewer** reads it wave by wave, then as a whole; blocking findings get one fix pass. Then it halts for you to merge, with the verdict, the leftover non-blocking findings sorted, and an **HTML report** of the plan (`docs/reports/<slug>.html`, about 2,000 words: key features, key decisions, data structures, and how the agents worked together; also `/pod:report [slug]` any time). Any choice you didn't answer during the run is written to `docs/decisions.md` as an *agent default*, so you can override it later |
 
 ### Which command, and what it branches off
 
@@ -80,7 +86,7 @@ Prefer to run each engineer yourself, in a terminal you can watch? `/pod:create-
 
 ## Autonomous flow — the waves ride themselves
 
-`/pod:autopilot [plan-slug] [--max-sprints=N] [--max-waves=N] [--max-runtime=Nh] [--no-ci]` runs the whole plan unattended: dispatches each wave, integrates + verifies it, auto-merges the wave PR onto the plan branch (escalating risky ones), chains sprints, then opens the final plan→`main` PR, has the reviewer check it, and merges it on a pass — halting + notifying at each gate. Invoking it is your consent to the auto-merges. It requires CI that runs on pull requests — a PR with no checks is never auto-merged — unless you pass `--no-ci`; `/pod:init` offers a minimal CI workflow if your repo has none. Criteria, defaults, and resume behavior live in the plugin's `skills/autopilot/policy.md`.
+`/pod:autopilot [plan-slug] [--max-sprints=N] [--max-waves=N] [--max-runtime=Nh]` runs the whole plan unattended: dispatches each wave, integrates + verifies it, auto-merges the wave PR onto the plan branch (escalating risky ones), chains sprints, then opens the final plan→`main` PR, has the reviewer check it, and merges it on a pass — halting + notifying at each gate. It also sends you a notification when a choice needs you (for a look choice, with an HTML draft to compare options); the run keeps going with a default meanwhile. Invoking it is your consent to the auto-merges. CI is optional but recommended: with CI, every check must pass before a merge; without it, the check on each combined wave is the gate. `/pod:init` (or `/pod:plan`, on an empty repo) offers a minimal CI workflow. Criteria, defaults, and resume behavior live in the plugin's `skills/autopilot/policy.md`.
 
 ```
                                        ┌────────────────────────────────── SPRINT LOOP (outer) ──────────────────────────────────┐
@@ -116,7 +122,25 @@ docs/
 |   `-- <slug>.md         # active sprint — status board + per-slice detail
 |-- codebase-structure.md # high-level codebase brief (scout drafts, you maintain)
 |-- decisions.md          # architectural decisions, authoritative (you maintain)
+|-- design-drafts/*.html  # look options to pick from
+|-- reports/<slug>.html   # plan report
 `-- handoff-queue.md      # inter-agent comms — BLOCKED halts, PENDING defers, SOLVED informational
 ```
 
 The rules the agents follow live in the plugin, not your repo, so they update with it. Each agent's full instructions are in its own file under `agents/` — they load automatically when the agent starts, so background agents never have to go read a separate file. Skill-only rules sit next to their skill: `skills/autopilot/policy.md` (autopilot's merge criteria and halt gates) and `skills/plan/template.md` (the plan template).
+
+## Editing pod's rules
+
+The files under `agents/` and `skills/` are read by agents on every run, so every line costs tokens and competes for attention. Keep them to three things:
+
+- **Guardrails**: rules that stop real damage or keep you in control. Never touch `main`, no force-push or `-D`, stay inside your files, you are the merge gate, halt and notify on `BLOCKED`, tests first, the reviewer never edits, keep secrets out.
+- **Contracts**: the exact formats one agent passes to another (dispatch fields, the engineer's hand-back, queue entry types, the status board, PR titles). These stay precise.
+- **The goal and the reason** for each role, in a sentence or two.
+
+Leave the rest to the agent. Don't add a rule for one project's bug, a command or flag the model already knows, a step-by-step procedure, a story from a past run, a rule that already lives in another file, or a check-and-redo loop for a soft limit. When a test run finds a problem, fix it with a general check or a reporting step, not a new bullet that names the bug. The one exception is a problem agents can't solve on their own (for example, one your permission rules block).
+
+Why — what the guidance this follows says:
+
+- Anthropic, [Skill authoring best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices): assume Claude is already smart and add only what it doesn't know — the context window is shared, so every line should earn its place. Match the freedom to the risk: give exact steps only for fragile operations, and a goal with room to choose for everything else.
+- Anthropic, [Prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices): newer models follow short instructions *with a reason* better than long lists of ALWAYS/NEVER rules, and prompts written for older, more literal models can make output worse.
+- ETH Zurich, "Evaluating AGENTS.md" ([summary](https://developer.upsun.com/posts/ai/agents-md-less-is-more)): instruction files for coding agents gave little or negative gain in task success while adding over 20% cost.

@@ -4,12 +4,13 @@ Why pod checks work where it does, what each check covers, and what we chose not
 
 ## The short version
 
-- **Each wave: automated gates, no reviewer.** Engineers test their own slice and check it in the browser; the orchestrator checks file ownership and runs the smoke test on the combined wave before opening its PR. Then it merges (you, or autopilot).
-- **End of plan: one reviewer, reading in pieces.** Before the final plan PR goes to `main`, `pod:reviewer` reviews each wave's diff on its own, then the plan as a whole, keeps only findings it can pin to a line, and posts them on the PR.
+- **Each wave: automated gates, no reviewer.** Engineers test their own slice and check it in the browser; the orchestrator checks file ownership and runs the smoke test on the combined wave before opening its PR. Anything wrong it can see there gets fixed there, by one wave-fix engineer, not deferred. Then it merges (you, or autopilot).
+- **Nothing hangs quietly.** The orchestrator checks on its background agents every 15 minutes and restarts one that has stopped making progress.
+- **End of plan: one reviewer, reading in pieces and running the checks.** Before the final plan PR goes to `main`, `pod:reviewer` runs the tests and the smoke recipe's scripted checks, reviews each wave's diff on its own, then the plan as a whole, keeps only findings it can pin to a line, and posts them on the PR.
 - **One fix pass, then merge.** An engineer fixes the blocking findings on one branch; the reviewer checks those fixes once; the PR comes back to you. No loops.
 - **Keep plans small.** A few sprints each, so the end-of-plan review stays readable and late fixes stay cheap.
 - **The plan branch keeps up with `main`.** At the start of each sprint, anything new on `main` is merged into the plan branch and smoke-tested, so conflicts show up small and early.
-- **CI is a real gate.** Autopilot won't treat "no CI checks" as "all checks passed"; `/pod:init` offers a minimal CI workflow when a repo has none.
+- **CI is optional, and a real gate when it's there.** With CI, autopilot needs every check to pass and won't treat "no checks" as a pass; `/pod:init` and `/pod:plan` offer a minimal workflow but don't require it.
 - **Test first, real TDD.** Every success criterion names a test; engineers write it, watch it fail, then make it pass, and the tests decide when they're done. The reviewer checks the tests are honest and reviews what they don't cover.
 - **`/pod:fix` PRs get the same reviewer.** They go straight to `main` with no plan around them, so each one is reviewed before it merges.
 
@@ -39,14 +40,18 @@ Why pod checks work where it does, what each check covers, and what we chose not
 |---|---|---|---|
 | Test first | engineer | every slice | a success criterion not actually met — each has a test written before the code |
 | Static checks | engineer | every slice | broken tests, types, lint, build |
-| Browser check | engineer | every slice | the slice's pages don't work |
+| Edges first | engineer | every slice | a gap the spec left open in a rule — listed and tested before the code |
+| Run it | engineer | every slice | the change doesn't work when used — pages in its own browser session, routes with real requests |
 | Files owned | orchestrator | every wave | a slice edited files it doesn't own |
 | Smoke test | orchestrator | every wave | slices that work alone but break together |
+| Look check | orchestrator | every wave that changes what a user sees | pages off the plan's Look (colors or fonts it doesn't list), sideways scroll at phone width, unreadable text |
+| Wave fix | orchestrator + one engineer | every wave, when needed | a defect you'd see on the combined wave that no check fails on (wrong behavior, unreadable text), proved by a measurement first — fixed before the wave PR |
+| Stall watch | orchestrator | every 15 min while agents run | an agent hung in one tool call |
 | CI | GitHub Actions (or your CI) | every PR | the project's own build/test/lint, secrets committed by mistake — run by something other than the agent that wrote the code |
-| Mechanical merge checks | autopilot | every PR | red or **missing** CI, merge conflicts, open threads |
+| Mechanical merge checks | autopilot | every PR | red CI (or no checks on a repo that has CI), merge conflicts, open threads |
 | Sync with `main` | orchestrator | every sprint start | the plan drifting from `main` (merge conflicts, a `/pod:fix` the plan breaks) |
 | Low-confidence stop | autopilot | every wave | an engineer said it isn't sure |
-| **Code review** | **pod:reviewer** | **end of plan** | bugs, security, unmet goals, missing tests, one wave breaking another, duplicated code |
+| **Code review** | **pod:reviewer** | **end of plan** | bugs, security, unmet goals, missing tests, one wave breaking another, duplicated code — plus a re-run of the tests and scripted smoke checks on the final code |
 | **Code review** | **pod:reviewer** | **every `/pod:fix` PR** | the task not done (or overdone), bugs, security, missing tests |
 
 ## Why no reviewer per wave
@@ -71,25 +76,26 @@ A plan's final PR is easily thousands of lines. The fix, used by GitHub itself, 
 
 ## How the reviewer works
 
-`pod:reviewer` is read-only: it never edits, pushes, merges, or approves.
+`pod:reviewer` never edits, pushes, merges, or approves. It does run things: the only files it leaves behind are build output and caches in its own worktree.
 
-1. **Read the ground truth** from the main repo: the plan (goals, scope, **Verification** section), every archived sprint doc for the plan (each slice's success criteria), the codebase brief, known issues, and decisions.
+1. **Read the ground truth** from the main repo: the plan (goals, scope, **Verification** section), every archived sprint doc for the plan (each slice's success criteria), the codebase brief, known issues, and decisions. Then **run the checks**: the smoke recipe's `Verification:` command, and every scripted check it lists that works without a browser. A failing check is a blocking finding.
 2. **Per-wave pass.** For each first-parent commit on the plan branch (skipping docs-only commits), review `git diff <commit>^1 <commit>`:
-   - **Success criteria** — each slice in that wave meets its criteria in code, not just in its engineer's report.
-   - **Bugs** — edge cases, unhandled errors, and the seams between that wave's slices.
+   - **Honest tests** — each criterion's test exists, would fail if the behavior broke, and isn't weaker than the criterion.
+   - **Beyond the tests** — branches, error paths, and inputs no test covers; code special-cased to pass.
+   - **Bugs** — hardest at the seams between that wave's slices.
    - **Security** — injection, auth bypass, exposed secrets, unsafe deserialization.
-   - **Tests** — new behavior has a test that would fail without it.
+   - **`[manual]` criteria** — the engineer said how each was checked, and the code plausibly does it.
 3. **Whole-plan pass** over the full diff, for what no single wave shows:
    - **Plan goals** — the plan's Goal and Verification criteria hold on the final code.
    - **Later waves breaking earlier ones** — a shared type, route, schema, or config reshaped after something already relied on it.
    - **Duplication across waves** — the same helper written twice by different slices.
-4. **Filter** ([like Claude Code Review](https://www.gend.co/blog/claude-code-review-ai-agents)): keep only findings it can point to by `file:line` with a concrete failure. Rank them — security, then correctness, then unmet goals, then missing tests. Unconfirmed worries become non-blocking.
+4. **Filter** ([like Claude Code Review](https://www.gend.co/blog/claude-code-review-ai-agents)): keep only findings it can point to by `file:line` with a concrete failure. Before calling anything non-blocking, it tries to write the steps that make it go wrong for a user; if it can, it's blocking. Rank them — security, then correctness, then unmet goals, then missing tests.
 5. **Post** the verdict and findings as a comment on the final PR.
 
 Findings are either:
 
-- **`FIX`** (blocking) — a real bug, a security hole, an unmet plan goal or success criterion, or new behavior with no test.
-- **`PENDING`** (non-blocking) — duplication, simpler shapes, risks it couldn't confirm. These go to the handoff queue and are listed for you at hand-back; the next plan can pick them up.
+- **`FIX`** (blocking) — a real bug, a security hole, an unmet plan goal or success criterion, a failing check, or new behavior with no test. Wrong logic is always blocking, even in an app that only runs locally; "local only" excuses missing hardening like rate limits, not bugs.
+- **`PENDING`** (non-blocking) — duplication, simpler shapes, risks it couldn't confirm. Each is tagged `now` / `before hosting` / `someday` and ends with why it isn't a `FIX`: `no repro — <what it tried>`, `product choice`, or `hardening — <what it needs>`. These go to the handoff queue and are listed for you at hand-back; the next plan can pick them up.
 
 ## The fix pass
 
@@ -115,7 +121,7 @@ A `/pod:fix` change skips the whole plan machinery — no sprint doc, no smoke t
 Success criteria used to be prose, and the reviewer judged them by reading code. Now they're tests, written first:
 
 - **The sprint-planner names a test per criterion** — `[test] <behavior> — <file> › <test name>` — and puts the test files in the slice's **Files owned**. `[manual]` is kept for what a test genuinely can't check, like visual layout, and those get checked in the browser.
-- **Engineers do real TDD.** Red: write the named tests and watch them fail for the right reason, then commit the tests alone. Green: the least code that passes them. Refactor with the tests green. Any extra logic no criterion covers gets its own test first too. Engineers never weaken a test to make it pass.
+- **Engineers do real TDD.** Red: write the named tests and watch them fail on an assertion — a missing module or a type error doesn't count, because the test body never ran — then commit the tests with throwing stubs and nothing else. Green: the least code that passes them. Refactor with the tests green. Any extra logic no criterion covers gets its own test first too. Engineers never weaken a test to make it pass.
 - **The tests decide "done".** An engineer doesn't judge its own work by reading it; a slice is done when its criteria's tests pass along with the rest of the suite.
 - **The commit order is the evidence.** Each slice's `test:` commit lands before its implementation, so the reviewer can see test-first happened.
 - **No test runner → set one up first.** The sprint-planner makes that the sprint's first, solo slice; a feature slice never invents one.
@@ -143,7 +149,7 @@ Before, autopilot's "every required check passes" rule was satisfied by a repo w
 
 - **The scout records CI** in the brief: what runs on pull requests, or `none`.
 - **`/pod:init` offers a minimal workflow** when there's none: the smoke recipe's `Verification:` command on every PR, plus a secret scan. You say yes before anything is written.
-- **Autopilot requires CI**: its preflight halts if nothing runs on pull requests, and a PR with **zero** checks is not mergeable. `--no-ci` opts out, on purpose.
+- **Autopilot uses CI when it's there**: with CI, a PR with **zero** checks is not mergeable. Without it, the wave check is the gate. CI was required until the third run, where it ran 25 times and never failed: it repeats the wave check's `Verification:` command, and its own value — a clean-machine run and a secret scan — matters most once an app is hosted. So `/pod:plan` now asks whether the bootstrap should add it, recommending yes.
 - In `/pod:code` you merge, so there's no hard rule — but every hand-back shows the PR's CI status.
 
 ## Where rules live
@@ -152,11 +158,55 @@ An agent's markdown body **is** its system prompt: Claude Code loads it when the
 
 Rules only a **skill** needs sit next to that skill (`skills/autopilot/policy.md`, `skills/plan/template.md`); skills run in the main session, where reading a plugin file is fine. Skills that dispatch an agent read the fields to pass from the agent's own file. `/pod:create-wave-prompts` sessions start with `claude --agent pod:engineer`, so a hand-launched engineer gets the same instructions as a dispatched one.
 
+## Why the rule files are short
+
+After the third run, every agent and skill file was cut to guardrails, contracts, and the goal with its reason — about 16,900 words down to 9,900. The rule for future edits, and the sources behind it, are in the README under "Editing pod's rules".
+
 ## Keep plans small
 
 Reviewing at the end has one real cost: a bug found then was built on for the rest of the plan, so it costs more to fix than it would have mid-plan. Long-lived branches make this worse the longer they live ([Atlassian](https://www.atlassian.com/continuous-delivery/continuous-integration/trunk-based-development), [Ardalis](https://ardalis.com/trunk-based-development-vs-long-lived-feature-branches/)).
 
 So `/pod:plan` aims for **2–4 sprints per plan**. Bigger goals become several plans in a row, each merged to `main` before the next starts. That keeps the final review readable and the plan branch short-lived.
+
+## What the first real run changed
+
+pod's first real run (two plans, 5 sprints, 11 waves, a Flappy Bird game with a server) worked: every plan check held, no merge conflicts, test-first in almost every slice. Reading its transcripts found three problems, each now fixed:
+
+- **An agent hung for 1h53m and nobody noticed.** One engineer's browser call waited inside the page and never answered; the whole wave sat idle, and the engineer's report didn't mention it. A tool call with no timeout just keeps waiting, because no error ever fires to trigger recovery — the standard fix is a watchdog that checks whether the work is still producing output, not whether the process is alive ([DEV — stalled tasks](https://dev.to/bobrenze/how-ai-agents-handle-stalled-tasks-and-timeouts-lessons-from-my-production-failure-1jj9), [DEV — watchdog pattern](https://dev.to/mukesh_13/the-watchdog-pattern-keeping-a-long-running-ai-agent-alive-on-a-bare-vps-56o2), [AgentCenter](https://www.agentcenter.cloud/blogs/how-to-detect-agent-stuck-or-looping)). So: the orchestrator checks each agent's transcript file every 15 minutes and restarts one that hasn't moved; engineers keep browser calls short and report any time lost.
+- **A visible defect was found twice during the waves, then left for the final review.** An engineer, and later the orchestrator, saw that the chosen pixel font made "C" read as "O" and "5" as "S". Both logged it and moved on; the final review then flagged it, costing a fix pass and a second review round. Defects cost more the later they're fixed ([Functionize](https://www.functionize.com/blog/the-cost-of-finding-bugs-later-in-the-sdlc), [ContextQA](https://contextqa.com/blog/cost-of-defects-in-software-testing/)). So: a **wave fix** — one engineer, once per wave, before the wave PR — for what the orchestrator can see on the running wave.
+- **The reviewer never ran anything.** "Never run anything that writes" read as "don't run the tests"; it also filed a real bug (rejected events never resent) as non-blocking because the app only runs locally. Reading code tells you whether it looks right; running it tells you whether it works, and an AI reviewer tends to miss what the AI author missed ([TestMu](https://www.testmuai.com/blog/ai-code-review-vs-verification/), [Endor Labs](https://www.endorlabs.com/learn/ai-code-review-how-to-actually-review-code-an-agent-wrote)). So: the reviewer runs the test suite and the smoke recipe's scripted checks, and wrong logic is always blocking.
+
+A second look at the engineers found four smaller problems in how they judged their own work:
+
+- **"Red" meant four different things** — a failing assertion, a missing module, a type error, a stub committed with the test. A test that fails because its module doesn't exist proves nothing about its assertions: one test with a broken regex "failed first" and could never pass. Claude Code's own issue tracker records the same trap ([anthropics/claude-code#94753](https://github.com/anthropics/claude-code/issues/94753)). Now red means an assertion failed, reached through throwing stubs.
+- **Logic hid in code only checked by hand.** Three slices put real logic (retries, state) in `main.ts` wiring marked `[manual]`, so it shipped untested. The long-standing fix is the **Humble Object** pattern: move the logic out of the hard-to-test part into a small testable module and leave the rest too thin to need a test ([Martin Fowler](https://martinfowler.com/bliki/HumbleObject.html), [xUnit Patterns](http://xunitpatterns.com/Humble%20Object.html)). Planner and engineer now both apply it.
+- **Confidence was always high** — 17 high, 6 medium, 0 low across 23 reports, and every medium came from broken tooling, not doubt. Several "high"s hid a problem the engineer knew about. LLMs rate themselves above their results in general ([arXiv 2512.24661](https://arxiv.org/pdf/2512.24661)). So Confidence is now defined by what was checked, an open concern about your own output caps it at medium, reports list what wasn't checked, and the level goes on the status board so later reviews can compare it with what was found.
+- **Screenshots hid the font problem.** Full-page phone screenshots were shrunk about 2× before the model saw them; only close-up crops showed "C" reading as "O". Vision models downscale large images and blur small text ([DEV — screenshot cropping](https://dev.to/aaroncarlisle94/i-built-a-00005-screenshot-cropper-that-saves-ai-agents-95-on-vision-llm-costs-2c41), [Hugging Face](https://huggingface.co/blog/visheratin/vlm-resolution-curse)). Visual slices now read changed text in full-size close-ups. And slices with no UI no longer run a browser check just to keep "high".
+
+**The queue filled with FYIs.** By the end, 33 of its 51 entries were open; about two in three were engineers noting a default they chose or how a test went — nothing anyone had to act on. Noise trains people to skim past the one entry that matters, the same way noisy review bots do ([DEV — alert fatigue in code review](https://dev.to/pyor/alert-fatigue-comes-for-code-review-16kj), [TechTarget](https://www.techtarget.com/it-strategy/news/366649960/The-human-in-the-loop-is-falling-asleep)), and deferred items that sit in a pile rarely get done ([Deviera](https://deviera.dev/blog/todo-comments-technical-debt)). So engineers now split `PENDING` (someone must act) from `NOTE` (FYI, goes in the wave PR body), the reviewer tags each non-blocking finding `now` / `before hosting` / `someday`, and at plan end the orchestrator resolves what's obsolete and hands back a short sorted list instead of the raw queue.
+
+**An empty repo couldn't start.** `/pod:init` ran the scout on a repo with no code (46k tokens for a stub, overriding the scout's own stop rule) and asked about CI with no stack to run. Then autopilot halted at once: no remote, no commit, no CI, no smoke recipe — while the plan's first sprint was the one meant to create CI and the recipe. The orchestrator ended up writing that setup by hand, outside any engineer and without tests. The standard answer is a **walking skeleton**: first build the thinnest slice that can be built, tested, and deployed end to end, then add features ([Freeman & Pryce, *Growing Object-Oriented Software*](https://www.oreilly.com/library/view/growing-object-oriented-software/9780321574442/ch10.html)). Now `/pod:init` skips the scout and CI offer on an empty repo and checks the remote and first commit up front; the plan's first sprint opens with a `B1` bootstrap slice (skeleton, test runner, smoke recipe, CI workflow), and preflight accepts the missing recipe and CI until that wave lands.
+
+**The look was left to chance.** The first plan never styled anything; the second asked for a restyle and the engineers picked a direction on their own. Left without constraints, AI agents fall back to the most common patterns they know — the "generic AI UI" problem — and the fix practitioners converge on is a **design brief before any code**: a one-line visual thesis, a palette, a type pairing, a layout, fixed up front and handed to every agent ([Elkholy — the anti-slop framework](https://moelkholy1995.medium.com/beyond-make-it-beautiful-the-anti-slop-framework-for-ai-frontend-craftsmanship-c99bbee6c994), [gu-log — stop letting AI default to generic templates](https://gu-log.vercel.app/en/posts/en-gp-130-20260327-emanueledpt-codex-ui-guide/)). So `/pod:plan` now uses the `frontend-design` skill to show the human three directions on one preview page and records the pick as the plan's `## Look`; a look-foundation slice turns it into design tokens once; every UI slice invokes `frontend-design` and uses only the tokens; and the wave check treats "ignores the Look" as a defect to fix at the wave.
+
+**No record of what was built, or how.** Understanding the finished run meant reading plan docs, sprint docs, PRs, the queue, and 30 transcripts. `/pod:report` now writes one self-contained HTML page at plan end — features, decisions (in the context → decision → consequence shape of an architecture decision record, [adr.github.io](https://adr.github.io/)), data structures, and the agents' timeline — built from the paper trail, which now keeps a one-line log per slice.
+
+**The end of a plan left loose ends.** After each plan, the human had to ask "Is everything finished?", "archive the plan too", and "start the dev server so I can test it": the plan doc still said `active`, the plan-complete queue line was written after the merge and left uncommitted on `main`, and a browser page was still open. Now the orchestrator archives the plan and writes its last queue line on the plan branch *before* the merge, so the final PR carries them; checks that nothing is left running or uncommitted; and ends by offering to start the app.
+
+The per-wave pr-reviewer stays out: the end-of-plan review found one blocking problem across both plans, and it was one the wave check had already seen.
+
+## What the third run changed
+
+The third run built a room booking app — a UI plus server rules — from an empty repo. Compared with the second, it took the same sprints and time, handled the queue better, and wrote smaller docs. Reading its docs, PRs, and transcripts found eight problems, each now fixed:
+
+- **Planning stopped before anything was written.** The interview ended on "Is this right?"; the human then ran `/pod:autopilot` with no plan on disk, and the plan was later written with its Look left open, so autopilot halted before the first UI sprint. Now the summary and the look pick share one turn, the plan is written in the turn that answers it, the design draft opens itself, and the human picks the look.
+- **Two engineers shared one browser.** They switched each other's tabs, and both apps used the same `session` cookie, so their logins kicked each other out — about 5 minutes lost each. Now each engineer drives its own named browser session.
+- **The one blocking bug was an untested edge.** The contract said changing the day resets the pick; the code reset it only when the query changed, so after midnight the old pick carried onto the new day. The reviewer found two more edges nobody tested. Now engineers list what each rule leaves open before writing tests, and the hand-back says how each edge was handled.
+- **Concerns stayed in chat.** Engineer `PENDING`s from three slices never reached the queue — one sat in the orchestrator's own list, one was turned into a `NOTE`. Now every `PENDING` is queued, and a `NOTE` describing a bug a user would hit becomes a `PENDING`.
+- **Non-blocking review findings gave no reason.** None of the reviewer's 8 `PENDING`s said why it wasn't a `FIX`, and two were bugs a user could hit. It also copied old code over a tracked file to watch a test fail. Now each `PENDING` ends with its reason, a bug it can write repro steps for is a `FIX`, and old code is checked out in a separate worktree.
+- **A wave fix fixed nothing.** The orchestrator misread a screenshot and sent an engineer after an overlap that couldn't happen — 78k tokens, no code changed. Meanwhile a Look check passed a theme with two colors the Look doesn't list. Now a wave fix needs a measurement proving the defect first, and the Look check compares the colors the page actually uses with the Look.
+- **The shared contract said how, not what.** It spelled out exact labels, rule order, and steps; one engineer followed a step that stopped a view from updating, and that sprint doc was 32 KB against about 20 KB for the others. Now the contract states what slices agree on; how belongs to the slice that builds it.
+- **Worktrees couldn't be removed on Windows.** `git worktree remove` failed with "Filename too long" in `node_modules` for five worktrees, and the only other way out — a recursive delete — is blocked by the user's permission rules. Preflight now turns on `core.longpaths`.
 
 ## Choices we made on purpose
 
@@ -177,3 +227,23 @@ So `/pod:plan` aims for **2–4 sprints per plan**. Bigger goals become several 
 - [Anthropic — Building effective agents](https://www.anthropic.com/engineering/building-effective-agents)
 - [Atlassian — Trunk-based development](https://www.atlassian.com/continuous-delivery/continuous-integration/trunk-based-development)
 - [Ardalis — Trunk-based development vs long-lived feature branches](https://ardalis.com/trunk-based-development-vs-long-lived-feature-branches/)
+- [DEV — How AI agents handle stalled tasks and timeouts](https://dev.to/bobrenze/how-ai-agents-handle-stalled-tasks-and-timeouts-lessons-from-my-production-failure-1jj9)
+- [DEV — The watchdog pattern for long-running AI agents](https://dev.to/mukesh_13/the-watchdog-pattern-keeping-a-long-running-ai-agent-alive-on-a-bare-vps-56o2)
+- [AgentCenter — How to detect when an AI agent is stuck or looping](https://www.agentcenter.cloud/blogs/how-to-detect-agent-stuck-or-looping)
+- [Functionize — The cost of finding bugs later in the SDLC](https://www.functionize.com/blog/the-cost-of-finding-bugs-later-in-the-sdlc)
+- [ContextQA — Cost of defects in software testing](https://contextqa.com/blog/cost-of-defects-in-software-testing/)
+- [TestMu — AI code review vs verification](https://www.testmuai.com/blog/ai-code-review-vs-verification/)
+- [Endor Labs — How to review code an agent wrote](https://www.endorlabs.com/learn/ai-code-review-how-to-actually-review-code-an-agent-wrote)
+- [Elkholy — Beyond "make it beautiful": the anti-slop framework](https://moelkholy1995.medium.com/beyond-make-it-beautiful-the-anti-slop-framework-for-ai-frontend-craftsmanship-c99bbee6c994)
+- [gu-log — Stop letting AI default to generic SaaS templates](https://gu-log.vercel.app/en/posts/en-gp-130-20260327-emanueledpt-codex-ui-guide/)
+- [adr.github.io — Architectural decision records](https://adr.github.io/)
+- [Freeman & Pryce — Growing Object-Oriented Software, ch. 10: The Walking Skeleton](https://www.oreilly.com/library/view/growing-object-oriented-software/9780321574442/ch10.html)
+- [DEV — Alert fatigue comes for code review](https://dev.to/pyor/alert-fatigue-comes-for-code-review-16kj)
+- [TechTarget — The human in the loop is falling asleep](https://www.techtarget.com/it-strategy/news/366649960/The-human-in-the-loop-is-falling-asleep)
+- [Deviera — TODO comments: the silent technical debt accumulator](https://deviera.dev/blog/todo-comments-technical-debt)
+- [anthropics/claude-code#94753 — Compiler errors treated as satisfying the TDD red gate](https://github.com/anthropics/claude-code/issues/94753)
+- [Martin Fowler — Humble Object](https://martinfowler.com/bliki/HumbleObject.html)
+- [xUnit Patterns — Humble Object](http://xunitpatterns.com/Humble%20Object.html)
+- [arXiv 2512.24661 — Do large language models know what they are capable of?](https://arxiv.org/pdf/2512.24661)
+- [DEV — Screenshot cropping for vision LLMs](https://dev.to/aaroncarlisle94/i-built-a-00005-screenshot-cropper-that-saves-ai-agents-95-on-vision-llm-costs-2c41)
+- [Hugging Face — Breaking the resolution curse of vision-language models](https://huggingface.co/blog/visheratin/vlm-resolution-curse)

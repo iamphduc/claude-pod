@@ -3,31 +3,11 @@ name: init
 description: Use when the user types /pod:init or asks to set up pod in a project. Creates the project-owned docs (codebase brief, decisions, handoff queue, plans/sprints folders) without overwriting anything.
 ---
 
-Set up the project-owned pod files in the current repo, then stop. Never overwrite or delete an existing file.
+Set up the project's pod files so the other commands can run, then stop. Never overwrite or delete an existing file, and **ask before anything that creates things outside this machine** (a GitHub repo, a push).
 
-Run from the repo root (`git rev-parse --show-toplevel`):
+1. **Copy the scaffold** from the repo root, skipping files that exist: `cp -rn "${CLAUDE_PLUGIN_ROOT}/skills/init/scaffold/docs/." docs/`. Report what was created and what was already there.
+2. **Map the project.** No application code yet (only docs, config, dotfiles) → skip this and step 3: tell the human the plan's first sprint will bootstrap the project (skeleton, test runner, smoke recipe, and CI if they want it). Otherwise, if `docs/codebase-structure.md` still has `<!-- … -->` placeholders, dispatch `pod:scout` with the repo root and relay its summary.
+3. **Offer CI if there's none** (`## CI` says `none`). Without CI, only the agents check the code — ask whether to add `.github/workflows/pod-ci.yml`. On a yes, write it as the **Bootstrap** bullet in `${CLAUDE_PLUGIN_ROOT}/agents/sprint-planner.md` describes it, using the runtime the brief names (gitleaks is free for personal repos; an organization needs a `GITLEAKS_LICENSE` secret). Don't commit it; update the brief's `## CI`.
+4. **Ready to run.** `/pod:code` and `/pod:autopilot` need an `origin` remote and a first commit pushed to the merge-target. For each that's missing, show the fix and ask before running it: `gh repo create … --private --source . --remote origin`; commit the pod files as the first commit and `git push -u origin <merge-target>` — the one commit pod makes on the merge-target itself. Report each as `ready` / `fixed` / `missing — <fix>`.
 
-```bash
-cp -rn "${CLAUDE_PLUGIN_ROOT}/skills/init/scaffold/docs/." docs/
-```
-
-`-n` skips files that already exist. Then report which files were created and which were already there.
-
-**Draft the brief.** If `docs/codebase-structure.md` still has `<!-- … -->` placeholders, dispatch the `pod:scout` subagent via the Agent tool to map the project (prompt: the repo root path). It drafts the brief and records gotchas under `docs/known-issues/`. Relay its summary: what it wrote, its coverage, the known issues it found, whether the smoke recipe was verified, and what's left for the human.
-
-**Offer CI if there's none.** If the brief's `## CI` section says `none`, tell the human pod's checks are otherwise all run by the agents themselves, and **ask** whether to add a minimal GitHub Actions workflow. Only on a yes, write `.github/workflows/pod-ci.yml`, triggered on `pull_request` and on `push` to the merge-target, with two jobs:
-
-- **verify** — `actions/checkout@v4`, the runtime setup the brief's **Stack & conventions** calls for (e.g. `actions/setup-node@v4` with its package manager's cache), the install step, then the smoke recipe's `Verification:` command exactly.
-- **secrets** — `actions/checkout@v4` with `fetch-depth: 0`, then `gitleaks/gitleaks-action@v2` with `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}` in `env`. Tell the human it's free for personal repos; an organization repo needs a `GITLEAKS_LICENSE` secret.
-
-Don't commit it — list it with the other new files, and update the brief's `## CI` section to describe it.
-
-Finish by telling the human to:
-
-- review `docs/codebase-structure.md` and any new `docs/known-issues/` files — the scout's draft is a starting point; its **`## Smoke recipe`** section is required (engineers use it to bring the app up and browser-verify each slice). Fill anything the scout left open.
-- add to `docs/decisions.md` — architectural decisions, as they're made.
-- commit the new files (and push the CI workflow, if added — it only runs once it's on GitHub).
-
-Then `/pod:plan` to start.
-
-If the repo still has copies from the old `install.sh` (`.claude/agents/waves-*.md`, or `.claude/skills/{autopilot,code,fix,plan,sprint,wave-prompts}/`, `docs/engineer-protocol.md`, `docs/autonomous-policy.md`, `docs/templates/`), list them and suggest the human delete them — they now ship in the plugin, and stale local copies take priority over it. Don't delete them yourself.
+Finish by telling the human to review the brief and any new known issues (the **Smoke recipe** is required — engineers use it to run and check every slice), record decisions in `docs/decisions.md` as they're made, commit the new files, then run `/pod:plan`.

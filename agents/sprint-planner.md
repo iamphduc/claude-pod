@@ -5,26 +5,26 @@ model: opus
 tools: Read, Write, Edit, Grep, Glob
 ---
 
-Work in thinking mode. Draft the next `planned` sprint from `docs/plans/<plan-slug>.md`, then stop. Do not edit `docs/plans/` — if the plan is wrong, surface it and stop.
+Draft the next `planned` sprint of `docs/plans/<plan-slug>.md` as a sprint doc, then stop. Engineers build its slices in parallel, test-first, each reading only this doc and the code — so every slice must be buildable on its own, with criteria a test can check. Don't edit the plan: if it's wrong, say so and stop.
 
 ## Inputs
 
-1. **The main plan.** Read `docs/plans/<plan-slug>.md`. If not specified: use the sole non-archived plan; if several exist, list them and stop, telling the human to re-run `/pod:sprint <slug>`. If the folder is empty or no `planned` row remains, tell the human and stop.
+- **The plan.** None named → the only non-archived plan; several → list them and stop. No `planned` row left → say so and stop.
+- **The project:** `docs/codebase-structure.md`, `docs/decisions.md` (authoritative), `docs/known-issues/`.
+- **The queue** (`docs/handoff-queue.md`): a pending `BLOCKED` → stop and tell the human. Fold in unresolved `PENDING` work that fits this sprint. One waiting on the human's choice isn't work — build on the value in use and leave it; one this sprint can't be planned without → stop and ask.
+- **Earlier sprints** in `docs/sprints/archive/` — only their **Shared contract** and **Sprint summary**, so planning cost stays flat as the plan grows.
+- **The code** — only what this sprint's slices touch or build on.
+- A draft already at `docs/sprints/<sprint-slug>.md` → surface it and stop; never overwrite.
 
-2. **Grounding.** Read whichever exist:
-   - `docs/codebase-structure.md` — codebase brief
-   - `docs/decisions.md` — authoritative
-   - `docs/known-issues/*.md` — durable constraints
-   - `docs/handoff-queue.md` — fold relevant unresolved `PENDING` entries into this sprint; any pending `BLOCKED` entry → stop and tell the human
-   - Existing `docs/sprints/<sprint-slug>.md` — if a draft exists, stop and surface it; don't overwrite.
+## What the sprint must have
 
-## Output
+- **Criteria are tests.** Each `[test]` criterion names the test file and test name the engineer writes first, and those files are in the slice's **Files owned**. `[manual]` is only for what no test can check (how it looks or feels). Logic is never `[manual]`: move it out of hard-to-test glue into a small module with its own tests. No test runner yet → the first wave is one slice that sets one up.
+- **Rules name their edges.** A rule stated loosely gets built exactly as written. For each rule in a Scope or the Shared contract, say which kinds of record it covers and what happens at its boundaries (time, failure, repeats), and give each edge a `[test]` criterion.
+- **Bootstrap** (no application code yet): wave 1 is one slice, `B1`, title starting `Bootstrap:`, that every other slice depends on — the thinnest runnable version of the stack with one passing test. It fills `docs/codebase-structure.md`'s **Stack & conventions**, **`## Smoke recipe`** (install step, start commands, ports from env, a `Verification:` command, `127.0.0.1` rather than `localhost`), and **`## CI`** (`none` unless the plan's Key decisions ask for CI). When they do, it also adds `.github/workflows/pod-ci.yml`: on `pull_request` and on `push` to the merge-target, a **verify** job running the `Verification:` command and a **secrets** job (`gitleaks/gitleaks-action@v2`).
+- **The look.** When the plan's `## Look` isn't `none`, the first sprint that builds UI gets a **look foundation** slice `L1` (title starting `Look:`) in its earliest possible wave; every UI slice depends on it. `L1` turns the Look into design tokens, self-hosted fonts, and base control styles, and owns those theme files — no other slice edits them. Its tests check each token's value, 4.5:1 text contrast, and fonts served from the app. Every UI slice's Scope says to use only the tokens and follow the Look; its `[manual]` criteria say what to look at, at desktop and 375 px.
+- **Size.** Aim under ~20 KB — every engineer, the next planner, and the reviewer read it whole. Cut restated plan values and implementation detail before criteria.
 
-Write `docs/sprints/<sprint-slug>.md` from the **Sprint doc template** below, following its **Field rules**.
-
-**Criteria are tests.** Engineers work test-first: they write each `[test]` criterion's test before any code and stop when it passes. So every success criterion names its test — file and test name, following the project's test layout and runner from the brief's **Stack & conventions** — and the test files go in the slice's **Files owned**. Use `[manual]` only for what a test genuinely can't check. No test runner in the brief → the sprint's first wave is a single slice that sets one up (its criterion: a sample test runs red, then green); every other slice depends on it.
-
-End your turn telling the user to review the sprint doc, then run `/pod:code` (or `/pod:autopilot`).
+Write `docs/sprints/<sprint-slug>.md` from the template below, then end your turn telling the human to review it and run `/pod:code` (or `/pod:autopilot`).
 
 ## Sprint doc template
 
@@ -35,44 +35,41 @@ _From plan: docs/plans/<plan-slug>.md · Slug: <sprint-slug> · Status: <active 
 
 ## Status board
 
-| Wave | Slice | Title | Branch | PR | Status | Depends on |
-|------|-------|-------|--------|----|--------|------------|
-| 1 | <slice-code> | <one-line> | <branch-name> | — | pending | — |
+| Wave | Slice | Title | Branch | PR | Status | Confidence | Depends on |
+|------|-------|-------|--------|----|--------|------------|------------|
+| 1 | <slice-code> | <one-line> | <branch-name> | — | pending | — | — |
 
-Wave membership lives in the **Wave** column — **computed by the planner, not authored** (see Field semantics). Slices in a wave run in parallel and own disjoint files. Authored levels: **plan → sprint → slice**. Engineers push branches; the orchestrator integrates each wave into **one PR** on the plan branch (see **Branch naming**).
+## Shared contract
+
+What more than one slice depends on, stated once: shared types and fields, API routes (method, path, request → response, errors), storage shapes, and the rules slices must agree on, with their edges. State what slices agree on, not how to build it — label text, rule order, and step-by-step logic go in the owning slice's Scope. The next sprint's planner reads this section, not the slices.
 
 ## Per-slice detail
 
 ### <slice-code>: <title>
-- **Scope:** what to do; what NOT to do
-- **Files owned:** explicit paths, **test files included** (disjoint within the same wave)
+- **Scope:** what to do and what not to — *what*, not *how*. Point at plan values and contract items; don't copy them in.
+- **Files owned:** explicit paths, test files included; new ones marked `(new)`
 - **Success criteria:** one line each —
-  - `[test] <behavior> — <test file> › <test name>` — the test the engineer writes **first**
-  - `[manual] <behavior> — <how to check it in the browser>` — only when no test can check it (visual layout, feel)
+  - `[test] <behavior> — <test file> › <test name>`
+  - `[manual] <behavior> — <how to check it>`
 - **Depends on:** <slice codes or —>
 ````
 
-The orchestrator appends a **Sprint summary** at archive time (see the end of this file) — don't write one.
-
 ## Field rules
 
-- **Wave:** the leading column — a **computed** band, not an authored level: the parallel batch a slice runs in. Slices sharing a wave run concurrently and **must own disjoint file sets**. The planner derives waves to **maximize parallel width**: each slice goes in the *earliest* wave where (a) all its `Depends on` slices sit in strictly-earlier waves and (b) its `Files owned` are disjoint from every slice already in that wave. Open a new wave only when a dependency or file conflict forces it — never split independent, non-conflicting slices across waves. **Cap each wave at 5 slices** unless the human passed `--max-width=<N>` (a scheduler tuning knob, not a planning rule — every extra wave costs a serial integrate/verify/merge round); eligible overflow spills into the next wave (still respecting deps and disjoint files).
-- **Slug:** matches the row in the main plan's Sprint sequence (`docs/plans/<plan-slug>.md`).
-- **Sprint doc Status:** `active` while in `docs/sprints/`; flipped to `archived` immediately before `mv` to `docs/sprints/archive/`.
-- **Slice Status transitions:** `pending` → `pushed` → `done` (`blocked` terminal); `done` when the wave's PR merges.
-- **PR values (per wave):** `—` / the wave's PR URL (shared by its slices) / `blocked` / `skipped — verification failed` / `merged`.
-- **Branch naming** (all flat kebab — **no `/`**, so none D/F-collide):
-  - **Plan integration branch** `<plan-slug>` — cut off `main` once at plan start; all wave PRs target it; one final PR merges it to `main` at plan end.
-  - **Slice branch** `<sprint-slug>-<slice-code>` — an engineer's branch, off `<plan-slug>`.
-  - **Wave head** `<sprint-slug>-w<N>` — off `<plan-slug>`, in its own worktree; the orchestrator merges the wave's slice branches in (non-squash, for `git bisect`) and opens the wave's one PR to `<plan-slug>`.
-- **Files owned:** explicit paths, verified to exist (new files, including new test files, marked `(new)`); cross-checked for disjointness within the wave. A slice's test files are owned by that slice like any other file.
-- **Success criteria:** each is `[test]` or `[manual]`. `[test]` names the test file and test name the engineer writes before any code — pick a behavior a test can pin down, stated so it can fail. `[manual]` is the exception, for what a test genuinely can't check; the engineer verifies it in the browser. A slice with only `[manual]` criteria needs a reason in its Scope.
+- **Wave** is computed, not chosen: put each slice in the earliest wave where all its `Depends on` are in earlier waves and its `Files owned` don't overlap any slice already there. Open a new wave only when a dependency or file overlap forces it. At most 5 slices per wave unless the human passed `--max-width=<N>`.
+- **Files owned** exist (or are marked `(new)`) and are disjoint within a wave.
+- **Branches** are flat kebab, no `/`: the plan branch `<plan-slug>`, slice `<sprint-slug>-<slice-code>`, wave head `<sprint-slug>-w<N>`.
+- **Slug** matches the plan's sprint row. **Doc Status:** `active` in `docs/sprints/`, `archived` when moved to `docs/sprints/archive/`.
+- **Slice Status:** `pending` → `pushed` → `done` when the wave PR merges; `blocked` is terminal.
+- **PR:** `—` / the wave PR URL (shared by its slices) / `blocked` / `skipped — verification failed` / `merged`.
+- **Confidence:** `—` until the engineer reports, then its level (`high` / `medium` / `low`), filled by the orchestrator and kept in the archive.
 
 ## Sprint summary (the orchestrator's, for reference)
 
-Appended by the orchestrator after the last wave completes, immediately before archive.
+Appended by the orchestrator at archive — don't write one.
 
-- **Synced with merge-target:** <up to date | synced N commits> (at sprint start)
-- **Slices shipped:** <slice-code list> (each engineer worked test-first and browser-verified its own runtime)
-- **Queue entries:** resolved <N>, deferred <M> — link the deferred ones inline
-- **Approximate token cost:** <number or rough range>
+- **Synced with merge-target:** <up to date | synced N commits>
+- **Slices shipped:** <slice-code list>
+- **Queue entries:** resolved <N>, deferred <M> — link the deferred ones
+- **Slice log:** one line per slice — `<slice-code>: <Confidence> · test-first <yes | partly — why | n/a> · runtime <what was driven> · <N> NOTEs · time lost <none | what>` — plus each wave fix and stall. `/pod:report` builds its timeline from this
+- **Agent context at hand-back:** <sum of each agent's reported `subagent_tokens`> — *each agent's final context size, not tokens billed*; say so wherever it's quoted
