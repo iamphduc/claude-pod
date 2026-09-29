@@ -40,10 +40,12 @@ Why pod checks work where it does, what each check covers, and what we chose not
 |---|---|---|---|
 | Test first | engineer | every slice | a success criterion not actually met — each has a test written before the code |
 | Static checks | engineer | every slice | broken tests, types, lint, build |
-| Browser check | engineer | every slice | the slice's pages don't work |
+| Edges first | engineer | every slice | a gap the spec left open in a rule — listed and tested before the code |
+| Run it | engineer | every slice | the change doesn't work when used — pages in its own browser session, routes with real requests |
 | Files owned | orchestrator | every wave | a slice edited files it doesn't own |
 | Smoke test | orchestrator | every wave | slices that work alone but break together |
-| Wave fix | orchestrator + one engineer | every wave, when needed | a defect you'd see on the combined wave that no check fails on (wrong behavior, unreadable text) — fixed before the wave PR |
+| Look check | orchestrator | every wave that changes what a user sees | pages off the plan's Look (colors or fonts it doesn't list), sideways scroll at phone width, unreadable text |
+| Wave fix | orchestrator + one engineer | every wave, when needed | a defect you'd see on the combined wave that no check fails on (wrong behavior, unreadable text), proved by a measurement first — fixed before the wave PR |
 | Stall watch | orchestrator | every 15 min while agents run | an agent hung in one tool call |
 | CI | GitHub Actions (or your CI) | every PR | the project's own build/test/lint, secrets committed by mistake — run by something other than the agent that wrote the code |
 | Mechanical merge checks | autopilot | every PR | red or **missing** CI, merge conflicts, open threads |
@@ -78,21 +80,22 @@ A plan's final PR is easily thousands of lines. The fix, used by GitHub itself, 
 
 1. **Read the ground truth** from the main repo: the plan (goals, scope, **Verification** section), every archived sprint doc for the plan (each slice's success criteria), the codebase brief, known issues, and decisions. Then **run the checks**: the smoke recipe's `Verification:` command, and every scripted check it lists that works without a browser. A failing check is a blocking finding.
 2. **Per-wave pass.** For each first-parent commit on the plan branch (skipping docs-only commits), review `git diff <commit>^1 <commit>`:
-   - **Success criteria** — each slice in that wave meets its criteria in code, not just in its engineer's report.
-   - **Bugs** — edge cases, unhandled errors, and the seams between that wave's slices.
+   - **Honest tests** — each criterion's test exists, would fail if the behavior broke, and isn't weaker than the criterion.
+   - **Beyond the tests** — branches, error paths, and inputs no test covers; code special-cased to pass.
+   - **Bugs** — hardest at the seams between that wave's slices.
    - **Security** — injection, auth bypass, exposed secrets, unsafe deserialization.
-   - **Tests** — new behavior has a test that would fail without it.
+   - **`[manual]` criteria** — the engineer said how each was checked, and the code plausibly does it.
 3. **Whole-plan pass** over the full diff, for what no single wave shows:
    - **Plan goals** — the plan's Goal and Verification criteria hold on the final code.
    - **Later waves breaking earlier ones** — a shared type, route, schema, or config reshaped after something already relied on it.
    - **Duplication across waves** — the same helper written twice by different slices.
-4. **Filter** ([like Claude Code Review](https://www.gend.co/blog/claude-code-review-ai-agents)): keep only findings it can point to by `file:line` with a concrete failure. Rank them — security, then correctness, then unmet goals, then missing tests. Unconfirmed worries become non-blocking.
+4. **Filter** ([like Claude Code Review](https://www.gend.co/blog/claude-code-review-ai-agents)): keep only findings it can point to by `file:line` with a concrete failure. Before calling anything non-blocking, it tries to write the steps that make it go wrong for a user; if it can, it's blocking. Rank them — security, then correctness, then unmet goals, then missing tests.
 5. **Post** the verdict and findings as a comment on the final PR.
 
 Findings are either:
 
 - **`FIX`** (blocking) — a real bug, a security hole, an unmet plan goal or success criterion, a failing check, or new behavior with no test. Wrong logic is always blocking, even in an app that only runs locally; "local only" excuses missing hardening like rate limits, not bugs.
-- **`PENDING`** (non-blocking) — duplication, simpler shapes, risks it couldn't confirm. These go to the handoff queue and are listed for you at hand-back; the next plan can pick them up.
+- **`PENDING`** (non-blocking) — duplication, simpler shapes, risks it couldn't confirm. Each is tagged `now` / `before hosting` / `someday` and ends with why it isn't a `FIX`: `no repro — <what it tried>`, `product choice`, or `hardening — <what it needs>`. These go to the handoff queue and are listed for you at hand-back; the next plan can pick them up.
 
 ## The fix pass
 
@@ -155,6 +158,10 @@ An agent's markdown body **is** its system prompt: Claude Code loads it when the
 
 Rules only a **skill** needs sit next to that skill (`skills/autopilot/policy.md`, `skills/plan/template.md`); skills run in the main session, where reading a plugin file is fine. Skills that dispatch an agent read the fields to pass from the agent's own file. `/pod:create-wave-prompts` sessions start with `claude --agent pod:engineer`, so a hand-launched engineer gets the same instructions as a dispatched one.
 
+## Why the rule files are short
+
+After the third run, every agent and skill file was cut to guardrails, contracts, and the goal with its reason — about 16,900 words down to 9,900. The rule for future edits, and the sources behind it, are in the README under "Editing pod's rules".
+
 ## Keep plans small
 
 Reviewing at the end has one real cost: a bug found then was built on for the rest of the plan, so it costs more to fix than it would have mid-plan. Long-lived branches make this worse the longer they live ([Atlassian](https://www.atlassian.com/continuous-delivery/continuous-integration/trunk-based-development), [Ardalis](https://ardalis.com/trunk-based-development-vs-long-lived-feature-branches/)).
@@ -187,6 +194,19 @@ A second look at the engineers found four smaller problems in how they judged th
 **The end of a plan left loose ends.** After each plan, the human had to ask "Is everything finished?", "archive the plan too", and "start the dev server so I can test it": the plan doc still said `active`, the plan-complete queue line was written after the merge and left uncommitted on `main`, and a browser page was still open. Now the orchestrator archives the plan and writes its last queue line on the plan branch *before* the merge, so the final PR carries them; checks that nothing is left running or uncommitted; and ends by offering to start the app.
 
 The per-wave pr-reviewer stays out: the end-of-plan review found one blocking problem across both plans, and it was one the wave check had already seen.
+
+## What the third run changed
+
+The third run built a room booking app — a UI plus server rules — from an empty repo. Compared with the second, it took the same sprints and time, handled the queue better, and wrote smaller docs. Reading its docs, PRs, and transcripts found eight problems, each now fixed:
+
+- **Planning stopped before anything was written.** The interview ended on "Is this right?"; the human then ran `/pod:autopilot` with no plan on disk, and the plan was later written with its Look left open, so autopilot halted before the first UI sprint. Now the summary and the look pick share one turn, the plan is written in the turn that answers it, the design draft opens itself, and the human picks the look.
+- **Two engineers shared one browser.** They switched each other's tabs, and both apps used the same `session` cookie, so their logins kicked each other out — about 5 minutes lost each. Now each engineer drives its own named browser session.
+- **The one blocking bug was an untested edge.** The contract said changing the day resets the pick; the code reset it only when the query changed, so after midnight the old pick carried onto the new day. The reviewer found two more edges nobody tested. Now engineers list what each rule leaves open before writing tests, and the hand-back says how each edge was handled.
+- **Concerns stayed in chat.** Engineer `PENDING`s from three slices never reached the queue — one sat in the orchestrator's own list, one was turned into a `NOTE`. Now every `PENDING` is queued, and a `NOTE` describing a bug a user would hit becomes a `PENDING`.
+- **Non-blocking review findings gave no reason.** None of the reviewer's 8 `PENDING`s said why it wasn't a `FIX`, and two were bugs a user could hit. It also copied old code over a tracked file to watch a test fail. Now each `PENDING` ends with its reason, a bug it can write repro steps for is a `FIX`, and old code is checked out in a separate worktree.
+- **A wave fix fixed nothing.** The orchestrator misread a screenshot and sent an engineer after an overlap that couldn't happen — 78k tokens, no code changed. Meanwhile a Look check passed a theme with two colors the Look doesn't list. Now a wave fix needs a measurement proving the defect first, and the Look check compares the colors the page actually uses with the Look.
+- **The shared contract said how, not what.** It spelled out exact labels, rule order, and steps; one engineer followed a step that stopped a view from updating, and that sprint doc was 32 KB against about 20 KB for the others. Now the contract states what slices agree on; how belongs to the slice that builds it.
+- **Worktrees couldn't be removed on Windows.** `git worktree remove` failed with "Filename too long" in `node_modules` for five worktrees, and the only other way out — a recursive delete — is blocked by the user's permission rules. Preflight now turns on `core.longpaths`.
 
 ## Choices we made on purpose
 
