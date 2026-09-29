@@ -128,3 +128,19 @@ docs/
 ```
 
 The rules the agents follow live in the plugin, not your repo, so they update with it. Each agent's full instructions are in its own file under `agents/` — they load automatically when the agent starts, so background agents never have to go read a separate file. Skill-only rules sit next to their skill: `skills/autopilot/policy.md` (autopilot's merge criteria and halt gates) and `skills/plan/template.md` (the plan template).
+
+## Editing pod's rules
+
+The files under `agents/` and `skills/` are read by agents on every run, so every line costs tokens and competes for attention. Keep them to three things:
+
+- **Guardrails**: rules that stop real damage or keep you in control. Never touch `main`, no force-push or `-D`, stay inside your files, you are the merge gate, halt and notify on `BLOCKED`, tests first, the reviewer never edits, keep secrets out.
+- **Contracts**: the exact formats one agent passes to another (dispatch fields, the engineer's hand-back, queue entry types, the status board, PR titles). These stay precise.
+- **The goal and the reason** for each role, in a sentence or two.
+
+Leave the rest to the agent. Don't add a rule for one project's bug, a command or flag the model already knows, a step-by-step procedure, a story from a past run, a rule that already lives in another file, or a check-and-redo loop for a soft limit. When a test run finds a problem, fix it with a general check or a reporting step, not a new bullet that names the bug. The one exception is a problem agents can't solve on their own (for example, one your permission rules block).
+
+Why — what the guidance this follows says:
+
+- Anthropic, [Skill authoring best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices): assume Claude is already smart and add only what it doesn't know — the context window is shared, so every line should earn its place. Match the freedom to the risk: give exact steps only for fragile operations, and a goal with room to choose for everything else.
+- Anthropic, [Prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices): newer models follow short instructions *with a reason* better than long lists of ALWAYS/NEVER rules, and prompts written for older, more literal models can make output worse.
+- ETH Zurich, "Evaluating AGENTS.md" ([summary](https://developer.upsun.com/posts/ai/agents-md-less-is-more)): instruction files for coding agents gave little or negative gain in task success while adding over 20% cost.
