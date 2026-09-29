@@ -6,7 +6,7 @@
 
 A PR merges only if **all** hold:
 
-- **CI ran and passed:** at least one check, every required check passing. Zero checks isn't a pass — it means nothing but the agents checked the code. (Waived only by `--no-ci`, the human's explicit choice.)
+- **CI passed, if there is CI:** when the brief's `## CI` isn't `none`, at least one check ran and every required check passes — zero checks there means CI didn't run, not a pass. No CI → the wave verification below is the gate.
 - **GitHub says it's clean:** `mergeable: MERGEABLE`, `mergeStateStatus: CLEAN`, no `CHANGES_REQUESTED` review, no unresolved review thread. Branch protection that requires a human approval keeps it `BLOCKED` → gate 3.
 - **No low confidence:** any slice in the wave reported `Confidence: low` → withhold and halt (gate 6).
 - **Final plan PR only:** the reviewer's `pass`, on the first review or after the one fix pass. Still `fix` → gate 2.
@@ -15,7 +15,7 @@ Merge with a merge commit, not squash (`gh pr merge --merge --delete-branch`). A
 
 ## Preflight (before `/pod:code`'s own)
 
-CI must run on pull requests: the brief's `## CI` isn't `none` and a workflow triggered by `pull_request` is on the merge-target. Missing → halt at gate 3 and point the human to `/pod:init` or `--no-ci`. **Bootstrap exception:** when wave 1 is a lone `B1`, skip this — `B1` adds the workflow, which runs on its own PR — and re-check after its wave merges. `B1`'s `medium` Confidence is expected; `low` still halts.
+No CI (the brief's `## CI` is `none`) isn't a halt: say once, at the start, that merges rest on the wave check alone and that `/pod:init` can add CI. `B1`'s `medium` Confidence is expected; `low` still halts.
 
 ## Verify every wave before its PR
 

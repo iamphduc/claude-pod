@@ -3,7 +3,7 @@ name: autopilot
 description: Use when the user types /pod:autopilot or asks to run the workflow autonomously across a plan. Also the resume command after a halt.
 ---
 
-**Run the `/pod:code` wave loop** (`${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md`) with the deltas below, under `${CLAUDE_PLUGIN_ROOT}/skills/autopilot/policy.md` — read it every turn. Beyond `/pod:code`, also dispatch the `pod:sprint-planner` and notify on halt. Args: optional plan slug, the policy's `--max-*` bounds, and `--no-ci`. Run the policy's **Preflight** (CI must run on pull requests) before `/pod:code`'s own.
+**Run the `/pod:code` wave loop** (`${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md`) with the deltas below, under `${CLAUDE_PLUGIN_ROOT}/skills/autopilot/policy.md` — read it every turn. Beyond `/pod:code`, also dispatch the `pod:sprint-planner` and notify on halt. Args: optional plan slug and the policy's `--max-*` bounds. Run the policy's **Preflight** before `/pod:code`'s own.
 
 ## Teardown
 

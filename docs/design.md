@@ -10,7 +10,7 @@ Why pod checks work where it does, what each check covers, and what we chose not
 - **One fix pass, then merge.** An engineer fixes the blocking findings on one branch; the reviewer checks those fixes once; the PR comes back to you. No loops.
 - **Keep plans small.** A few sprints each, so the end-of-plan review stays readable and late fixes stay cheap.
 - **The plan branch keeps up with `main`.** At the start of each sprint, anything new on `main` is merged into the plan branch and smoke-tested, so conflicts show up small and early.
-- **CI is a real gate.** Autopilot won't treat "no CI checks" as "all checks passed"; `/pod:init` offers a minimal CI workflow when a repo has none.
+- **CI is optional, and a real gate when it's there.** With CI, autopilot needs every check to pass and won't treat "no checks" as a pass; `/pod:init` and `/pod:plan` offer a minimal workflow but don't require it.
 - **Test first, real TDD.** Every success criterion names a test; engineers write it, watch it fail, then make it pass, and the tests decide when they're done. The reviewer checks the tests are honest and reviews what they don't cover.
 - **`/pod:fix` PRs get the same reviewer.** They go straight to `main` with no plan around them, so each one is reviewed before it merges.
 
@@ -48,7 +48,7 @@ Why pod checks work where it does, what each check covers, and what we chose not
 | Wave fix | orchestrator + one engineer | every wave, when needed | a defect you'd see on the combined wave that no check fails on (wrong behavior, unreadable text), proved by a measurement first — fixed before the wave PR |
 | Stall watch | orchestrator | every 15 min while agents run | an agent hung in one tool call |
 | CI | GitHub Actions (or your CI) | every PR | the project's own build/test/lint, secrets committed by mistake — run by something other than the agent that wrote the code |
-| Mechanical merge checks | autopilot | every PR | red or **missing** CI, merge conflicts, open threads |
+| Mechanical merge checks | autopilot | every PR | red CI (or no checks on a repo that has CI), merge conflicts, open threads |
 | Sync with `main` | orchestrator | every sprint start | the plan drifting from `main` (merge conflicts, a `/pod:fix` the plan breaks) |
 | Low-confidence stop | autopilot | every wave | an engineer said it isn't sure |
 | **Code review** | **pod:reviewer** | **end of plan** | bugs, security, unmet goals, missing tests, one wave breaking another, duplicated code — plus a re-run of the tests and scripted smoke checks on the final code |
@@ -149,7 +149,7 @@ Before, autopilot's "every required check passes" rule was satisfied by a repo w
 
 - **The scout records CI** in the brief: what runs on pull requests, or `none`.
 - **`/pod:init` offers a minimal workflow** when there's none: the smoke recipe's `Verification:` command on every PR, plus a secret scan. You say yes before anything is written.
-- **Autopilot requires CI**: its preflight halts if nothing runs on pull requests, and a PR with **zero** checks is not mergeable. `--no-ci` opts out, on purpose.
+- **Autopilot uses CI when it's there**: with CI, a PR with **zero** checks is not mergeable. Without it, the wave check is the gate. CI was required until the third run, where it ran 25 times and never failed: it repeats the wave check's `Verification:` command, and its own value — a clean-machine run and a secret scan — matters most once an app is hosted. So `/pod:plan` now asks whether the bootstrap should add it, recommending yes.
 - In `/pod:code` you merge, so there's no hard rule — but every hand-back shows the PR's CI status.
 
 ## Where rules live

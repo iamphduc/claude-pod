@@ -7,7 +7,7 @@ Turn the human's idea into a strategic plan at `docs/plans/<slug>.md` that the s
 
 ## 1. Ground yourself
 
-Read whichever exist: `docs/codebase-structure.md`, `docs/decisions.md` (authoritative — a plan that contradicts it says so in Key decisions, with the reason), `docs/known-issues/`, other plans (check for overlap; skip archived ones), and `docs/handoff-queue.md` (bring open `PENDING`s into the interview; a pending `BLOCKED` is resolved before drafting). No application code yet → the first sprint starts with a bootstrap: the thinnest runnable skeleton, its test runner, the smoke recipe, and CI.
+Read whichever exist: `docs/codebase-structure.md`, `docs/decisions.md` (authoritative — a plan that contradicts it says so in Key decisions, with the reason), `docs/known-issues/`, other plans (check for overlap; skip archived ones), and `docs/handoff-queue.md` (bring open `PENDING`s into the interview; a pending `BLOCKED` is resolved before drafting). No application code yet → the first sprint starts with a bootstrap: the thinnest runnable skeleton, its test runner, and the smoke recipe. Ask in the interview whether it should add CI too — recommend it (a clean-machine run and a secret scan on every PR), but it's optional — and record the answer in Key decisions.
 
 ## 2. Interview
 
