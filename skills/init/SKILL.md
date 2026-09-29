@@ -11,5 +11,3 @@ Set up the project's pod files so the other commands can run, then stop. Never o
 4. **Ready to run.** `/pod:code` and `/pod:autopilot` need an `origin` remote and a first commit pushed to the merge-target. For each that's missing, show the fix and ask before running it: `gh repo create … --private --source . --remote origin`; commit the pod files as the first commit and `git push -u origin <merge-target>` — the one commit pod makes on the merge-target itself. Report each as `ready` / `fixed` / `missing — <fix>`.
 
 Finish by telling the human to review the brief and any new known issues (the **Smoke recipe** is required — engineers use it to run and check every slice), record decisions in `docs/decisions.md` as they're made, commit the new files, then run `/pod:plan`.
-
-Copies left from the old copy-based install (`.claude/agents/waves-*.md`, `.claude/skills/{autopilot,code,fix,plan,sprint,wave-prompts}/`, `docs/engineer-protocol.md`, `docs/autonomous-policy.md`, `docs/templates/`) take priority over the plugin — list any you find and suggest deleting them; don't delete them yourself.
