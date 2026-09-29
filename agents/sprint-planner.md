@@ -49,7 +49,7 @@ Wave membership lives in the **Wave** column — **computed by the planner, not 
 
 ## Shared contract
 
-What more than one slice depends on, stated once: shared types and their fields, API routes (method, path, request → response, errors), storage shapes, and every rule slices must agree on — each with its edges (see **Rules name their edges**). Slices point here instead of restating it; the next sprint's planner reads this section, not the slices.
+What more than one slice depends on, stated once: shared types and their fields, API routes (method, path, request → response, errors), storage shapes, and every rule slices must agree on — each with its edges (see **Rules name their edges**). Slices point here instead of restating it; the next sprint's planner reads this section, not the slices. State what slices agree on, not how to build it: label text, rule order, and step-by-step logic go in the owning slice's Scope.
 
 ## Per-slice detail
 
