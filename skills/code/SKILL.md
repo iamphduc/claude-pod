@@ -13,7 +13,7 @@ Args: the plan slug (none → list `docs/plans/*.md` not `Status: archived` and 
 - **The parent repo only holds docs.** It sits on `<plan-slug>` for the whole plan and its `docs/` holds uncommitted sprint state, so it only takes `docs/` commits and pulls. Code is built and merged in worktrees: wave heads, the sync, the fix pass, and the review each get their own under `<parent-repo>/.claude/worktrees/`. Run teardown from the parent repo, never from inside a worktree.
 - **Disjoint files.** Before dispatching a wave, intersect its slices' `Files owned`; any overlap → halt `BLOCKED` naming both slices and the path. When integrating, a slice that touched files outside its own → a `NOTE` naming them (a `PENDING` if another slice owns them).
 - **Nothing broken moves forward.** A merge conflict, a failed smoke recipe, or a slice's `BLOCKED` → halt `BLOCKED` from `orchestrator`, naming the cause and its queue entry.
-- **No force.** No `--force`, `-D`, or force-push. A teardown that fails is left in place and named in the hand-back.
+- **No force.** No `--force`, `-D`, or force-push. When a safe command refuses — `git branch -d` saying "not merged" — it's telling you something: pull, or find out why; never force past it. A teardown that fails is left in place and named in the hand-back.
 - **The paper trail rides the plan branch.** `docs/` changes are committed to `<plan-slug>` at each sprint's end and at plan end, before the final merge — anything written after it lands uncommitted on the merge-target.
 
 ## Conventions
