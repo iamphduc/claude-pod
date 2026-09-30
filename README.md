@@ -1,6 +1,6 @@
 # pod
 
-Ship a plan in **waves** of parallel Claude engineers: strategy → sprint → parallel waves → review, with you as the merge gate between every wave.
+Ship a plan in **waves** of parallel Claude engineers: research (optional) → strategy → sprint → parallel waves → review, with you as the merge gate between every wave.
 
 A *wave* is a batch of slices with non-overlapping file ownership, built concurrently in isolated worktrees. Each wave integrates into **one PR** onto a long-lived **plan branch**, is verified, and lands behind you; then the next wave dispatches. At the plan's end, **one final PR** merges the plan branch to `main`. Run it with `/pod:code`, or unattended with `/pod:autopilot`.
 
@@ -21,6 +21,8 @@ Then, from your project root (new or existing repo), run `/pod:init`. It creates
 - `docs/handoff-queue.md`, plus empty `docs/plans/` and `docs/sprints/archive/`.
 
 Review the scout's draft and fill anything it left open. The agents, skills, templates, and policy docs stay inside the plugin — nothing else is copied into your repo.
+
+**Still weighing the idea?** `/pod:research <idea> [--deep]` works in any folder, even before `/pod:init`. The **researcher** agent checks the web for what already exists, where it falls short, and how people build it — every claim linked — then suggests ideas and the questions to settle in `/pod:plan`, which reads the report.
 
 To use a local clone instead of GitHub, pass its path: `/plugin marketplace add /path/to/claude-pod`. For a one-off session without installing: `claude --plugin-dir /path/to/claude-pod`.
 
