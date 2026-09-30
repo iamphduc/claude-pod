@@ -208,6 +208,15 @@ The third run built a room booking app — a UI plus server rules — from an em
 - **The shared contract said how, not what.** It spelled out exact labels, rule order, and steps; one engineer followed a step that stopped a view from updating, and that sprint doc was 32 KB against about 20 KB for the others. Now the contract states what slices agree on; how belongs to the slice that builds it.
 - **Worktrees couldn't be removed on Windows.** `git worktree remove` failed with "Filename too long" in `node_modules` for five worktrees, and the only other way out — a recursive delete — is blocked by the user's permission rules. Preflight now turns on `core.longpaths`.
 
+## Researching an idea first
+
+`/pod:plan` used to decide scope and stack without knowing whether the idea already existed or how others built it. `pod:researcher` looks outward first, and `/pod:plan` reads its report before the interview.
+
+- **One agent, a fixed budget.** Anthropic's research system gives a comparison-sized question one agent and 10–15 tool calls, and saves parallel subagents — about 15× the tokens — for broad questions; it added effort limits after agents ran "50 subagents for simple queries" ([Anthropic](https://www.anthropic.com/engineering/multi-agent-research-system)). So: about 12 searches and 10 page reads (`--deep`: 30 and 25), stopping early when nothing new turns up.
+- **Every claim rests on a page it read.** Anthropic checks citations in a separate pass; the researcher checks its own before finishing. WebFetch returns a small model's summary, not the page ([Claude Code tools reference](https://code.claude.com/docs/en/tools-reference)), so a page "not mentioning" something is never evidence.
+- **Pages are data.** Injected instructions get dangerous when an agent has private data, untrusted content, and a way to send data out ([Simon Willison — the lethal trifecta](https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/), [OWASP LLM01](https://genai.owasp.org/llmrisk/llm01-prompt-injection/)). The researcher has no Bash, reads no local files beyond its report and brief, and never puts local content into a search or URL.
+- **Clarify only when vague.** Deep-research tools ask scoping questions up front ([OpenAI — deep research](https://developers.openai.com/api/docs/guides/deep-research), [open_deep_research](https://github.com/langchain-ai/open_deep_research)); the skill asks up to three, in your session, since a background agent can't ask.
+
 ## Choices we made on purpose
 
 - **One reviewer, not several in parallel.** Claude Code Review runs several reviewers at once, one per concern, then filters. More thorough, but costs several times more; one agent reading small pieces gets most of the benefit. Revisit if end-of-plan reviews start missing things.
@@ -247,3 +256,9 @@ The third run built a room booking app — a UI plus server rules — from an em
 - [arXiv 2512.24661 — Do large language models know what they are capable of?](https://arxiv.org/pdf/2512.24661)
 - [DEV — Screenshot cropping for vision LLMs](https://dev.to/aaroncarlisle94/i-built-a-00005-screenshot-cropper-that-saves-ai-agents-95-on-vision-llm-costs-2c41)
 - [Hugging Face — Breaking the resolution curse of vision-language models](https://huggingface.co/blog/visheratin/vlm-resolution-curse)
+- [Anthropic — How we built our multi-agent research system](https://www.anthropic.com/engineering/multi-agent-research-system)
+- [Claude Code — Tools reference](https://code.claude.com/docs/en/tools-reference)
+- [Simon Willison — The lethal trifecta for AI agents](https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/)
+- [OWASP — LLM01: Prompt injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/)
+- [OpenAI — Deep research guide](https://developers.openai.com/api/docs/guides/deep-research)
+- [LangChain — open_deep_research](https://github.com/langchain-ai/open_deep_research)
