@@ -9,6 +9,8 @@ Turn the human's idea into a strategic plan at `docs/plans/<slug>.md` that the s
 
 Read whichever exist: `docs/codebase-structure.md`, `docs/decisions.md` (authoritative — a plan that contradicts it says so in Key decisions, with the reason), `docs/known-issues/`, other plans (check for overlap; skip archived ones), and `docs/handoff-queue.md` (bring open `PENDING`s into the interview; a pending `BLOCKED` is resolved before drafting). No application code yet → the first sprint starts with a bootstrap: the thinnest runnable skeleton, its test runner, and the smoke recipe. Ask in the interview whether it should add CI too — recommend it (a clean-machine run and a secret scan on every PR), but it's optional — and record the answer in Key decisions.
 
+**Research.** A report on this idea in `docs/research/` → read it and start the interview from its **Questions for the plan**, skipping any already answered; cite it in Key decisions. None → ask once, on the fast path too: *"Research this idea on the web first? It takes a few minutes."* Yes → run `${CLAUDE_PLUGIN_ROOT}/skills/research/SKILL.md` and wait for it before interviewing; no → go on.
+
 ## 2. Interview
 
 Interview the human until you share the same path through the decisions: goal and success, scope in and out, stack and constraints, trade-offs, risks. Each answer decides the next question; don't ask what's already settled, and look up facts yourself instead of asking.

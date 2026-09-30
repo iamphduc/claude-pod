@@ -1,6 +1,6 @@
 # pod
 
-Ship a plan in **waves** of parallel Claude engineers: strategy → sprint → parallel waves → review, with you as the merge gate between every wave.
+Ship a plan in **waves** of parallel Claude engineers: research (optional) → strategy → sprint → parallel waves → review, with you as the merge gate between every wave.
 
 A *wave* is a batch of slices with non-overlapping file ownership, built concurrently in isolated worktrees. Each wave integrates into **one PR** onto a long-lived **plan branch**, is verified, and lands behind you; then the next wave dispatches. At the plan's end, **one final PR** merges the plan branch to `main`. Run it with `/pod:code`, or unattended with `/pod:autopilot`.
 
@@ -21,6 +21,8 @@ Then, from your project root (new or existing repo), run `/pod:init`. It creates
 - `docs/handoff-queue.md`, plus empty `docs/plans/` and `docs/sprints/archive/`.
 
 Review the scout's draft and fill anything it left open. The agents, skills, templates, and policy docs stay inside the plugin — nothing else is copied into your repo.
+
+**Still weighing the idea?** `/pod:research <idea> [--deep]` works in any folder, even before `/pod:init`. The **researcher** agent checks the web for what already exists, where it falls short, and how people build it — every claim linked — then suggests ideas and the questions to settle in `/pod:plan`, which reads the report.
 
 To use a local clone instead of GitHub, pass its path: `/plugin marketplace add /path/to/claude-pod`. For a one-off session without installing: `claude --plugin-dir /path/to/claude-pod`.
 
@@ -59,11 +61,13 @@ rm -rf .claude/skills/{autopilot,code,fix,plan,sprint,wave-prompts,review,waves-
 | `pod:sprint-planner` | `/pod:sprint`, `/pod:autopilot` | Turns the next plan row into a sprint doc: slices grouped into waves, each success criterion naming its test |
 | `pod:engineer` | `/pod:code`, `/pod:autopilot`, `/pod:fix` | Builds one slice in its own worktree, test-first: writes each criterion's test, watches it fail, makes it pass; then checks it in the browser |
 | `pod:reviewer` | `/pod:code`, `/pod:autopilot`, `/pod:fix` | Reviews the whole plan once, at the final PR (wave by wave, then as a whole), and every `/pod:fix` PR; one fix pass for blocking findings. Never edits code |
+| `pod:researcher` | `/pod:research`, `/pod:plan` | Searches the web for an idea: what already exists, gaps worth improving on, best practices — every claim linked to a page it read — then brainstorms ideas and questions for the plan. Never touches code |
 
 ## Manual flow — you ride each wave
 
 | Step | Skill | What happens |
 |---|---|---|
+| 0 | `/pod:research <idea> [--deep]` *(optional)* | Researches the idea on the web and writes `docs/research/<slug>.md`: what already exists, gaps you could improve on, best practices, each claim linked — then ideas to consider and the questions `/pod:plan` should ask you. Works before `/pod:init`. `/pod:plan` offers it if you skip this, and reads the report either way |
 | 1 | `/pod:plan` | Planner interviews you (answer *How deep?* with the fast path to take its recommended answer on anything with a safe default). When there's a UI, it writes an HTML draft, `docs/design-drafts/look-directions.html`, with three **look** directions and every component in every state, and you pick one. Then it writes `docs/plans/<slug>.md` |
 | 2 | `/pod:sprint [slug]` | Drafts `docs/sprints/<slug>.md` — slices grouped into waves by file ownership |
 | — | *read the sprint doc* | **Your quality gate** — catch bad wave grouping or overlapping file ownership before any engineer runs |
@@ -124,6 +128,7 @@ docs/
 |-- decisions.md          # architectural decisions, authoritative (you maintain)
 |-- design-drafts/*.html  # look options to pick from
 |-- reports/<slug>.html   # plan report
+|-- research/<slug>.md     # web research on an idea
 `-- handoff-queue.md      # inter-agent comms — BLOCKED halts, PENDING defers, SOLVED informational
 ```
 
