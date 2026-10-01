@@ -20,6 +20,7 @@ Draft the next `planned` sprint of `docs/plans/<plan-slug>.md` as a sprint doc, 
 
 - **Criteria are tests.** Each `[test]` criterion names the test file and test name the engineer writes first, and those files are in the slice's **Files owned**. `[manual]` is only for what no test can check (how it looks or feels). Logic is never `[manual]`: move it out of hard-to-test glue into a small module with its own tests. No test runner yet → the first wave is one slice that sets one up.
 - **Rules name their edges.** A rule stated loosely gets built exactly as written. For each rule in a Scope or the Shared contract, say which kinds of record it covers and what happens at its boundaries (time, failure, repeats), and give each edge a `[test]` criterion.
+- **One-way doors are marked.** A slice that destroys or migrates existing data, sends to real people, moves money, changes auth or permissions, breaks a public API, or touches secrets or production is a one-way door — hard to undo, so the human decides. Mark it; everything else is a two-way door and goes ahead on its own.
 - **Bootstrap** (no application code yet): wave 1 is one slice, `B1`, title starting `Bootstrap:`, that every other slice depends on — the thinnest runnable version of the stack with one passing test. It fills `docs/codebase-structure.md`'s **Stack & conventions**, **`## Smoke recipe`** (install step, start commands, ports from env, a `Verification:` command, `127.0.0.1` rather than `localhost`), and **`## CI`** (`none` unless the plan's Key decisions ask for CI). When they do, it also adds `.github/workflows/pod-ci.yml`: on `pull_request` and on `push` to the merge-target, a **verify** job running the `Verification:` command and a **secrets** job (`gitleaks/gitleaks-action@v2`).
 - **The look.** When the plan's `## Look` isn't `none`, the first sprint that builds UI gets a **look foundation** slice `L1` (title starting `Look:`) in its earliest possible wave; every UI slice depends on it. `L1` turns the Look into design tokens, self-hosted fonts, and base control styles, and owns those theme files — no other slice edits them. Its tests check each token's value, 4.5:1 text contrast, and fonts served from the app. Every UI slice's Scope says to use only the tokens and follow the Look; its `[manual]` criteria say what to look at, at desktop and 375 px.
 - **Size.** Aim under ~20 KB — every engineer, the next planner, and the reviewer read it whole. Cut restated plan values and implementation detail before criteria.
@@ -46,12 +47,13 @@ What more than one slice depends on, stated once: shared types and fields, API r
 ## Per-slice detail
 
 ### <slice-code>: <title>
-- **Scope:** what to do and what not to — *what*, not *how*. Point at plan values and contract items; don't copy them in.
+- **Scope:** what to do and what not to — *what*, not *how*, including the slice's public interface (the entry points other code and its tests call). Point at plan values and contract items; don't copy them in.
 - **Files owned:** explicit paths, test files included; new ones marked `(new)`
 - **Success criteria:** one line each —
   - `[test] <behavior> — <test file> › <test name>`
   - `[manual] <behavior> — <how to check it>`
 - **Depends on:** <slice codes or —>
+- **One-way door:** <none, or what can't be undone and how it would be undone>
 ````
 
 ## Field rules

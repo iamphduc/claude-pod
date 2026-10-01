@@ -229,11 +229,18 @@ The fourth run built a shared-expenses app — 27 slices, twice the third — on
 - **Brainstorm after the evidence.** The report ends with ideas to consider and questions for the plan, brainstormed only once the search is done so they grow from what exists. Ideas are labelled as ideas, never as facts, and `/pod:plan` starts its interview from those questions.
 - **Clarify only when vague.** Deep-research tools ask scoping questions up front ([OpenAI — deep research](https://developers.openai.com/api/docs/guides/deep-research), [open_deep_research](https://github.com/langchain-ai/open_deep_research)); the skill asks up to three, in your session, since a background agent can't ask.
 
+## One-way doors and interface-only tests
+
+- **Human attention goes where a change can't be undone.** Bezos splits decisions into one-way doors (careful, slow) and two-way doors (fast), and warns that treating two-way doors like one-way ones causes slowness ([rcmlabs](https://rcmlabs.io/blog/one-way-door-two-way-door-type-1-type-2-decisions/)). So the sprint-planner marks slices that destroy or migrate data, send to real people, move money, change auth, break a public API, or touch secrets or production. Autopilot leaves those waves to you; everything else goes ahead. Real agent disasters came from too much access, not misjudged changes ([Zenity](https://zenity.io/blog/current-events/ai-agent-database-deletion-pocketos)), so engineers never touch real users, money, or production.
+- **Tests go through the public interface.** Tests that only call a module's public entry points survive a refactor of its insides — Beck's "structure-insensitive" property ([Test Desiderata](https://testdesiderata.com/)). Agents over-mock (36% of agent commits add mocks, against 26% for people, [arXiv 2602.00409](https://arxiv.org/abs/2602.00409)), so tests fake only what the app doesn't control. No folder layout is required: no evidence was found that a spec/src split helps agents.
+
 ## Choices we made on purpose
 
 - **One reviewer, not several in parallel.** Claude Code Review runs several reviewers at once, one per concern, then filters. More thorough, but costs several times more; one agent reading small pieces gets most of the benefit. Revisit if end-of-plan reviews start missing things.
 - **Trust the engineers per wave.** Anthropic's advice is to start simple and add agent steps only when simpler setups fall short ([Anthropic](https://www.anthropic.com/engineering/building-effective-agents)). If bugs keep slipping through waves into the final review, the per-wave pr-reviewer is the step to bring back.
 - **The fix pass merges its own PR.** It only touches files the reviewer named, and the whole final PR still comes to you (or passes autopilot's checks) before reaching `main`.
+- **The reviewer never fixes code itself.** Its value is independence: a fix it committed would reach `main` unreviewed. Fixes go to an engineer, and the reviewer re-checks them.
+- **No coding-standards file or `/retro` yet.** Conventions live in the brief's Stack & conventions, and growing instruction files tend to cost more than they help. Revisit when one project runs several plans and the same review findings keep coming back.
 
 ## Sources
 
@@ -274,3 +281,7 @@ The fourth run built a shared-expenses app — 27 slices, twice the third — on
 - [OWASP — LLM01: Prompt injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/)
 - [OpenAI — Deep research guide](https://developers.openai.com/api/docs/guides/deep-research)
 - [LangChain — open_deep_research](https://github.com/langchain-ai/open_deep_research)
+- [rcmlabs — One-way and two-way doors: what Bezos actually said](https://rcmlabs.io/blog/one-way-door-two-way-door-type-1-type-2-decisions/)
+- [Zenity — AI agent database deletion (PocketOS)](https://zenity.io/blog/current-events/ai-agent-database-deletion-pocketos)
+- [Kent Beck — Test Desiderata](https://testdesiderata.com/)
+- [arXiv 2602.00409 — Are coding agents generating over-mocked tests?](https://arxiv.org/abs/2602.00409)

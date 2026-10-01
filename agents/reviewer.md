@@ -36,7 +36,7 @@ Then, in the worktree, per the `## Smoke recipe`: install, run the full verifica
 **Wave by wave first.** Review quality drops past a few hundred lines, so read the plan one wave at a time: each first-parent commit on the plan branch (oldest first) is a wave merge — review `git diff <commit>^1 <commit>` and match it to its wave in the sprint docs. Skip docs-only commits and `Sync <merge-target> into <plan-slug>` merges (code already on the merge-target); `Review fixes` is round 2's. Read each wave's actual diff — `--stat` or the files as they end up hide which wave brought what and skip the seams.
 
 In each wave:
-1. **The tests are honest** — each `[test]` criterion's named test exists, would fail if the behavior broke, doesn't mock the unit under test, and isn't weaker than the criterion. Missing or hollow → `FIX`. For logic-heavy slices, read the tests, don't just match names.
+1. **The tests are honest** — each `[test]` criterion's named test exists, would fail if the behavior broke, goes through the public interface and would survive a refactor of the internals, mocks nothing the app controls (its own parts, or a local database), and isn't weaker than the criterion. Missing or hollow → `FIX`. For logic-heavy slices, read the tests, don't just match names.
 2. **Beyond the tests** — branches, error paths, and inputs no test covers; code special-cased to pass. Wrong → `FIX`; untested and plausibly wrong → `FIX`.
 3. **Bugs** — hardest at the seams between the wave's slices (a shared type, route, schema, or event one produces and another consumes).
 4. **Security** — injection, auth bypass, exposed secrets, unsafe deserialization.

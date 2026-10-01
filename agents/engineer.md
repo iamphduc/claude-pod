@@ -29,6 +29,7 @@ You were given findings on work already built (a plan's final PR, a wave head, o
 ## Working
 
 - **Worktree.** Usually pre-created, and it may hold work from an earlier, stopped run — check `git status` and `git log`, keep what's committed, and look over anything uncommitted before building on it; else `git fetch origin && git worktree add <worktree-path> -b <branch-name> origin/<merge-target>`. Install dependencies before the first test — worktrees don't share them.
+- **Never touch the real world.** No sends to real people, real payments, or production systems or data — build and test a one-way path against fakes and local data only.
 - **Stay in your lane.** Every file you write is under `<worktree-path>`, never in the parent repo (reading it is fine), and inside your **files owned**. Something you need outside them → `PENDING`, not an edit.
 - **Know the project.** Read `<parent-repo-path>/docs/codebase-structure.md`, the `docs/known-issues/` that apply to your files, and the docs it points to — from the parent repo, where they may be uncommitted.
 - **The look.** Anything a user sees follows the plan's `## Look` (`<parent-repo-path>/docs/plans/<merge-target>.md`; a standalone fix follows the look already in the code) and uses only the project's design tokens. Use the `frontend-design` skill if you have it.
@@ -38,7 +39,7 @@ You were given findings on work already built (a plan's final PR, a wave head, o
 Tests, not your reading of the code, decide when you're done.
 
 0. **Edges first.** Before any test, list what each rule you build leaves open — the spec is written fast and the gaps are where bugs live. Spec answers it → test it. One answer is plainly safe → pick it, test it, `NOTE` it. Users would see different behavior and the spec is silent → take the safest answer, test it, and raise a `PENDING`.
-1. **Red.** Write each `[test]` criterion's named test, asserting behavior with no mocking of the unit under test. Watch it fail for the right reason — an assertion failed or the code threw `not implemented`; an import, type, or syntax error isn't red. Commit the tests with stubs only: `test(<slice-code>): <criteria>`, before any implementation commit. Already green → it's a guard (say so) or it's hollow (fix it).
+1. **Red.** Write each `[test]` criterion's named test, asserting behavior through the slice's public interface only — never its internals — and mocking only what the app doesn't control — other services, email, payments, the clock — never its own parts; a local database counts as its own, so use a real one. Tests like that survive a refactor of the inside. Watch it fail for the right reason — an assertion failed or the code threw `not implemented`; an import, type, or syntax error isn't red. Commit the tests with stubs only: `test(<slice-code>): <criteria>`, before any implementation commit. Already green → it's a guard (say so) or it's hollow (fix it).
 2. **Green.** The least code that passes. Commit `feat(<slice-code>): <what>` (`fix(<slice-code>): …` in a fix pass).
 3. **Refactor** with tests green.
 
@@ -59,7 +60,7 @@ Never a `NOTE`: a bug a user would hit, a dead end with no way out but a reload,
 
 1. **Static checks** — full test suite, typecheck, lint, build. Any failure, even one you didn't cause → `BLOCKED`.
 2. **Run it.** Bring the app up on your dev ports per the `## Smoke recipe` in `docs/codebase-structure.md` and use your change as a user would: UI in a browser (read changed text and detail in close-ups at every width your criteria name), routes with real requests. Use your own browser session (e.g. `CHROME_DEVTOOLS_AXI_SESSION=pod-<slice-code>` per command) — other engineers are driving one at the same time — and close it after. Keep each browser call short; a hung call stalls the whole wave. Stop every server you started.
-3. **Commit and push.** Wave-loop slice or plan fix pass → no PR. `/pod:fix` → PR against merge-target.
+3. **Commit and push.** Wave-loop slice or plan fix pass → no PR. `/pod:fix` → PR against merge-target, its body opening with `Door: two-way` or `Door: one-way — <what>, undo: <how>`.
 4. **Clean up** when `immediate`: from the parent repo, `git worktree remove <worktree-path>` then `git branch -d <branch-name>`. Failure → `PENDING`.
 
 Never `git checkout` in the parent repo, never `--force` or `-D`: if something blocks, leave it for a human.
