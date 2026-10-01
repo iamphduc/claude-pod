@@ -11,7 +11,7 @@ A PR merges only if **all** hold:
 - **No low confidence:** any slice in the wave reported `Confidence: low` → withhold and halt (gate 6).
 - **Final plan PR only:** the reviewer's `pass`, on the first review or after the one fix pass. Still `fix` → gate 2.
 
-Merge with a merge commit, not squash (`gh pr merge --merge --delete-branch`). A wave PR → also delete its slice branches and mark the wave `merged`/`done`. Any failure → gate 3.
+Merge with a merge commit, not squash (`gh pr merge --merge`); teardown deletes the branches. A wave PR → also delete its slice branches and mark the wave `merged`/`done`. Any failure → gate 3.
 
 ## Preflight (before `/pod:code`'s own)
 
@@ -26,7 +26,7 @@ On the wave head, before the wave PR opens, bring the app up and exercise the me
 | # | Name | Trigger | Queue type |
 |---|---|---|---|
 | 1 | blocked-concern | `BLOCKED` from any engineer or from you (incl. an agent that stalled twice) | `BLOCKED` |
-| 2 | plan-review-fail | Final plan PR still has `FIX` findings after the fix pass | `BLOCKED` |
+| 2 | plan-review-fail | Final plan PR still has `FIX` findings, or any reproduced bug, after the fix pass | `BLOCKED` |
 | 3 | auto-merge-fail | A PR fails the auto-merge criteria, or the merge fails | `BLOCKED` |
 | 4 | inter-wave-verify | Wave verification fails | `BLOCKED` |
 | 5 | safety-bound | A safety bound is hit | `PENDING` |
@@ -41,6 +41,6 @@ Hitting any → gate 5. Check them before each wave and after each archive.
 
 - `--max-sprints=<N>` — sprints completed (default: unlimited).
 - `--max-waves=<N>` — waves dispatched (default `20`).
-- `--max-runtime=<duration>` — wall clock, e.g. `4h` (default `4h`).
+- `--max-runtime=<duration>` — wall clock, e.g. `4h` (default `4h`). Resuming after a halt starts the clock again.
 
 Keep the count in a line `<!-- autopilot-run: started=<ISO8601> sprints=<N> waves=<N> -->` in the active sprint doc (the plan doc between sprints; carry it over when the sprint-planner writes a new doc).

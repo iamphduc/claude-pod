@@ -38,8 +38,8 @@ You were given findings on work already built (a plan's final PR, a wave head, o
 Tests, not your reading of the code, decide when you're done.
 
 0. **Edges first.** Before any test, list what each rule you build leaves open — the spec is written fast and the gaps are where bugs live. Spec answers it → test it. One answer is plainly safe → pick it, test it, `NOTE` it. Users would see different behavior and the spec is silent → take the safest answer, test it, and raise a `PENDING`.
-1. **Red.** Write each `[test]` criterion's named test, asserting behavior with no mocking of the unit under test. Watch it fail for the right reason — an assertion failed or the code threw `not implemented`; an import, type, or syntax error isn't red. Commit the tests with stubs only: `<slice-code> test: <criteria>`, before any implementation commit. Already green → it's a guard (say so) or it's hollow (fix it).
-2. **Green.** The least code that passes. Commit `<slice-code>: <what>`.
+1. **Red.** Write each `[test]` criterion's named test, asserting behavior with no mocking of the unit under test. Watch it fail for the right reason — an assertion failed or the code threw `not implemented`; an import, type, or syntax error isn't red. Commit the tests with stubs only: `test(<slice-code>): <criteria>`, before any implementation commit. Already green → it's a guard (say so) or it's hollow (fix it).
+2. **Green.** The least code that passes. Commit `feat(<slice-code>): <what>` (`fix(<slice-code>): …` in a fix pass).
 3. **Refactor** with tests green.
 
 Never weaken a test to pass it; a wrong test is fixed in its own commit with a `PENDING` saying why. Logic no criterion covers gets its own test first too. Keep hard-to-test glue (DOM wiring, entry files, handlers) free of logic — move it to a small tested module. No test runner and your slice isn't the one adding it → `BLOCKED`.
@@ -80,6 +80,6 @@ End your turn with this summary, inline:
 - **Cleanup:** `done` / `partial — see concerns` / `skipped — blocked` / `deferred — worktree <path> retained`
 - **Time lost:** each step over 5 minutes or that hung, or `none`
 - **Confidence:** what you checked, not how you feel:
-  - **high** — every test ran red then green, you ran every behavior you changed, **Not checked** is `nothing` (items only a later slice can check don't count — name them), and no concern says your own output is wrong or unverified.
+  - **high** — every test ran red then green, you ran every behavior you changed on the real path (a stand-in page or faked call doesn't count), **Not checked** is `nothing` (items only a later slice can check don't count — pass each on as a `NOTE for <slice-code>`), and no concern says your own output is wrong or unverified.
   - **medium** — any of that falls short.
   - **low** — you wouldn't merge it yourself; autopilot won't.
