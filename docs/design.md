@@ -208,6 +208,17 @@ The third run built a room booking app — a UI plus server rules — from an em
 - **The shared contract said how, not what.** It spelled out exact labels, rule order, and steps; one engineer followed a step that stopped a view from updating, and that sprint doc was 32 KB against about 20 KB for the others. Now the contract states what slices agree on; how belongs to the slice that builds it.
 - **Worktrees couldn't be removed on Windows.** `git worktree remove` failed with "Filename too long" in `node_modules` for five worktrees, and the only other way out — a recursive delete — is blocked by the user's permission rules. Preflight now turns on `core.longpaths`.
 
+## What the fourth run changed
+
+The fourth run built a shared-expenses app — 27 slices, twice the third — on the trimmed rules. Every run-3 fix held, and context per slice stayed flat. What it found:
+
+- **A caught bug reached `main`.** The reviewer re-checked an easier case in round 2 and filed the real bug as a product choice. Now a reproduced bug is never a decision or default: round 2 re-runs the original repro, and the final PR waits until it's fixed.
+- **Planning before setup wasted a run.** The plan now points to `/pod:init` when pod isn't set up.
+- **Force had unnamed forms** (`git worktree remove --force`, recursive delete). Both are named, with what to do instead.
+- **Nine engineers rediscovered the same browser limits.** The orchestrator now records tool limits in `docs/known-issues/` the first time.
+- **The orchestrator hung on its own command** for 2 h 44 m. Its long commands now run in the background or with a time limit.
+- **Confidence claimed unchecked work** (stand-in pages, "1280 ✓" at 929 px). Now only the real path counts, and checks record what was actually reached.
+
 ## Researching an idea first
 
 `/pod:plan` used to decide scope and stack without knowing whether the idea already existed or how others built it. `pod:researcher` looks outward first, and `/pod:plan` reads its report before the interview.
