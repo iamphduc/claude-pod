@@ -50,7 +50,7 @@ Resuming a halted wave → re-dispatch only its `blocked` and `pending` slices, 
 1. **Sync:** confirm-on-resume the previous wave's PR; re-read the queue for answers.
 2. **Check disjointness**, then create each slice's worktree off `origin/<plan-slug>`.
 3. **Dispatch** and start the stall timer.
-4. **Translate concerns:** every engineer `BLOCKED`, `PENDING`, and `SOLVED` goes to `docs/handoff-queue.md` (`from: engineer`) — none stays only in chat. Judge each by the engineer's own test, *if nobody ever reads it, does anything go wrong?*: a `PENDING` that fails it is a `NOTE`; a `NOTE` that passes it (a user-facing bug left unfixed) becomes a `PENDING` from `orchestrator`. `NOTE`s go in the wave PR body.
+4. **Translate concerns:** every engineer `BLOCKED`, `PENDING`, and `SOLVED` goes to `docs/handoff-queue.md` (`from: engineer`) — none stays only in chat. Judge each by the engineer's own test, *if nobody ever reads it, does anything go wrong?*: a `PENDING` that fails it is a `NOTE`; a `NOTE` that passes it (a user-facing bug left unfixed) becomes a `PENDING` from `orchestrator`. `NOTE`s go in the wave PR body. A limit of the tools or the machine that the next engineer will hit too — reported in a concern or under **Time lost** — goes into `docs/known-issues/<slug>.md` (the scout's format) before the next wave, so it's learned once.
 5. **Update the status board:** Status `pushed` or `blocked`, Confidence as reported, per the **Field rules** in `${CLAUDE_PLUGIN_ROOT}/agents/sprint-planner.md`.
 6. **Integrate & open the wave PR** — or halt if any slice is `BLOCKED` (more than half blocked → one wave-summary `BLOCKED` entry from `orchestrator`).
 7. **Hand back for merge** (`Wave <N> of sprint <sprint-slug> awaiting merge`).
