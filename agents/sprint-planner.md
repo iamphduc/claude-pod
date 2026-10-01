@@ -47,7 +47,7 @@ What more than one slice depends on, stated once: shared types and fields, API r
 ## Per-slice detail
 
 ### <slice-code>: <title>
-- **Scope:** what to do and what not to — *what*, not *how*. Point at plan values and contract items; don't copy them in.
+- **Scope:** what to do and what not to — *what*, not *how*, including the slice's public interface (the entry points other code and its tests call). Point at plan values and contract items; don't copy them in.
 - **Files owned:** explicit paths, test files included; new ones marked `(new)`
 - **Success criteria:** one line each —
   - `[test] <behavior> — <test file> › <test name>`

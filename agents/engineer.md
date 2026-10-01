@@ -39,7 +39,7 @@ You were given findings on work already built (a plan's final PR, a wave head, o
 Tests, not your reading of the code, decide when you're done.
 
 0. **Edges first.** Before any test, list what each rule you build leaves open — the spec is written fast and the gaps are where bugs live. Spec answers it → test it. One answer is plainly safe → pick it, test it, `NOTE` it. Users would see different behavior and the spec is silent → take the safest answer, test it, and raise a `PENDING`.
-1. **Red.** Write each `[test]` criterion's named test, asserting behavior with no mocking of the unit under test. Watch it fail for the right reason — an assertion failed or the code threw `not implemented`; an import, type, or syntax error isn't red. Commit the tests with stubs only: `test(<slice-code>): <criteria>`, before any implementation commit. Already green → it's a guard (say so) or it's hollow (fix it).
+1. **Red.** Write each `[test]` criterion's named test, asserting behavior through the slice's public interface only — never its internals — and mocking only what the app doesn't control — other services, email, payments, the clock — never its own parts; a local database counts as its own, so use a real one. Tests like that survive a refactor of the inside. Watch it fail for the right reason — an assertion failed or the code threw `not implemented`; an import, type, or syntax error isn't red. Commit the tests with stubs only: `test(<slice-code>): <criteria>`, before any implementation commit. Already green → it's a guard (say so) or it's hollow (fix it).
 2. **Green.** The least code that passes. Commit `feat(<slice-code>): <what>` (`fix(<slice-code>): …` in a fix pass).
 3. **Refactor** with tests green.
 
