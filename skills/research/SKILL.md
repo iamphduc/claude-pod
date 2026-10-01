@@ -10,4 +10,4 @@ Args: the idea (none → ask for it) and `--deep`.
 1. **Sharpen the brief.** Too vague to search well (who it's for, what platform, what counts as done) → ask up to 3 questions in one message. Clear enough → skip this.
 2. **Pick the file.** `<slug>` is short kebab-case from the idea. `docs/research/<slug>.md` exists → ask: update it, or write a new slug.
 3. **Dispatch** `pod:researcher` with the **Required dispatch context** of `${CLAUDE_PLUGIN_ROOT}/agents/researcher.md`, and wait for it.
-4. **Hand back:** the report path, its headline bullets, anything not found or suspect, and that `/pod:plan` reads the report.
+4. **Hand back.** If the researcher's summary or report says anything came from a search result rather than a page it read, send it back once to fetch or cut it. Then give the report path, its headline bullets, anything not found or suspect, and that `/pod:plan` reads the report.
