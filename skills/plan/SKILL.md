@@ -34,4 +34,4 @@ Use `${CLAUDE_PLUGIN_ROOT}/skills/plan/template.md`. `<slug>` is short kebab-cas
 - **Small: 2–4 sprints.** Code is reviewed once, at plan end, so a bug found then was built on for the whole plan. A bigger goal becomes several plans in a row; say so in Scope.
 - **Strategic, not tactical.** Sprints by goal and dependency; files and slices belong in sprint docs.
 
-End by giving the slug and saying `/pod:sprint <slug>` (or `/pod:autopilot`) is next.
+End by giving the slug and the next command: `/pod:init` first if pod isn't set up here yet (no `docs/codebase-structure.md`, no `origin`, or no first commit), else `/pod:sprint <slug>` (or `/pod:autopilot`).
