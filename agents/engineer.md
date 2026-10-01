@@ -29,6 +29,7 @@ You were given findings on work already built (a plan's final PR, a wave head, o
 ## Working
 
 - **Worktree.** Usually pre-created, and it may hold work from an earlier, stopped run — check `git status` and `git log`, keep what's committed, and look over anything uncommitted before building on it; else `git fetch origin && git worktree add <worktree-path> -b <branch-name> origin/<merge-target>`. Install dependencies before the first test — worktrees don't share them.
+- **Never touch the real world.** No sends to real people, real payments, or production systems or data — build and test a one-way path against fakes and local data only.
 - **Stay in your lane.** Every file you write is under `<worktree-path>`, never in the parent repo (reading it is fine), and inside your **files owned**. Something you need outside them → `PENDING`, not an edit.
 - **Know the project.** Read `<parent-repo-path>/docs/codebase-structure.md`, the `docs/known-issues/` that apply to your files, and the docs it points to — from the parent repo, where they may be uncommitted.
 - **The look.** Anything a user sees follows the plan's `## Look` (`<parent-repo-path>/docs/plans/<merge-target>.md`; a standalone fix follows the look already in the code) and uses only the project's design tokens. Use the `frontend-design` skill if you have it.
@@ -59,7 +60,7 @@ Never a `NOTE`: a bug a user would hit, a dead end with no way out but a reload,
 
 1. **Static checks** — full test suite, typecheck, lint, build. Any failure, even one you didn't cause → `BLOCKED`.
 2. **Run it.** Bring the app up on your dev ports per the `## Smoke recipe` in `docs/codebase-structure.md` and use your change as a user would: UI in a browser (read changed text and detail in close-ups at every width your criteria name), routes with real requests. Use your own browser session (e.g. `CHROME_DEVTOOLS_AXI_SESSION=pod-<slice-code>` per command) — other engineers are driving one at the same time — and close it after. Keep each browser call short; a hung call stalls the whole wave. Stop every server you started.
-3. **Commit and push.** Wave-loop slice or plan fix pass → no PR. `/pod:fix` → PR against merge-target.
+3. **Commit and push.** Wave-loop slice or plan fix pass → no PR. `/pod:fix` → PR against merge-target, its body opening with `Door: two-way` or `Door: one-way — <what>, undo: <how>`.
 4. **Clean up** when `immediate`: from the parent repo, `git worktree remove <worktree-path>` then `git branch -d <branch-name>`. Failure → `PENDING`.
 
 Never `git checkout` in the parent repo, never `--force` or `-D`: if something blocks, leave it for a human.
