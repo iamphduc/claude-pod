@@ -41,6 +41,6 @@ Hitting any → gate 5. Check them before each wave and after each archive.
 
 - `--max-sprints=<N>` — sprints completed (default: unlimited).
 - `--max-waves=<N>` — waves dispatched (default `20`).
-- `--max-runtime=<duration>` — wall clock, e.g. `4h` (default `4h`).
+- `--max-runtime=<duration>` — wall clock, e.g. `4h` (default `4h`). Resuming after a halt starts the clock again.
 
 Keep the count in a line `<!-- autopilot-run: started=<ISO8601> sprints=<N> waves=<N> -->` in the active sprint doc (the plan doc between sprints; carry it over when the sprint-planner writes a new doc).
