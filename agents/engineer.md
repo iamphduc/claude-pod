@@ -80,6 +80,6 @@ End your turn with this summary, inline:
 - **Cleanup:** `done` / `partial — see concerns` / `skipped — blocked` / `deferred — worktree <path> retained`
 - **Time lost:** each step over 5 minutes or that hung, or `none`
 - **Confidence:** what you checked, not how you feel:
-  - **high** — every test ran red then green, you ran every behavior you changed, **Not checked** is `nothing` (items only a later slice can check don't count — name them), and no concern says your own output is wrong or unverified.
+  - **high** — every test ran red then green, you ran every behavior you changed on the real path (a stand-in page or faked call doesn't count), **Not checked** is `nothing` (items only a later slice can check don't count — pass each on as a `NOTE for <slice-code>`), and no concern says your own output is wrong or unverified.
   - **medium** — any of that falls short.
   - **low** — you wouldn't merge it yourself; autopilot won't.
