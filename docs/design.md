@@ -123,7 +123,7 @@ Success criteria used to be prose, and the reviewer judged them by reading code.
 - **The sprint-planner names a test per criterion** — `[test] <behavior> — <file> › <test name>` — and puts the test files in the slice's **Files owned**. `[manual]` is kept for what a test genuinely can't check, like visual layout, and those get checked in the browser.
 - **Engineers do real TDD.** Red: write the named tests and watch them fail on an assertion — a missing module or a type error doesn't count, because the test body never ran — then commit the tests with throwing stubs and nothing else. Green: the least code that passes them. Refactor with the tests green. Any extra logic no criterion covers gets its own test first too. Engineers never weaken a test to make it pass.
 - **The tests decide "done".** An engineer doesn't judge its own work by reading it; a slice is done when its criteria's tests pass along with the rest of the suite.
-- **The commit order is the evidence.** Each slice's `test:` commit lands before its implementation, so the reviewer can see test-first happened.
+- **The commit order is the evidence.** Each slice's `test(<slice>):` commit lands before its implementation, so the reviewer can see test-first happened.
 - **No test runner → set one up first.** The sprint-planner makes that the sprint's first, solo slice; a feature slice never invents one.
 
 This is how spec-driven setups work — the written spec drives what gets built and checked ([GitHub Spec Kit](https://github.com/github/spec-kit)) — carried one step further, into tests that run.
