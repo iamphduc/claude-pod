@@ -14,7 +14,7 @@ Args: the plan slug (none → list `docs/plans/*.md` not `Status: archived` and 
 - **Disjoint files.** Before dispatching a wave, intersect its slices' `Files owned`; any overlap → halt `BLOCKED` naming both slices and the path. When integrating, a slice that touched files outside its own → a `NOTE` naming them (a `PENDING` if another slice owns them).
 - **Nothing broken moves forward.** A merge conflict, a failed smoke recipe, or a slice's `BLOCKED` → halt `BLOCKED` from `orchestrator`, naming the cause and its queue entry.
 - **No known bug reaches the merge-target.** A bug someone reproduced — the reviewer, an engineer, or you — is fixed before the final merge, or the final PR stays unmerged as `Review still failing`. It is never a decision, an agent default, or a someday item.
-- **No force.** No `--force`, `-D`, or force-push. When a safe command refuses — `git branch -d` saying "not merged" — it's telling you something: pull, or find out why; never force past it. A teardown that fails is left in place and named in the hand-back.
+- **No force.** No `--force` of any kind (`git worktree remove --force` included), `-D`, force-push, or recursive delete of a worktree or repo folder. When a safe command refuses — `git branch -d` saying "not merged", a worktree that won't remove — it's telling you something: pull, stop what's still running in it, unlock it, or find out why; never force past it. A teardown that fails is left in place and named in the hand-back.
 - **The paper trail rides the plan branch.** `docs/` changes are committed to `<plan-slug>` at each sprint's end and at plan end, before the final merge — anything written after it lands uncommitted on the merge-target.
 
 ## Conventions
