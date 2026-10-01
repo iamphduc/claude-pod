@@ -11,7 +11,7 @@ A PR merges only if **all** hold:
 - **No low confidence:** any slice in the wave reported `Confidence: low` → withhold and halt (gate 6).
 - **Final plan PR only:** the reviewer's `pass`, on the first review or after the one fix pass. Still `fix` → gate 2.
 
-Merge with a merge commit, not squash (`gh pr merge --merge --delete-branch`). A wave PR → also delete its slice branches and mark the wave `merged`/`done`. Any failure → gate 3.
+Merge with a merge commit, not squash (`gh pr merge --merge`); teardown deletes the branches. A wave PR → also delete its slice branches and mark the wave `merged`/`done`. Any failure → gate 3.
 
 ## Preflight (before `/pod:code`'s own)
 
