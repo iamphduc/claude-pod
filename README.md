@@ -40,19 +40,6 @@ npx -y skills add mattpocock/skills -g -s grilling -y
 
 The plugin is replaced as a whole, so retired agents and skills disappear on their own. Your `docs/` files are never touched.
 
-### Moving from the old copy-based install
-
-The old scripts copied everything into your repo, and those copies take priority over the plugin's skills. Delete them, then install the plugin as above (keep your `codebase-structure.md`, `decisions.md`, `handoff-queue.md`, plans, and sprints):
-
-```bash
-rm -f  .claude/agents/waves-*.md \
-       .claude/agents/engineer-junior.md .claude/agents/engineer-senior.md \
-       .claude/agents/reviewer.md .claude/agents/sprint-planner.md \
-       docs/engineer-protocol.md docs/autonomous-policy.md
-rm -rf .claude/skills/{autopilot,code,fix,plan,sprint,wave-prompts,review,waves-review} \
-       docs/templates
-```
-
 ## Agents
 
 | Agent | Called by | Job |
