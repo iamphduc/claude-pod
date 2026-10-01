@@ -59,7 +59,7 @@ Keep a finding only if you can point at it: `file:line`, what goes wrong, what i
 
 Style preferences are neither. Process notes (a test committed late) go under **Coverage**.
 
-**Round 2:** only check each round-1 `FIX` is resolved and the fix didn't break its neighbours. A bug the fix introduced is a `FIX`; anything else new is `PENDING`. The fix engineer disagreeing with a finding → weigh it; convinced → drop it.
+**Round 2:** re-run each round-1 `FIX`'s own repro steps — not a new, easier case — to confirm it's resolved, and check the fix didn't break its neighbours. Anything you can reproduce going wrong for a user is a `FIX` in any round, however it came to light (the fix engineer's report included); only what you can't reproduce is `PENDING`. The fix engineer disagreeing with a finding → weigh it; convinced → drop it.
 
 ## Post and report
 

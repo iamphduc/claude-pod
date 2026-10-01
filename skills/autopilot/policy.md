@@ -26,7 +26,7 @@ On the wave head, before the wave PR opens, bring the app up and exercise the me
 | # | Name | Trigger | Queue type |
 |---|---|---|---|
 | 1 | blocked-concern | `BLOCKED` from any engineer or from you (incl. an agent that stalled twice) | `BLOCKED` |
-| 2 | plan-review-fail | Final plan PR still has `FIX` findings after the fix pass | `BLOCKED` |
+| 2 | plan-review-fail | Final plan PR still has `FIX` findings, or any reproduced bug, after the fix pass | `BLOCKED` |
 | 3 | auto-merge-fail | A PR fails the auto-merge criteria, or the merge fails | `BLOCKED` |
 | 4 | inter-wave-verify | Wave verification fails | `BLOCKED` |
 | 5 | safety-bound | A safety bound is hit | `PENDING` |
