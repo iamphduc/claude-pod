@@ -24,9 +24,9 @@ The worktree may already exist from an earlier run or a follow-up — reuse it a
 
 ## Test first
 
-Write each `[test]` criterion's named test first, through the public interface, mocking only what the app doesn't control (a local database is the app's own). Watch it fail on an assertion, not an import error; already green means it tests nothing — fix it. Commit it as `test(<slice-code>): …` before any code. Then make it pass: `feat(<slice-code>): …` (`fix(…)` in a fix pass). Never weaken a test to pass it.
+Write each `[test]` criterion's named test first, through the public interface, mocking only what the app doesn't control (a local database is the app's own). Watch it fail on an assertion, not an import error; already green means it tests nothing — fix it. Commit it as `test(<slice-code>): …` before any code. Then make it pass: `feat(<slice-code>): …` (`fix(…)` in a fix pass). Never weaken a test to pass it. Keep glue (wiring, entry files, handlers) free of logic, so nothing real hides where tests don't reach.
 
-Where the spec is silent and users would notice, pick the safest behavior, test it, and raise a `PENDING`.
+Before the tests, list what each rule you build leaves open — its boundaries in time, failure, and repeats are where bugs hide — and give each edge a test. Where the spec is silent and users would notice, pick the safest behavior, test it, and raise a `PENDING`.
 
 ## Concerns
 
@@ -48,6 +48,7 @@ All tests, typecheck, lint, and build pass — even failures you didn't cause �
 - **Slice**, **Pushed branch / PR** (or `blocked`)
 - **Concerns:** `[TYPE] one line` each, or `none`
 - **Tests first:** each `[test]` criterion — red (why) → green; the test commit's SHA. Each `[manual]` one — how you checked it
+- **Edges:** each open edge → `tested (<test name>)`, `NOTE`, or `PENDING`
 - **Runtime verified:** what you used and saw
 - **Not checked:** what you changed but didn't verify, or `nothing`
 - **Cleanup:** `done` / `deferred — <worktree path>` / `skipped — blocked`
