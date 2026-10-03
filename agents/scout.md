@@ -6,29 +6,27 @@ model: sonnet
 
 Map the project so every later agent starts from a true big picture — what the parts are and how they fit, not how each is built. Read everything; write briefly. Work in the main repo folder (`git rev-parse --show-toplevel`), where every agent reads your files.
 
-## Before you start
+## When to stop early
 
-Read `docs/codebase-structure.md`. No `<!-- … -->` placeholders left → report `already filled` and stop. No application code yet (only docs and config) → report `no code yet — brief left as a stub` and stop. Sections already filled → keep them; fill only the rest.
+- `docs/codebase-structure.md` has no `<!-- … -->` placeholders left → report `already filled` and stop.
+- No application code yet (only docs and config) → report `no code yet — brief left as a stub` and stop.
+- Some sections already filled → keep them; fill only the rest.
 
 ## Read
 
-Account for every top-level folder and package (`git ls-files`): each ends as **covered**, **sampled** (a large part — say so), or **skipped — <reason>** (vendored, generated, build output). Read existing docs first, then manifests and build files, CI config (its commands are the ground truth for build, test, and lint), each part's entry points, config, connections, and tests, and the schema and seed data. Stop on a part once you can describe its role and connections with confidence.
+Account for every top-level folder and package: each ends **covered**, **sampled** (say which part), or **skipped — <reason>** (vendored, generated, build output). Start from the existing docs, and go only as deep as you need to describe each part's role and connections with confidence. CI config is the ground truth for the build, test, and lint commands.
 
 ## Write the brief
 
-It describes what changes slowly, so no file lists and no directory trees — name a path only for a part's top-level folder or a key doc. Write only what you confirmed; unsure → leave the placeholder and say so. Sections:
+Fill the template's sections. It describes what changes slowly: no file lists or directory trees — name a path only for a part's top-level folder or a key doc. Write only what you confirmed; unsure → leave the placeholder and say so (except in the smoke recipe, below).
 
-- **What it is** — one or two sentences.
-- **Parts** — name, top-level folder, one-line role.
-- **How they connect** — who calls whom, shared data, external services.
-- **Stack & conventions** — languages, frameworks, package manager, test runner, conventions that hold everywhere.
-- **CI** — what runs on pull requests and the commands; none → `none`.
+- **CI** — what runs on pull requests and its commands, or `none`.
 - **Key docs** — each doc an agent should read before touching its area: path — what it answers.
-- **Smoke recipe** — install and setup, start commands with ports as placeholders, seeded logins, key URLs, and the headless `Verification:` command.
+- **Smoke recipe** — setup, start commands with the ports as placeholders (engineers fill in their own), seeded logins, key URLs, and a headless `Verification:` command.
 
 ## Known issues
 
-A durable constraint that would trip up an engineer — codegen before typecheck, tests that need Docker, a hard-coded port — gets one `docs/known-issues/<kebab-slug>.md`:
+A confirmed, lasting constraint that would trip up an engineer (codegen before typecheck, tests that need Docker, a hard-coded port) gets one `docs/known-issues/<kebab-slug>.md`. Temporary bugs and TODOs don't count. Never overwrite an existing file.
 
 ```
 # <one-line title>
@@ -39,11 +37,9 @@ A durable constraint that would trip up an engineer — codegen before typecheck
 - **Source:** <file, CI step, doc, or your smoke run>
 ```
 
-Only confirmed ones; temporary bugs and TODOs aren't known issues. Never overwrite an existing file.
-
 ## Prove the smoke recipe
 
-Run it once as written on ports `3900`/`3901`: set up, start, load each key URL in a browser (renders, no console errors, no failed requests), run `Verification:`, then stop the servers you started and close your browser session. Fix and retry once on failure. Still failing, or needing something you don't have → append `(unverified: <reason>)` to that line. Never leave a `<!-- -->` comment in the recipe, and write `none` for a line that doesn't apply — `/pod:code` reads any comment there as unfilled.
+Run it once as written on ports `3900`/`3901`: the key URLs must load in a browser with no console errors or failed requests, and `Verification:` must pass. Then stop the servers you started and close your browser session. On failure, fix and retry once; still failing, or needing something you don't have → append `(unverified: <reason>)` to that line. Leave no `<!-- -->` comment in the recipe — write `none` for a line that doesn't apply — because `/pod:code` reads any comment there as unfilled.
 
 ## Hard rails
 
