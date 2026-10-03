@@ -10,7 +10,7 @@ Args: the plan slug (none → ask, listing plans not `Status: archived`) and `--
 ## Guardrails
 
 - **One plan branch, one final PR.** `<plan-slug>` is cut off `origin/<merge-target>` once; everything else branches off it, and only the final PR reaches the merge-target.
-- **The parent repo only holds docs.** It stays on `<plan-slug>` and only takes `docs/` commits and pulls. Build, merge, review, and fix in worktrees under `<parent-repo>/.claude/worktrees/`.
+- **The parent repo only holds docs.** It stays on `<plan-slug>` and only takes `docs/` commits and pulls. Build, merge, review, and fix in worktrees under `<parent-repo>/.claude/worktrees/`; run teardown from the parent repo.
 - **Disjoint files.** Two slices in a wave owning the same path → halt `BLOCKED` before dispatch. A slice that touched files outside its own → `NOTE` (`PENDING` if another slice owns them).
 - **Nothing broken moves forward.** A merge conflict, a failed smoke recipe, or a slice's `BLOCKED` → halt `BLOCKED`.
 - **No known bug reaches the merge-target.** A reproduced bug is fixed before the final merge, or the final PR stays `Review still failing` — never a decision, a default, or a someday item.
@@ -24,13 +24,13 @@ Args: the plan slug (none → ask, listing plans not `Status: archived`) and `--
 - **Names:** worktrees at `<parent-repo>/.claude/worktrees/<branch>`. Slice branches come from the sprint doc; wave head `<sprint-slug>-w<N>`, wave fix `<sprint-slug>-w<N>-fix`, sync `<plan-slug>-sync`, review `<plan-slug>-review`, plan fix `<plan-slug>-fix`.
 - **Wave PR:** titled `Wave <N>`, to `<plan-slug>`. The body opens with `Door: two-way`, or `Door: one-way — <what>, undo: <how>` per one-way slice, then each slice with its `NOTE`s, stray paths, any wave fix, and the Look check line.
 - **Look check line:** `Look check: <each width you actually reached> ✓ · close-ups: <what> · colors: <match, or the off-Look values> · <defects, or none>`, or why it was skipped.
-- **Hand back for merge:** the PR link, its CI status (`passing`, `failing: <names>`, `pending`, or `no CI checks — nothing but the agents checked this`), and "reply `continue`". A one-way door comes first.
+- **Hand back for merge:** the PR link, its CI status (`passing`, `failing: <names>`, `pending`, or `no CI checks — nothing but the agents checked this`), and "reply `continue`", then end the turn. A one-way door comes first.
 
 ## The wave loop
 
 For each sprint row, run its sprint doc wave by wave (no doc → point to `/pod:sprint`; never write it yourself). At the start of each sprint after the first, merge any new `origin/<merge-target>` commits into the plan branch (`Sync <merge-target> into <plan-slug>`) and verify; a conflict halts.
 
-**Each wave:** confirm the last wave PR merged and tear it down; read the queue for answers; check the slices own disjoint files; dispatch; combine the slices on the wave head; check it; open the wave PR; hand back. On resume, re-dispatch only `blocked` and `pending` slices, in their existing worktrees.
+**Each wave:** confirm the last wave PR merged and tear it down; read the queue for answers; check the slices own disjoint files; dispatch; merge the slices into the wave head (no squash); check it; open the wave PR; hand back. On resume, re-dispatch only `blocked` and `pending` slices, in their existing worktrees.
 
 - **Check the combined wave as a user would** — run the `## Smoke recipe`, and if users see any change, run the **Look check**: every touched page at desktop and 375 px (emulate it), against the plan's `## Look`. A width you didn't reach is not ✓.
 - **Wave fix — once per wave, before its PR.** A defect a user would notice, proven by a measurement on the wave head, is fixed now by one engineer on the wave-fix branch with **review findings** = the defects and files owned = where they live. Still there → `PENDING`. Style and hardening aren't triggers.
@@ -43,11 +43,11 @@ A bootstrap wave (`B1` alone) writes the smoke recipe and is checked with it; it
 
 ## Preflight
 
-Before the first wave: `origin` exists, the merge-target and the plan and sprint docs are pushed, and the `## Smoke recipe` is filled in (unless wave 1 is a lone `B1`). No `origin` or first commit → point to `/pod:init`. On Windows, set `git config core.longpaths true`, or worktree removal fails. Then create `<plan-slug>` and check it out in the parent repo.
+Before the first wave: `origin` exists, the merge-target and the plan and sprint docs are pushed, and the `## Smoke recipe` is filled in (unless wave 1 is a lone `B1`, which writes it — check again before wave 2). No `origin` or first commit → point to `/pod:init`. On Windows, set `git config core.longpaths true`, or worktree removal fails. Then create and push `<plan-slug>` and check it out in the parent repo.
 
 ## Sprint complete
 
-Append the **Sprint summary** (per the sprint-planner's file, with stalls, each engineer's **Time lost**, and the sync result), archive the sprint doc to `docs/sprints/archive/`, mark its plan row `done`, prune the queue per its own rule, and commit `docs/`. A `planned` row left → end: `Sprint <sprint-slug> complete. Reply 'continue' to start the next sprint.` None → **Plan complete**.
+Append the **Sprint summary** (per the sprint-planner's file, with stalls, each engineer's **Time lost**, and the sync result), archive the sprint doc to `docs/sprints/archive/`, mark its plan row `done`, prune the queue per its own rule, and commit and push `docs/`. A `planned` row left → end: `Sprint <sprint-slug> complete. Reply 'continue' to start the next sprint.` None → **Plan complete**.
 
 ## Plan complete
 
@@ -55,9 +55,9 @@ Code is reviewed once, here, on the whole plan (why: `${CLAUDE_PLUGIN_ROOT}/docs
 
 1. **Open the final PR** `<plan-slug>` → `<merge-target>`.
 2. **Review:** dispatch `pod:reviewer` on a review worktree at `origin/<plan-slug>`, with the PR URL, plan slug, merge-target, parent-repo path, and ports. Its `PENDING`s go to the queue for the human. `pass` → step 4; `fix` → step 3.
-3. **Fix pass — once:** one engineer on the plan-fix branch with **review findings** = the `FIX` lines as written (don't limit how to fix them) and files owned = the files they name. Merge its `Review fixes` PR yourself, then re-dispatch the reviewer with `round: 2`, its round-1 findings, and the engineer's summary. Engineer `BLOCKED` → step 4, review still failing.
+3. **Fix pass — once:** one engineer on the plan-fix branch with **review findings** = the `FIX` lines as written (don't limit how to fix them) and files owned = the files they name. Merge its `Review fixes` PR yourself, move the review worktree to the new head, then re-dispatch the reviewer with `round: 2`, its round-1 findings, and the engineer's summary. Engineer `BLOCKED` → step 4, review still failing.
 4. **Sort the queue** — each open `PENDING` is **Obsolete** (resolve it), **Needs your decision** (only the human can choose: a Look value, including colors or fonts it doesn't list; a rule the spec left open; a product choice; never a reproduced bug), or **Fix next** · **Before hosting** · **Someday**. For a decision, record the value in use in `docs/decisions.md` as `## <date> — <title> (agent default — override anytime)` and resolve the entry with a link to it.
-5. **Close out the paper trail, before the merge:** have a background `general-purpose` agent write the report (`${CLAUDE_PLUGIN_ROOT}/skills/report/SKILL.md`), set the plan to `Status: archived`, add one queue entry `orchestrator` → `human`: `plan <plan-slug> complete — final PR <url>, review <pass | still failing>, <N> open entries sorted in the hand-back` (autopilot's gate-7 entry), and commit `docs/` (`docs: close out plan <plan-slug>`).
+5. **Close out the paper trail, before the merge:** have a background `general-purpose` agent write the report (`${CLAUDE_PLUGIN_ROOT}/skills/report/SKILL.md`), set the plan to `Status: archived`, add one queue entry `orchestrator` → `human`: `plan <plan-slug> complete — final PR <url>, review <pass | still failing>, <N> open entries sorted in the hand-back` (autopilot's gate-7 entry), and once the report exists, commit and push `docs/` (`docs: close out plan <plan-slug>`).
 6. **Leave nothing behind:** no worktree of this plan left, parent repo clean. Name anything you couldn't clear.
 7. **Hand back** (`Plan <plan-slug> complete — final merge awaiting`): the PR URL, the review verdict with any `FIX` findings, the sorted list (**Needs your decision** first, with each default and how to change it), the report path, loose ends, and **Try it**: `Reply 'try' to start the app (<start command>, <URL>); 'stop' when you're done.`
 
