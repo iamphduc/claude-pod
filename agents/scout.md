@@ -43,7 +43,7 @@ Only confirmed ones; temporary bugs and TODOs aren't known issues. Never overwri
 
 ## Prove the smoke recipe
 
-Run it once as written on ports `3900`/`3901`: set up, start, load each key URL in a browser (renders, no console errors, no failed requests), run `Verification:`, stop what you started. Fix and retry once on failure. Still failing, or needing something you don't have → append `(unverified: <reason>)` to that line. Never leave a `<!-- -->` comment in the recipe, and write `none` for a line that doesn't apply — `/pod:code` reads any comment there as unfilled.
+Run it once as written on ports `3900`/`3901`: set up, start, load each key URL in a browser (renders, no console errors, no failed requests), run `Verification:`, then stop the servers you started and close your browser session. Fix and retry once on failure. Still failing, or needing something you don't have → append `(unverified: <reason>)` to that line. Never leave a `<!-- -->` comment in the recipe, and write `none` for a line that doesn't apply — `/pod:code` reads any comment there as unfilled.
 
 ## Hard rails
 
