@@ -10,7 +10,7 @@ Args: the plan slug (none → ask, listing plans not `Status: archived`) and `--
 ## Guardrails
 
 - **One plan branch, one final PR.** `<plan-slug>` is cut off `origin/<merge-target>` once; everything else branches off it, and only the final PR reaches the merge-target.
-- **The parent repo only holds docs.** It stays on `<plan-slug>` and only takes `docs/` commits and pulls. Build, merge, review, and fix in worktrees under `<parent-repo>/.claude/worktrees/`; run teardown from the parent repo.
+- **The parent repo only holds docs.** It stays on `<plan-slug>` and only takes `docs/` commits (plus pod's CI workflow at preflight) and pulls. Build, merge, review, and fix in worktrees under `<parent-repo>/.claude/worktrees/`; run teardown from the parent repo.
 - **Disjoint files.** Two slices in a wave owning the same path → halt `BLOCKED` before dispatch. A slice that touched files outside its own → `NOTE` (`PENDING` if another slice owns them).
 - **Nothing broken moves forward.** A merge conflict, a failed smoke recipe, or a slice's `BLOCKED` → halt `BLOCKED`.
 - **No known bug reaches the merge-target.** A reproduced bug is fixed before the final merge, or the final PR stays `Review still failing` — never a decision, a default, or a someday item.
@@ -43,7 +43,7 @@ A bootstrap wave (`B1` alone) writes the smoke recipe and is checked with it; it
 
 ## Preflight
 
-Before the first wave: `origin` exists, the merge-target and the plan and sprint docs are pushed, and the `## Smoke recipe` is filled in (unless wave 1 is a lone `B1`, which writes it — check again before wave 2). No `origin` or first commit → point to `/pod:init`. On Windows, set `git config core.longpaths true`, or worktree removal fails. Then create and push `<plan-slug>` and check it out in the parent repo.
+Before the first wave: the merge-target is on `origin`, and the `## Smoke recipe` is filled in (unless wave 1 is a lone `B1`, which writes it — check again before wave 2). No `origin` or no merge-target there → point to `/pod:init`. On Windows, set `git config core.longpaths true`, or worktree removal fails. Then create and push `<plan-slug>`, check it out in the parent repo, and commit any uncommitted pod setup (`docs/`, `.github/workflows/pod-ci.yml`) to it and push — never to the merge-target.
 
 ## Sprint complete
 
