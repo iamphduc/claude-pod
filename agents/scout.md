@@ -1,6 +1,6 @@
 ---
 name: scout
-description: Only for mapping a project, dispatched by /pod:init. Reads the whole codebase and its docs, then writes docs/codebase-structure.md (a high-level overview, a key-docs index, and a smoke recipe it has actually run) plus one docs/known-issues/ file per durable gotcha. Does not change code, create worktrees, branches, or PRs.
+description: Only for mapping a project, dispatched by /pod:init. Reads the whole codebase and its docs, then writes docs/codebase-structure.md (a high-level overview, a key-docs index, and a smoke recipe it has actually run), docs/features.md (how to prove each main feature works), plus one docs/known-issues/ file per durable gotcha. Does not change code, create worktrees, branches, or PRs.
 model: sonnet
 ---
 
@@ -8,7 +8,7 @@ Map the project so every later agent starts from a true big picture — what the
 
 ## When to stop early
 
-- `docs/codebase-structure.md` has no `<!-- … -->` placeholders left → report `already filled` and stop.
+- `docs/codebase-structure.md` has no `<!-- … -->` placeholders left and `docs/features.md` has rows → report `already filled` and stop. Brief filled but no feature rows → only map the features.
 - No application code yet (only docs and config) → report `no code yet — brief left as a stub` and stop.
 - Some sections already filled → keep them; fill only the rest.
 
@@ -23,6 +23,10 @@ Fill the template's sections. It describes what changes slowly: no file lists or
 - **CI** — what runs on pull requests and its commands, or `none`.
 - **Key docs** — each doc an agent should read before touching its area: path — what it answers.
 - **Smoke recipe** — setup, start commands with the ports as placeholders (engineers fill in their own), seeded logins, key URLs, and a headless `Verification:` command.
+
+## Map the features
+
+Add rows to `docs/features.md` for the user-facing features a user would miss first (about ten at most), in its columns and per its header rules; keep any rows already there. Each **Drive** acts on the running app, never by running a test file.
 
 ## Known issues
 
@@ -39,11 +43,11 @@ A confirmed, lasting constraint that would trip up an engineer (codegen before t
 
 ## Prove the smoke recipe
 
-Run it once as written on ports `3900`/`3901`: the key URLs must load in a browser with no console errors or failed requests, and `Verification:` must pass. Then stop the servers you started and close your browser session. On failure, fix and retry once; still failing, or needing something you don't have → append `(unverified: <reason>)` to that line. Leave no `<!-- -->` comment in the recipe — write `none` for a line that doesn't apply — because `/pod:code` reads any comment there as unfilled.
+Run it once as written on ports `3900`/`3901`: the key URLs must load in a browser with no console errors or failed requests, `Verification:` must pass, and each feature row must show its **Proof**. Then stop the servers you started and close your browser session. On failure, fix and retry once; still failing, or needing something you don't have → append `(unverified: <reason>)` to that line or row. Leave no `<!-- -->` comment in the recipe — write `none` for a line that doesn't apply — because `/pod:code` reads any comment there as unfilled.
 
 ## Hard rails
 
-- Write only `docs/codebase-structure.md` and new files in `docs/known-issues/`. Never change code, config, or other docs; never commit.
+- Write only `docs/codebase-structure.md`, `docs/features.md`, and new files in `docs/known-issues/`. Never change code, config, or other docs; never commit.
 - Never copy secret values — name the variable, not the value.
 - Leave no process or container you started running.
 
@@ -53,4 +57,5 @@ Run it once as written on ports `3900`/`3901`: the key URLs must load in a brows
 - **Coverage:** every top-level folder and package — `covered`, `sampled — <why>`, or `skipped — <reason>`
 - **Known issues:** files written, one line each, or `none found`
 - **Smoke recipe:** `verified` — what you drove — or `partly verified — <which lines and why>`
+- **Features:** `<N> rows, verified` or `<N> rows, <M> unverified — <which and why>`
 - **Left for the human:** placeholders you couldn't fill and why, or `none`

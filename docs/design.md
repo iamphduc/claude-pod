@@ -78,7 +78,7 @@ A plan's final PR is easily thousands of lines. The fix, used by GitHub itself, 
 
 `pod:reviewer` never edits, pushes, merges, or approves. It does run things: the only files it leaves behind are build output and caches in its own worktree.
 
-1. **Read the ground truth** from the main repo: the plan (goals, scope, **Verification** section), every archived sprint doc for the plan (each slice's success criteria), the codebase brief, known issues, and decisions. Then **run the checks**: the smoke recipe's `Verification:` command, and every scripted check it lists that works without a browser. A failing check is a blocking finding.
+1. **Read the ground truth** from the main repo: the plan (goals, scope, **Verification** section), every archived sprint doc for the plan (each slice's success criteria), the codebase brief, known issues, and decisions. Then **run the checks**: the smoke recipe's `Verification:` command, every scripted check it lists, and every `docs/features.md` row (browser rows in its own browser session, judging text and state, not looks). A failing check is a blocking finding.
 2. **Per-wave pass.** For each first-parent commit on the plan branch (skipping docs-only commits), review `git diff <commit>^1 <commit>`:
    - **Honest tests** — each criterion's test exists, would fail if the behavior broke, and isn't weaker than the criterion.
    - **Beyond the tests** — branches, error paths, and inputs no test covers; code special-cased to pass.
@@ -89,7 +89,7 @@ A plan's final PR is easily thousands of lines. The fix, used by GitHub itself, 
    - **Plan goals** — the plan's Goal and Verification criteria hold on the final code.
    - **Later waves breaking earlier ones** — a shared type, route, schema, or config reshaped after something already relied on it.
    - **Duplication across waves** — the same helper written twice by different slices.
-4. **Filter** ([like Claude Code Review](https://www.gend.co/blog/claude-code-review-ai-agents)): keep only findings it can point to by `file:line` with a concrete failure. Before calling anything non-blocking, it tries to write the steps that make it go wrong for a user; if it can, it's blocking. Rank them — security, then correctness, then unmet goals, then missing tests.
+4. **Filter** ([like Claude Code Review](https://www.gend.co/blog/claude-code-review-ai-agents)): keep only findings it can point to by `file:line` with a concrete failure. Before calling anything non-blocking, it tries to write the steps that make it go wrong for a user; if it can, it's blocking. Rank them — security, then correctness, then unmet goals, then missing tests. Suspicions it checked and dropped are listed as **Dismissed**, with why, so you can overrule a call you'd otherwise never see ([pstack's `/interrogate`](https://flaviocopes.com/pstack) does the same).
 5. **Post** the verdict and findings as a comment on the final PR.
 
 Findings are either:
@@ -112,6 +112,7 @@ One review pass, one fix pass, then merge — no endless loops ([Tembo](https://
 A `/pod:fix` change skips the whole plan machinery — no sprint doc, no smoke test on a combined wave, no end-of-plan review — and lands straight on `main`. So it gets its own review, with the same reviewer and the same rules, in a lighter shape:
 
 - **One pass, no pieces.** A fix is one small diff, so there's no per-wave or whole-plan pass. The reviewer checks it against the **task** as you gave it: done, not overdone, no bugs, no security holes, a test for the fixed behavior.
+- **Reproduce first, fix the cause.** For a bug, the engineer reproduces it on the path the user hit before touching code, names the cause, and re-runs the same steps after the fix; the reviewer checks the diff fixes that cause, not just the symptom. A fix for the symptom passes its test and the bug comes back by another path ([pstack's Bug fix playbook](https://flaviocopes.com/pstack) makes the same demand).
 - **Same fix pass.** Blocking findings go back to the **same engineer**, in its retained worktree; the PR updates in place; the reviewer re-checks just those fixes once.
 - **Then it's yours.** The PR comes back with the verdict — `Review still failing` if the fix pass didn't clear it — and you merge.
 - **Skip it on purpose: `/pod:fix --no-review <task>`.** For a typo or a one-line config value, a review costs more than it's worth, and you look at every fix PR before merging anyway. The skip is a flag you choose, never automatic by diff size: small isn't the same as safe — a one-line auth change is tiny and dangerous.
@@ -140,6 +141,16 @@ One cost: the red test commits enter the plan branch's history, so a plain `git 
 The plan branch lives for the whole plan. Meanwhile `main` keeps moving — a `/pod:fix` lands, or you commit something yourself. Without syncing, all of that meets the plan for the first time at the final PR: the worst moment for a conflict, and the plan's code was never tested against it.
 
 Real-world practice is to keep branches short-lived and merged often, because drift grows with time ([Atlassian](https://www.atlassian.com/continuous-delivery/continuous-integration/trunk-based-development)). pod's plan branch can't be as short-lived as a trunk-based branch, so it does the next best thing: **at the start of every sprint** (after the first), the orchestrator merges `origin/main` into the plan branch in its own worktree, runs the smoke test on the result, and pushes. A conflict or a failing smoke test stops the run while the drift is still one sprint's worth. It merges rather than rebases, so no one ever force-pushes the plan branch.
+
+## The feature map
+
+The smoke recipe proves the app starts; it doesn't say how to prove a given feature still works, so each agent worked that out again, and an older feature was only re-checked if a test happened to cover it. `docs/features.md` keeps one row per user-facing feature: how a user reaches it, how an agent drives the running app, and what observable state proves it works — the feature map from pstack's verification skill ([flaviocopes.com/pstack](https://flaviocopes.com/pstack)).
+
+- **Who writes it.** The scout starts it at init and drives each row once. The orchestrator adds rows at each wave check, where it drives the new features anyway, so parallel slices never edit the same file. A `/pod:fix` engineer edits the row in its own branch.
+- **Who runs it.** Engineers and the wave check drive the rows a change touches. At plan end the reviewer drives every row, old ones included — a regression pass.
+- **What the first run taught.** On a browser-only chess app, 6 of the scout's 10 rows were "run this test file" (told to prefer commands because the reviewer had no browser), and the reviewer drove 1 row — the only one a command could reach. A test file repeats `Verification:` and proves nothing about the running app, so a drive must act on the app; and the reviewer now drives browser rows itself, judging text and state but never looks. The sprint-planner had also put `docs/features.md` in one slice's files, which would force two feature slices into separate waves; it now leaves the file to the orchestrator.
+- **It can't hide a bug.** A failing row is a bug unless a plan changed that feature on purpose. Editing the row to make it pass is never the fix.
+- **Not a separate skill.** pstack writes a project-local `verify-<app>` skill. pod's agents already read the brief and docs, so a table in `docs/` gives them the same thing without another file to keep in sync.
 
 ## CI as a gate
 

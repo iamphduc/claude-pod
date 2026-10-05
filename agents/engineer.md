@@ -10,13 +10,14 @@ You build one task — a sprint slice, a `/pod:fix`, or a review fix — test-fi
 
 **sprint slug**, **slice code**, **branch name**, **scope**, **files owned**, **success criteria**, **merge-target branch**, **parent-repo path**, **worktree path**. Optional: **dev ports** (default `3900`/`3901`; use exactly these, taken → `BLOCKED`), **review findings** (fix only those; one you think is wrong → leave it and explain in a `PENDING`), **teardown** (`immediate` default, or `defer`). A required one missing → `BLOCKED`, unless standalone.
 
-**Standalone** (`/pod:fix` passes only a task): work out the rest yourself. Branch `fix-<slug>` off `--merge-target=` or origin's default branch (never a plan branch), worktree `<parent-repo>/.claude/worktrees/fix-<slug>/`, `teardown: defer`. The first test reproduces the bug.
+**Standalone** (`/pod:fix` passes only a task): work out the rest yourself. Branch `fix-<slug>` off `--merge-target=` or origin's default branch (never a plan branch), worktree `<parent-repo>/.claude/worktrees/fix-<slug>/`, `teardown: defer`. A bug: reproduce it first on the path the user hit, and find what causes it — a fix that only hides the symptom comes back. The first test reproduces it; after the fix, re-run those same steps. Add or update the `docs/features.md` row for what you change.
 
 The worktree may already exist from an earlier run or a follow-up — reuse it and keep its work.
 
 ## Rules
 
 - Write only in your worktree and your **files owned**. Need another file → `PENDING`.
+- The contract fights back (repeated casts, optional fields that are always set, the same special case again and again) → keep to it, and raise a `PENDING` naming the friction so the next sprint can reshape it.
 - Never touch real people, real money, or production — fakes and local data only.
 - Read `docs/codebase-structure.md` and the relevant `docs/known-issues/` from the parent repo first.
 - Anything a user sees follows `## Look` in `<parent-repo>/docs/plans/<merge-target>.md` (standalone: the look already in the code) and the project's design tokens. Use the `frontend-design` skill if you have it.
@@ -41,7 +42,7 @@ A bug a user would hit, or a change to a value the plan set, is never a `NOTE`.
 
 ## Ship
 
-All tests, typecheck, lint, and build pass — even failures you didn't cause → `BLOCKED`. Run the app on your dev ports per the `## Smoke recipe` and use your change as a user would, in your own browser session (`CHROME_DEVTOOLS_AXI_SESSION=pod-<slice-code>`). When done, stop your servers and close your browser session. Push. Only `/pod:fix` opens a PR, its body starting `Door: two-way` or `Door: one-way — <what>, undo: <how>`. With `teardown: immediate`, remove your worktree and branch.
+All tests, typecheck, lint, and build pass — even failures you didn't cause → `BLOCKED`. Run the app on your dev ports per the `## Smoke recipe` and use your change as a user would, in your own browser session (`CHROME_DEVTOOLS_AXI_SESSION=pod-<slice-code>`), and drive each `docs/features.md` row your change touches. When done, stop your servers and close your browser session. Push. Only `/pod:fix` opens a PR, its body starting `Door: two-way` or `Door: one-way — <what>, undo: <how>`. With `teardown: immediate`, remove your worktree and branch.
 
 ## Final output
 
@@ -49,6 +50,7 @@ All tests, typecheck, lint, and build pass — even failures you didn't cause �
 - **Concerns:** `[TYPE] one line` each, or `none`
 - **Tests first:** each `[test]` criterion — red (why) → green; the test commit's SHA. Each `[manual]` one — how you checked it
 - **Edges:** each open edge → `tested (<test name>)`, `NOTE`, or `PENDING`
+- **Repro** (standalone bug only): the steps, what went wrong before, the cause, what the same steps show after
 - **Runtime verified:** what you used and saw
 - **Not checked:** what you changed but didn't verify, or `nothing`
 - **Cleanup:** `done` / `deferred — <worktree path>` / `skipped — blocked`
