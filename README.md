@@ -179,7 +179,7 @@ Why:
 
 ## Credits
 
-Several of pod's checks come from **pstack**, a Cursor plugin by Lauren Tan ([@poteto](https://x.com/poteto)). Flavio Copes explains it in [A deep dive into pstack](https://flaviocopes.com/pstack). pod borrows these ideas, adapted to its own flow:
+Several of pod's checks come from **pstack**, a Cursor plugin by Lauren Tan. Flavio Copes explains it in [A deep dive into pstack](https://flaviocopes.com/pstack). pod borrows these ideas, adapted to its own flow:
 
 - **Reproduce before fixing:** `/pod:fix` reproduces a bug and names its cause before changing code (from pstack's Bug fix playbook).
 - **Dismissed findings:** the reviewer lists what it checked and dropped, so you can overrule it (from `/interrogate`).
