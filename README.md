@@ -132,6 +132,7 @@ Writes an HTML report of a plan: key features, decisions, data structures, and h
 | **sprint-planner** | Splits the next part of the plan into slices and waves |
 | **engineer** | Builds one slice in its own copy of the repo, test-first, then checks it in the browser |
 | **reviewer** | Reviews the final plan PR and every `/pod:fix` PR. Never edits code |
+| **reporter** | Writes the HTML report of a finished plan |
 
 ## What pod keeps in your repo
 

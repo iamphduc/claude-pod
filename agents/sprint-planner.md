@@ -73,5 +73,5 @@ Appended by the orchestrator at archive — don't write one.
 - **Synced with merge-target:** <up to date | synced N commits>
 - **Slices shipped:** <slice-code list>
 - **Queue entries:** resolved <N>, deferred <M> — link the deferred ones
-- **Slice log:** one line per slice — `<slice-code>: <Confidence> · test-first <yes | partly — why | n/a> · runtime <what was driven> · <N> NOTEs · time lost <none | what>` — plus each wave fix and stall. `/pod:report` builds its timeline from this
+- **Slice log:** one line per slice — `<slice-code>: <Confidence> · test-first <yes | partly — why | n/a> · runtime <what was driven> · <N> NOTEs · time lost <none | what>` — plus each wave fix and stall. `pod:reporter` builds its timeline from this
 - **Agent context at hand-back:** <sum of each agent's reported `subagent_tokens`> — *each agent's final context size, not tokens billed*; say so wherever it's quoted

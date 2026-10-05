@@ -165,6 +165,8 @@ Before, autopilot's "every required check passes" rule was satisfied by a repo w
 
 ## Where rules live
 
+**Skill or agent.** A skill is a command the human types: it runs in their session, talks to them, and coordinates agents. An agent is a worker: it runs alone, in the background or in parallel, often with tools locked down. A worker's rules always live in an agent file, never in a skill that a general-purpose agent is told to follow. A command whose work is done by an agent is a thin skill that dispatches it, like `/pod:sprint` and `/pod:report`.
+
 An agent's markdown body **is** its system prompt: Claude Code loads it when the agent starts ([Claude Code docs](https://code.claude.com/docs/en/sub-agents)). So every rule a **background agent** needs lives inside its own file — the engineer's contract in `agents/engineer.md`, the sprint doc template in `agents/sprint-planner.md`. An agent never has to remember to read a separate file, never hits a permission prompt for a file outside the project (a background agent can't answer one), and never depends on a path being filled in.
 
 Rules only a **skill** needs sit next to that skill (`skills/autopilot/policy.md`, `skills/plan/template.md`); skills run in the main session, where reading a plugin file is fine. Skills that dispatch an agent read the fields to pass from the agent's own file. `/pod:create-wave-prompts` sessions start with `claude --agent pod:engineer`, so a hand-launched engineer gets the same instructions as a dispatched one.
