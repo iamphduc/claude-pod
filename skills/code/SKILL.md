@@ -47,7 +47,15 @@ Before the first wave: the merge-target is on `origin`, and the `## Smoke recipe
 
 ## Sprint complete
 
-Append the **Sprint summary** (per the sprint-planner's file, with stalls, each engineer's **Time lost**, and the sync result), archive the sprint doc to `docs/sprints/archive/`, mark its plan row `done`, prune the queue per its own rule, and commit and push `docs/`. A `planned` row left → end: `Sprint <sprint-slug> complete. Reply 'continue' to start the next sprint.` None → **Plan complete**.
+Append a `## Sprint summary` to the sprint doc — the next sprint-planner and `pod:reporter` read it:
+
+- **Synced with merge-target:** <up to date | synced N commits>
+- **Slices shipped:** <slice-code list>
+- **Queue entries:** resolved <N>, deferred <M> — link the deferred ones
+- **Slice log:** one line per slice — `<slice-code>: <Confidence> · test-first <yes | partly — why | n/a> · runtime <what was driven> · <N> NOTEs · time lost <none | what>` — plus each wave fix and stall
+- **Agent context at hand-back:** <sum of each agent's reported `subagent_tokens`> — *each agent's final context size, not tokens billed*; say so wherever it's quoted
+
+Then archive the sprint doc to `docs/sprints/archive/`, mark its plan row `done`, prune the queue per its own rule, and commit and push `docs/`. A `planned` row left → end: `Sprint <sprint-slug> complete. Reply 'continue' to start the next sprint.` None → **Plan complete**.
 
 ## Plan complete
 
