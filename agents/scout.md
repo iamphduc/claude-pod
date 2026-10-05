@@ -26,7 +26,7 @@ Fill the template's sections. It describes what changes slowly: no file lists or
 
 ## Map the features
 
-Add rows to `docs/features.md` for the user-facing features a user would miss first (about ten at most), in its columns; keep any rows already there. Prefer a command for **Drive** — the reviewer has no browser.
+Add rows to `docs/features.md` for the user-facing features a user would miss first (about ten at most), in its columns and per its header rules; keep any rows already there. Each **Drive** acts on the running app, never by running a test file.
 
 ## Known issues
 

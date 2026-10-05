@@ -78,7 +78,7 @@ A plan's final PR is easily thousands of lines. The fix, used by GitHub itself, 
 
 `pod:reviewer` never edits, pushes, merges, or approves. It does run things: the only files it leaves behind are build output and caches in its own worktree.
 
-1. **Read the ground truth** from the main repo: the plan (goals, scope, **Verification** section), every archived sprint doc for the plan (each slice's success criteria), the codebase brief, known issues, and decisions. Then **run the checks**: the smoke recipe's `Verification:` command, and every scripted check it lists that works without a browser. A failing check is a blocking finding.
+1. **Read the ground truth** from the main repo: the plan (goals, scope, **Verification** section), every archived sprint doc for the plan (each slice's success criteria), the codebase brief, known issues, and decisions. Then **run the checks**: the smoke recipe's `Verification:` command, every scripted check it lists, and every `docs/features.md` row (browser rows in its own browser session, judging text and state, not looks). A failing check is a blocking finding.
 2. **Per-wave pass.** For each first-parent commit on the plan branch (skipping docs-only commits), review `git diff <commit>^1 <commit>`:
    - **Honest tests** — each criterion's test exists, would fail if the behavior broke, and isn't weaker than the criterion.
    - **Beyond the tests** — branches, error paths, and inputs no test covers; code special-cased to pass.
@@ -144,10 +144,11 @@ Real-world practice is to keep branches short-lived and merged often, because dr
 
 ## The feature map
 
-The smoke recipe proves the app starts; it doesn't say how to prove a given feature still works, so each agent worked that out again, and an older feature was only re-checked if a test happened to cover it. `docs/features.md` keeps one row per user-facing feature: how a user reaches it, how an agent drives it (a command where possible), and what observable state proves it works — the feature map from pstack's verification skill ([flaviocopes.com/pstack](https://flaviocopes.com/pstack)).
+The smoke recipe proves the app starts; it doesn't say how to prove a given feature still works, so each agent worked that out again, and an older feature was only re-checked if a test happened to cover it. `docs/features.md` keeps one row per user-facing feature: how a user reaches it, how an agent drives the running app, and what observable state proves it works — the feature map from pstack's verification skill ([flaviocopes.com/pstack](https://flaviocopes.com/pstack)).
 
 - **Who writes it.** The scout starts it at init and drives each row once. Engineers report rows for what they add or change; the orchestrator writes them after the wave merges, so parallel slices never edit the same file.
-- **Who runs it.** Engineers and the wave check drive the rows a change touches. At plan end the reviewer runs every command row, old ones included — a regression pass that costs no browser. Browser-only rows are re-driven only when a wave touches them; that's the gap a command row closes.
+- **Who runs it.** Engineers and the wave check drive the rows a change touches. At plan end the reviewer drives every row, old ones included — a regression pass.
+- **What the first run taught.** On a browser-only chess app, 6 of the scout's 10 rows were "run this test file" (told to prefer commands because the reviewer had no browser), and the reviewer drove 1 row — the only one a command could reach. A test file repeats `Verification:` and proves nothing about the running app, so a drive must act on the app; and the reviewer now drives browser rows itself, judging text and state but never looks. The sprint-planner had also put `docs/features.md` in one slice's files, which would force two feature slices into separate waves; it now leaves rows to the engineers' reports.
 - **It can't hide a bug.** A failing row is a bug unless a plan changed that feature on purpose. Editing the row to make it pass is never the fix.
 - **Not a separate skill.** pstack writes a project-local `verify-<app>` skill. pod's agents already read the brief and docs, so a table in `docs/` gives them the same thing without another file to keep in sync.
 

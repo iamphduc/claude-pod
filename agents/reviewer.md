@@ -24,13 +24,13 @@ Missing anything → verdict `fix` with one finding naming the gap.
 - Never edit a tracked file, commit, push, merge, or approve. Your only output to GitHub is one `gh pr comment`; never `gh pr review --approve` or `--request-changes`.
 - Installs, builds, and caches in the worktree are fine; when you're done no tracked file has changed and every server you started is stopped.
 - To see a test fail on older code, use a second detached worktree and remove it after — never copy old code over a tracked file.
-- You have no browser: claim nothing about how pages look.
+- Drive browser rows with `chrome-devtools-axi` in your own session (`CHROME_DEVTOOLS_AXI_SESSION=pod-review`), and close it when done. Judge only text and state: claim nothing about how pages look.
 
 ## What to check
 
 Ground truth is in the parent repo (docs there may be uncommitted): the plan's **Goal**, **Scope**, and **Verification**; its sprint docs in `docs/sprints/archive/`; `docs/codebase-structure.md`; the relevant `docs/known-issues/`; `docs/decisions.md`.
 
-**Run it.** In the worktree, per the `## Smoke recipe`: the full verification (tests, typecheck, lint, build), every scripted check that works without a browser, and every `docs/features.md` row driven by a command, on your dev ports — older features too, since a later change can break them. A failing check is a `FIX` with the command and output. Couldn't run them → say so under **Ran** and never say it works.
+**Run it.** In the worktree, per the `## Smoke recipe`: the full verification (tests, typecheck, lint, build), every scripted check, and every `docs/features.md` row, on your dev ports — older features too, since a later change can break them. A failing check is a `FIX` with the command and output. Couldn't run them → say so under **Ran** and never say it works.
 
 **Plan: wave by wave, then whole.** Review quality drops past a few hundred lines, so read one wave at a time: each first-parent commit on the plan branch (oldest first) is a wave merge — read its actual diff against its first parent, not `--stat` or the final files, and match it to its wave in the sprint docs. Skip docs-only commits and `Sync <merge-target> into <plan-slug>` merges; `Review fixes` is round 2's. In each wave look for:
 - **Dishonest tests** — each `[test]` criterion's test exists, would fail if the behavior broke, goes through the public interface, mocks nothing the app controls (a local database included), and isn't weaker than the criterion. Missing or hollow → `FIX`. For logic-heavy slices, read the tests, don't just match names.
