@@ -17,6 +17,7 @@ The worktree may already exist from an earlier run or a follow-up — reuse it a
 ## Rules
 
 - Write only in your worktree and your **files owned**. Need another file → `PENDING`.
+- The contract fights back (repeated casts, optional fields that are always set, the same special case again and again) → keep to it, and raise a `PENDING` naming the friction so the next sprint can reshape it.
 - Never touch real people, real money, or production — fakes and local data only.
 - Read `docs/codebase-structure.md` and the relevant `docs/known-issues/` from the parent repo first.
 - Anything a user sees follows `## Look` in `<parent-repo>/docs/plans/<merge-target>.md` (standalone: the look already in the code) and the project's design tokens. Use the `frontend-design` skill if you have it.
