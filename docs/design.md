@@ -166,7 +166,7 @@ After the third run, every agent and skill file was cut to guardrails, contracts
 
 Reviewing at the end has one real cost: a bug found then was built on for the rest of the plan, so it costs more to fix than it would have mid-plan. Long-lived branches make this worse the longer they live ([Atlassian](https://www.atlassian.com/continuous-delivery/continuous-integration/trunk-based-development), [Ardalis](https://ardalis.com/trunk-based-development-vs-long-lived-feature-branches/)).
 
-So `/pod:plan` aims for **2–4 sprints per plan**. Bigger goals become several plans in a row, each merged to `main` before the next starts. That keeps the final review readable and the plan branch short-lived.
+So `/pod:plan` aims for **at most 4 sprints per plan** (one is fine). Bigger goals become several plans in a row, each merged to `main` before the next starts. That keeps the final review readable and the plan branch short-lived.
 
 ## What the first real run changed
 
