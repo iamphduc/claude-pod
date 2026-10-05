@@ -89,7 +89,7 @@ A plan's final PR is easily thousands of lines. The fix, used by GitHub itself, 
    - **Plan goals** — the plan's Goal and Verification criteria hold on the final code.
    - **Later waves breaking earlier ones** — a shared type, route, schema, or config reshaped after something already relied on it.
    - **Duplication across waves** — the same helper written twice by different slices.
-4. **Filter** ([like Claude Code Review](https://www.gend.co/blog/claude-code-review-ai-agents)): keep only findings it can point to by `file:line` with a concrete failure. Before calling anything non-blocking, it tries to write the steps that make it go wrong for a user; if it can, it's blocking. Rank them — security, then correctness, then unmet goals, then missing tests.
+4. **Filter** ([like Claude Code Review](https://www.gend.co/blog/claude-code-review-ai-agents)): keep only findings it can point to by `file:line` with a concrete failure. Before calling anything non-blocking, it tries to write the steps that make it go wrong for a user; if it can, it's blocking. Rank them — security, then correctness, then unmet goals, then missing tests. Suspicions it checked and dropped are listed as **Dismissed**, with why, so you can overrule a call you'd otherwise never see ([pstack's `/interrogate`](https://flaviocopes.com/pstack) does the same).
 5. **Post** the verdict and findings as a comment on the final PR.
 
 Findings are either:
@@ -112,6 +112,7 @@ One review pass, one fix pass, then merge — no endless loops ([Tembo](https://
 A `/pod:fix` change skips the whole plan machinery — no sprint doc, no smoke test on a combined wave, no end-of-plan review — and lands straight on `main`. So it gets its own review, with the same reviewer and the same rules, in a lighter shape:
 
 - **One pass, no pieces.** A fix is one small diff, so there's no per-wave or whole-plan pass. The reviewer checks it against the **task** as you gave it: done, not overdone, no bugs, no security holes, a test for the fixed behavior.
+- **Reproduce first, fix the cause.** For a bug, the engineer reproduces it on the path the user hit before touching code, names the cause, and re-runs the same steps after the fix; the reviewer checks the diff fixes that cause, not just the symptom. A fix for the symptom passes its test and the bug comes back by another path ([pstack's Bug fix playbook](https://flaviocopes.com/pstack) makes the same demand).
 - **Same fix pass.** Blocking findings go back to the **same engineer**, in its retained worktree; the PR updates in place; the reviewer re-checks just those fixes once.
 - **Then it's yours.** The PR comes back with the verdict — `Review still failing` if the fix pass didn't clear it — and you merge.
 - **Skip it on purpose: `/pod:fix --no-review <task>`.** For a typo or a one-line config value, a review costs more than it's worth, and you look at every fix PR before merging anyway. The skip is a flag you choose, never automatic by diff size: small isn't the same as safe — a one-line auth change is tiny and dangerous.
