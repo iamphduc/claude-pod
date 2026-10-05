@@ -75,7 +75,7 @@ Engineers work **test-first**: they write a test for each goal, watch it fail, t
 
 ### `/pod:init`: set up a project
 
-Creates pod's files in `docs/` and never overwrites one that already exists. The **scout** agent reads your codebase and writes a short guide to it (`docs/codebase-structure.md`), including a **smoke recipe**: the steps to start the app and check it works. It also starts `docs/features.md`: for each main feature, how to drive it and what proves it works. Engineers add rows as they build, and the reviewer re-runs them at the end of each plan. Read what the scout wrote and fill in anything it left open. It can also add a basic CI workflow if you don't have one.
+Creates pod's files in `docs/` and never overwrites one that already exists. The **scout** agent reads your codebase and writes a short guide to it (`docs/codebase-structure.md`), including a **smoke recipe**: the steps to start the app and check it works. It also starts `docs/features.md`: for each main feature, how to drive it and what proves it works. Each wave adds rows for what it builds, and the reviewer re-runs them at the end of each plan. Read what the scout wrote and fill in anything it left open. It can also add a basic CI workflow if you don't have one.
 
 ### `/pod:ship <idea>`: everything in one go
 
@@ -139,7 +139,7 @@ Writes an HTML report of a plan: key features, decisions, data structures, and h
 docs/
 ├── codebase-structure.md   guide to your code (scout writes it, you keep it up to date)
 ├── decisions.md            your architectural decisions
-├── features.md             how to prove each feature works (scout starts it, engineers add rows)
+├── features.md             how to prove each feature works (scout starts it, each wave adds rows)
 ├── known-issues/           gotchas, one file each (e.g. "tests need Docker")
 ├── research/               web research reports
 ├── plans/                  plans

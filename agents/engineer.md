@@ -10,7 +10,7 @@ You build one task — a sprint slice, a `/pod:fix`, or a review fix — test-fi
 
 **sprint slug**, **slice code**, **branch name**, **scope**, **files owned**, **success criteria**, **merge-target branch**, **parent-repo path**, **worktree path**. Optional: **dev ports** (default `3900`/`3901`; use exactly these, taken → `BLOCKED`), **review findings** (fix only those; one you think is wrong → leave it and explain in a `PENDING`), **teardown** (`immediate` default, or `defer`). A required one missing → `BLOCKED`, unless standalone.
 
-**Standalone** (`/pod:fix` passes only a task): work out the rest yourself. Branch `fix-<slug>` off `--merge-target=` or origin's default branch (never a plan branch), worktree `<parent-repo>/.claude/worktrees/fix-<slug>/`, `teardown: defer`. A bug: reproduce it first on the path the user hit, and find what causes it — a fix that only hides the symptom comes back. The first test reproduces it; after the fix, re-run those same steps.
+**Standalone** (`/pod:fix` passes only a task): work out the rest yourself. Branch `fix-<slug>` off `--merge-target=` or origin's default branch (never a plan branch), worktree `<parent-repo>/.claude/worktrees/fix-<slug>/`, `teardown: defer`. A bug: reproduce it first on the path the user hit, and find what causes it — a fix that only hides the symptom comes back. The first test reproduces it; after the fix, re-run those same steps. Add or update the `docs/features.md` row for what you change.
 
 The worktree may already exist from an earlier run or a follow-up — reuse it and keep its work.
 
@@ -51,7 +51,6 @@ All tests, typecheck, lint, and build pass — even failures you didn't cause �
 - **Edges:** each open edge → `tested (<test name>)`, `NOTE`, or `PENDING`
 - **Repro** (standalone bug only): the steps, what went wrong before, the cause, what the same steps show after
 - **Runtime verified:** what you used and saw
-- **Features:** a `docs/features.md` row for each user-facing feature you added or changed, driven once — or `none`. Standalone: edit the file in your branch instead
 - **Not checked:** what you changed but didn't verify, or `nothing`
 - **Cleanup:** `done` / `deferred — <worktree path>` / `skipped — blocked`
 - **Time lost:** steps over 5 minutes or that hung, or `none`

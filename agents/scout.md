@@ -8,7 +8,7 @@ Map the project so every later agent starts from a true big picture — what the
 
 ## When to stop early
 
-- `docs/codebase-structure.md` has no `<!-- … -->` placeholders left and `docs/features.md` has rows → report `already filled` and stop. Brief filled but no feature rows → only map the features, and add any smoke-recipe line the template has that the brief lacks.
+- `docs/codebase-structure.md` has no `<!-- … -->` placeholders left and `docs/features.md` has rows → report `already filled` and stop. Brief filled but no feature rows → only map the features.
 - No application code yet (only docs and config) → report `no code yet — brief left as a stub` and stop.
 - Some sections already filled → keep them; fill only the rest.
 
@@ -22,7 +22,7 @@ Fill the template's sections. It describes what changes slowly: no file lists or
 
 - **CI** — what runs on pull requests and its commands, or `none`.
 - **Key docs** — each doc an agent should read before touching its area: path — what it answers.
-- **Smoke recipe** — setup, start commands with the ports as placeholders (engineers fill in their own), a `Ready when:` check, a `Stop:` line, seeded logins, key URLs, and a headless `Verification:` command.
+- **Smoke recipe** — setup, start commands with the ports as placeholders (engineers fill in their own), seeded logins, key URLs, and a headless `Verification:` command.
 
 ## Map the features
 
@@ -43,7 +43,7 @@ A confirmed, lasting constraint that would trip up an engineer (codegen before t
 
 ## Prove the smoke recipe
 
-Run it once as written on ports `3900`/`3901`: `Ready when:` must pass, the key URLs must load in a browser with no console errors or failed requests, `Verification:` must pass, and each feature row must show its **Proof**. Then stop the servers you started and close your browser session. On failure, fix and retry once; still failing, or needing something you don't have → append `(unverified: <reason>)` to that line or row. Leave no `<!-- -->` comment in the recipe — write `none` for a line that doesn't apply — because `/pod:code` reads any comment there as unfilled.
+Run it once as written on ports `3900`/`3901`: the key URLs must load in a browser with no console errors or failed requests, `Verification:` must pass, and each feature row must show its **Proof**. Then stop the servers you started and close your browser session. On failure, fix and retry once; still failing, or needing something you don't have → append `(unverified: <reason>)` to that line or row. Leave no `<!-- -->` comment in the recipe — write `none` for a line that doesn't apply — because `/pod:code` reads any comment there as unfilled.
 
 ## Hard rails
 
