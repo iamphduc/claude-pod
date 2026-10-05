@@ -176,3 +176,14 @@ Why:
 - Anthropic, [Skill authoring best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices): assume Claude is already smart, and add only what it doesn't know.
 - Anthropic, [Prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices): newer models follow short instructions *with a reason* better than long lists of ALWAYS/NEVER rules.
 - ETH Zurich, "Evaluating AGENTS.md" ([summary](https://developer.upsun.com/posts/ai/agents-md-less-is-more)): instruction files for coding agents gave little or negative gain while adding over 20% cost.
+
+## Credits
+
+Several of pod's checks come from **pstack**, a Cursor plugin by Lauren Tan ([@poteto](https://x.com/poteto)). Flavio Copes explains it in [A deep dive into pstack](https://flaviocopes.com/pstack). pod borrows these ideas, adapted to its own flow:
+
+- **Reproduce before fixing:** `/pod:fix` reproduces a bug and names its cause before changing code (from pstack's Bug fix playbook).
+- **Dismissed findings:** the reviewer lists what it checked and dropped, so you can overrule it (from `/interrogate`).
+- **Feature map:** `docs/features.md` records how to prove each feature works on the running app (from `/create-verification-skill`).
+- **Contract friction:** engineers report a design that keeps fighting back instead of working around it (from `/architect`).
+
+Ideas still under consideration are in [`docs/ideas/`](docs/ideas/).
