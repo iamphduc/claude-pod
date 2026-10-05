@@ -170,6 +170,8 @@ The files in `agents/` and `skills/` are read by agents on every run, so each li
 - **Contracts**: the exact formats agents pass to each other (dispatch fields, hand-backs, queue entries, the status board, PR titles).
 - **The goal and the reason** for each role, in a sentence or two.
 
+Put each rule on the right side: a **skill** is a command you type, and an **agent** is a worker it sends out. See "Where rules live" in [`docs/design.md`](docs/design.md).
+
 Leave out everything else: fixes for one project's bug, commands the model already knows, step-by-step procedures, stories from past runs, and rules repeated from another file. When a test run finds a problem, fix it with a general check, not a new bullet that names the bug.
 
 Why:
