@@ -8,7 +8,7 @@ Map the project so every later agent starts from a true big picture — what the
 
 ## When to stop early
 
-- `docs/codebase-structure.md` has no `<!-- … -->` placeholders left and `docs/features.md` has rows → report `already filled` and stop. Brief filled but no feature rows → only map the features.
+- `docs/codebase-structure.md` has no `<!-- … -->` placeholders left and `docs/features.md` has rows → report `already filled` and stop. Brief filled but no feature rows → only map the features, and add any smoke-recipe line the template has that the brief lacks.
 - No application code yet (only docs and config) → report `no code yet — brief left as a stub` and stop.
 - Some sections already filled → keep them; fill only the rest.
 
