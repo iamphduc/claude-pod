@@ -142,6 +142,15 @@ The plan branch lives for the whole plan. Meanwhile `main` keeps moving — a `/
 
 Real-world practice is to keep branches short-lived and merged often, because drift grows with time ([Atlassian](https://www.atlassian.com/continuous-delivery/continuous-integration/trunk-based-development)). pod's plan branch can't be as short-lived as a trunk-based branch, so it does the next best thing: **at the start of every sprint** (after the first), the orchestrator merges `origin/main` into the plan branch in its own worktree, runs the smoke test on the result, and pushes. A conflict or a failing smoke test stops the run while the drift is still one sprint's worth. It merges rather than rebases, so no one ever force-pushes the plan branch.
 
+## The feature map
+
+The smoke recipe proves the app starts; it doesn't say how to prove a given feature still works, so each agent worked that out again, and an older feature was only re-checked if a test happened to cover it. `docs/features.md` keeps one row per user-facing feature: how a user reaches it, how an agent drives it (a command where possible), and what observable state proves it works — the feature map from pstack's verification skill ([flaviocopes.com/pstack](https://flaviocopes.com/pstack)).
+
+- **Who writes it.** The scout starts it at init and drives each row once. Engineers report rows for what they add or change; the orchestrator writes them after the wave merges, so parallel slices never edit the same file.
+- **Who runs it.** Engineers and the wave check drive the rows a change touches. At plan end the reviewer runs every command row, old ones included — a regression pass that costs no browser. Browser-only rows are re-driven only when a wave touches them; that's the gap a command row closes.
+- **It can't hide a bug.** A failing row is a bug unless a plan changed that feature on purpose. Editing the row to make it pass is never the fix.
+- **Not a separate skill.** pstack writes a project-local `verify-<app>` skill. pod's agents already read the brief and docs, so a table in `docs/` gives them the same thing without another file to keep in sync.
+
 ## CI as a gate
 
 Engineers run tests, types, lint, and build on their own machine, and the orchestrator runs the smoke test. That's the agent checking its own work. Real-world setups add **required CI checks** on every PR — deterministic gates (lint, test, type, build) plus scanning (secrets, dependencies) — run by something other than the code's author ([Augment Code](https://www.augmentcode.com/guides/ai-agent-pre-merge-verification)).

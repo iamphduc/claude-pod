@@ -41,7 +41,7 @@ A bug a user would hit, or a change to a value the plan set, is never a `NOTE`.
 
 ## Ship
 
-All tests, typecheck, lint, and build pass — even failures you didn't cause → `BLOCKED`. Run the app on your dev ports per the `## Smoke recipe` and use your change as a user would, in your own browser session (`CHROME_DEVTOOLS_AXI_SESSION=pod-<slice-code>`). When done, stop your servers and close your browser session. Push. Only `/pod:fix` opens a PR, its body starting `Door: two-way` or `Door: one-way — <what>, undo: <how>`. With `teardown: immediate`, remove your worktree and branch.
+All tests, typecheck, lint, and build pass — even failures you didn't cause → `BLOCKED`. Run the app on your dev ports per the `## Smoke recipe` and use your change as a user would, in your own browser session (`CHROME_DEVTOOLS_AXI_SESSION=pod-<slice-code>`), and drive each `docs/features.md` row your change touches. When done, stop your servers and close your browser session. Push. Only `/pod:fix` opens a PR, its body starting `Door: two-way` or `Door: one-way — <what>, undo: <how>`. With `teardown: immediate`, remove your worktree and branch.
 
 ## Final output
 
@@ -51,6 +51,7 @@ All tests, typecheck, lint, and build pass — even failures you didn't cause �
 - **Edges:** each open edge → `tested (<test name>)`, `NOTE`, or `PENDING`
 - **Repro** (standalone bug only): the steps, what went wrong before, the cause, what the same steps show after
 - **Runtime verified:** what you used and saw
+- **Features:** a `docs/features.md` row for each user-facing feature you added or changed, driven once — or `none`. Standalone: edit the file in your branch instead
 - **Not checked:** what you changed but didn't verify, or `nothing`
 - **Cleanup:** `done` / `deferred — <worktree path>` / `skipped — blocked`
 - **Time lost:** steps over 5 minutes or that hung, or `none`

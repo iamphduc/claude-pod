@@ -33,5 +33,7 @@ The **`## Smoke recipe`** below tells each engineer how to bring the app up for 
 - **Start commands:** <!-- web / api / worker — take the port from the engineer's assigned dev ports, e.g. `pnpm dev --port <web>` -->
 - **DB setup:** <!-- migrate + seed commands -->
 - **Login credentials:** <!-- seeded test accounts, per role -->
+- **Ready when:** <!-- a command or URL that shows the app is up, e.g. `curl -fs http://127.0.0.1:<api>/health` -->
+- **Stop:** <!-- how to stop only what the start commands started -->
 - **Key URLs:** <!-- per shell / route -->
 - **Verification:** <!-- the headless build/test command -->
