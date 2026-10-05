@@ -10,7 +10,7 @@ Turn the human's idea into a strategic plan at `docs/plans/<slug>.md` that the s
 - **Nothing is on disk until the plan is written**, and a human who walks away thinks planning is done. Never end a turn on a bare "Is this right?". Post the interview summary together with the look pick (*"Pick A, B, C or a mix — and correct anything in the summary above."*), and write the plan in the turn that answers it. No UI → write it right after the summary. Any turn that ends before the plan exists ends with `Plan not written yet — reply to continue.`
 - **The human picks the look.** Never offer to pick for them; if they ask you to, pick and say which and why.
 - **Never overwrite a plan.** `docs/plans/<slug>.md` exists → ask: update it (keep `_Generated:_`, add `_Updated:_`) or use a new slug.
-- **Small: 2–4 sprints.** Code is reviewed once, at plan end, so a bigger goal becomes several plans in a row — say so in Scope.
+- **Small: at most 4 sprints; one is fine.** Split into sprints only where later work must be planned from what earlier work builds. Code is reviewed once, at plan end, so a bigger goal becomes several plans in a row — say so in Scope.
 - **Strategic, not tactical.** Sprints by goal and dependency; files and slices belong in sprint docs.
 
 ## Before the interview

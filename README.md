@@ -49,7 +49,7 @@ That's it. pod researches the idea, interviews you, writes the plan, asks you to
 
 A few words pod uses:
 
-- **Plan**: what you're building and why, in 2–4 sprints. Saved in `docs/plans/`.
+- **Plan**: what you're building and why, in up to 4 sprints. Saved in `docs/plans/`.
 - **Sprint**: one step of the plan, split into slices. Saved in `docs/sprints/`.
 - **Slice**: a piece of work small enough for one engineer. Each slice owns its own files.
 - **Wave**: a group of slices that don't touch the same files, so they can be built at the same time.
