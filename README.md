@@ -19,6 +19,14 @@ You need Claude Code, `git`, and the GitHub CLI (`gh`), logged in.
 /plugin install pod@pod
 ```
 
+*Optional:* to watch a run as a tree (plan, sprints, waves, engineers), also install pod-flow:
+
+```
+/plugin install pod-flow@pod
+```
+
+The tree opens beside the transcript when you start `/pod:autopilot` or `/pod:ship`. To open it again, run `/pod-flow`. pod-flow only reads your `docs/` files and the session's agent list. It needs a Claude Code build with function hooks, which are in early access.
+
 **2. Set up your project** (from the repo root, new or existing):
 
 ```

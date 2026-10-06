@@ -1,0 +1,27 @@
+export type Dispatch = {
+  type: string
+  description: string
+  sprint?: string
+  slice?: string
+  branch?: string
+}
+
+export type TreeKind = 'plan' | 'sprint' | 'wave' | 'slice' | 'agent' | 'halt'
+
+export type TreeLine = {
+  depth: number
+  kind: TreeKind
+  text: string
+  status: string
+  note?: string
+}
+
+declare module 'claude-code' {
+  interface PluginState {
+    'pod-flow': {
+      isActive: boolean
+      lines: TreeLine[]
+      spawns: Record<string, Dispatch>
+    }
+  }
+}
