@@ -38,10 +38,6 @@ Git and GitHub are the record here, not the board, because the human runs the wa
    - files owned:      <paths>
    - success criteria: <criteria>
    - teardown:         defer
-
-   Your worktree is pre-created — cd into it. Push your branch; don't open a PR
-   (the wave becomes one PR afterward). Leave the worktree in place; it's removed
-   after the wave PR merges.
    ```
 
    Print ports as numbers: *i* is the slice's row on the status board (row 1 → `3010`/`3011`), so no two sessions share a port and `3000`/`3001` stay free for checking the wave head.
