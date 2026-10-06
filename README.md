@@ -111,6 +111,8 @@ Does the same as `/pod:code`, but merges each wave PR itself and moves on to the
 
 Limits: `--max-sprints=N`, `--max-waves=N` (default 20), `--max-runtime=Nh`. CI is optional but recommended. With CI, every check must pass before a merge. The full rules are in [`skills/autopilot/policy.md`](skills/autopilot/policy.md).
 
+Run one plan per session: after a plan completes, run `/clear` before the next `/pod:autopilot`. State lives on disk, so nothing is lost, and the next plan starts with a fresh context.
+
 ### `/pod:fix <task>`: one change, outside any plan
 
 One engineer builds the change test-first, the reviewer checks it, and you merge the PR. It branches off `main` (or `--merge-target=<branch>`), never off a plan branch. Add `--no-review` for trivial changes.
