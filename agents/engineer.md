@@ -22,6 +22,7 @@ The worktree may already exist from an earlier run or a follow-up — reuse it a
 - Read `docs/codebase-structure.md` and the relevant `docs/known-issues/` from the parent repo first.
 - Anything a user sees follows `## Look` in `<parent-repo>/docs/plans/<merge-target>.md` (standalone: the look already in the code) and the project's design tokens. Use the `frontend-design` skill if you have it.
 - Never `--force`, `-D`, or `git checkout` in the parent repo.
+- Commit messages are conventional commits scoped by the area of code (`feat(reports): …`), never by the slice code — it means nothing once the sprint is archived.
 
 ## Test first
 
