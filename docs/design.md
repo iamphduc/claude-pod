@@ -165,6 +165,8 @@ Before, autopilot's "every required check passes" rule was satisfied by a repo w
 
 ## Where rules live
 
+**Skill or agent.** A skill is a command the human types: it runs in their session, talks to them, and coordinates agents. An agent is a worker: it runs alone, in the background or in parallel, often with tools locked down. A worker's rules always live in an agent file, never in a skill that a general-purpose agent is told to follow. A command whose work is done by an agent is a thin skill that dispatches it, like `/pod:sprint` and `/pod:report`. Work becomes an agent only when it needs what a skill can't give: tools Claude Code itself locks down (the reviewer can't edit, the researcher has no Bash), running in parallel, its own model, or a session started with `claude --agent`. Anything that dispatches agents stays a skill, because a subagent can't start other subagents.
+
 An agent's markdown body **is** its system prompt: Claude Code loads it when the agent starts ([Claude Code docs](https://code.claude.com/docs/en/sub-agents)). So every rule a **background agent** needs lives inside its own file — the engineer's contract in `agents/engineer.md`, the sprint doc template in `agents/sprint-planner.md`. An agent never has to remember to read a separate file, never hits a permission prompt for a file outside the project (a background agent can't answer one), and never depends on a path being filled in.
 
 Rules only a **skill** needs sit next to that skill (`skills/autopilot/policy.md`, `skills/plan/template.md`); skills run in the main session, where reading a plugin file is fine. Skills that dispatch an agent read the fields to pass from the agent's own file. `/pod:create-wave-prompts` sessions start with `claude --agent pod:engineer`, so a hand-launched engineer gets the same instructions as a dispatched one.
@@ -247,6 +249,7 @@ The fourth run built a shared-expenses app — 27 slices, twice the third — on
 
 ## Choices we made on purpose
 
+- **Few agent roles.** The orchestrator checks each wave itself and `/pod:plan` drafts the look itself, rather than handing either to a new checker or designer agent. Each new role adds handoffs and another contract to keep in sync, and the gain (a smaller orchestrator context) didn't justify it.
 - **One reviewer, not several in parallel.** Claude Code Review runs several reviewers at once, one per concern, then filters. More thorough, but costs several times more; one agent reading small pieces gets most of the benefit. Revisit if end-of-plan reviews start missing things.
 - **Trust the engineers per wave.** Anthropic's advice is to start simple and add agent steps only when simpler setups fall short ([Anthropic](https://www.anthropic.com/engineering/building-effective-agents)). If bugs keep slipping through waves into the final review, the per-wave pr-reviewer is the step to bring back.
 - **The fix pass merges its own PR.** It only touches files the reviewer named, and the whole final PR still comes to you (or passes autopilot's checks) before reaching `main`.

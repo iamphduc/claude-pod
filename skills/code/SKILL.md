@@ -47,7 +47,15 @@ Before the first wave: the merge-target is on `origin`, and the `## Smoke recipe
 
 ## Sprint complete
 
-Append the **Sprint summary** (per the sprint-planner's file, with stalls, each engineer's **Time lost**, and the sync result), archive the sprint doc to `docs/sprints/archive/`, mark its plan row `done`, prune the queue per its own rule, and commit and push `docs/`. A `planned` row left → end: `Sprint <sprint-slug> complete. Reply 'continue' to start the next sprint.` None → **Plan complete**.
+Append a `## Sprint summary` to the sprint doc — the next sprint-planner and `pod:reporter` read it:
+
+- **Synced with merge-target:** <up to date | synced N commits>
+- **Slices shipped:** <slice-code list>
+- **Queue entries:** resolved <N>, deferred <M> — link the deferred ones
+- **Slice log:** one line per slice — `<slice-code>: <Confidence> · test-first <yes | partly — why | n/a> · runtime <what was driven> · <N> NOTEs · time lost <none | what>` — plus each wave fix and stall
+- **Agent context at hand-back:** <sum of each agent's reported `subagent_tokens`> — *each agent's final context size, not tokens billed*; say so wherever it's quoted
+
+Then archive the sprint doc to `docs/sprints/archive/`, mark its plan row `done`, prune the queue per its own rule, and commit and push `docs/`. A `planned` row left → end: `Sprint <sprint-slug> complete. Reply 'continue' to start the next sprint.` None → **Plan complete**.
 
 ## Plan complete
 
@@ -57,7 +65,7 @@ Code is reviewed once, here, on the whole plan (why: `${CLAUDE_PLUGIN_ROOT}/docs
 2. **Review:** dispatch `pod:reviewer` on a review worktree at `origin/<plan-slug>`, with the PR URL, plan slug, merge-target, parent-repo path, and ports. Its `PENDING`s go to the queue for the human. `pass` → step 4; `fix` → step 3.
 3. **Fix pass — once:** one engineer on the plan-fix branch with **review findings** = the `FIX` lines as written (don't limit how to fix them) and files owned = the files they name. Merge its `Review fixes` PR yourself, move the review worktree to the new head, then re-dispatch the reviewer with `round: 2`, its round-1 findings, and the engineer's summary. Engineer `BLOCKED` → step 4, review still failing.
 4. **Sort the queue** — each open `PENDING` is **Obsolete** (resolve it), **Needs your decision** (only the human can choose: a Look value, including colors or fonts it doesn't list; a rule the spec left open; a product choice; never a reproduced bug), or **Fix next** · **Before hosting** · **Someday**. For a decision, record the value in use in `docs/decisions.md` as `## <date> — <title> (agent default — override anytime)` and resolve the entry with a link to it.
-5. **Close out the paper trail, before the merge:** have a background `general-purpose` agent write the report (`${CLAUDE_PLUGIN_ROOT}/skills/report/SKILL.md`), set the plan to `Status: archived`, add one queue entry `orchestrator` → `human`: `plan <plan-slug> complete — final PR <url>, review <pass | still failing>, <N> open entries sorted in the hand-back` (autopilot's gate-7 entry), and once the report exists, commit and push `docs/` (`docs: close out plan <plan-slug>`).
+5. **Close out the paper trail, before the merge:** dispatch `pod:reporter` in the background with its **Required dispatch context** to write the report, set the plan to `Status: archived`, add one queue entry `orchestrator` → `human`: `plan <plan-slug> complete — final PR <url>, review <pass | still failing>, <N> open entries sorted in the hand-back` (autopilot's gate-7 entry), and once the report exists, commit and push `docs/` (`docs: close out plan <plan-slug>`).
 6. **Leave nothing behind:** no worktree of this plan left, parent repo clean. Name anything you couldn't clear.
 7. **Hand back** (`Plan <plan-slug> complete — final merge awaiting`): the PR URL, the review verdict with any `FIX` findings, the sorted list (**Needs your decision** first, with each default and how to change it), the report path, loose ends, and **Try it**: `Reply 'try' to start the app (<start command>, <URL>); 'stop' when you're done.`
 

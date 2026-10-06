@@ -132,6 +132,7 @@ Writes an HTML report of a plan: key features, decisions, data structures, and h
 | **sprint-planner** | Splits the next part of the plan into slices and waves |
 | **engineer** | Builds one slice in its own copy of the repo, test-first, then checks it in the browser |
 | **reviewer** | Reviews the final plan PR and every `/pod:fix` PR. Never edits code |
+| **reporter** | Writes the HTML report of a finished plan |
 
 ## What pod keeps in your repo
 
@@ -168,6 +169,8 @@ The files in `agents/` and `skills/` are read by agents on every run, so each li
 - **Guardrails** that prevent real damage or keep you in control. For example: never touch `main`, never force-push, stay inside your own files, you decide what merges, tests come first, and keep secrets out.
 - **Contracts**: the exact formats agents pass to each other (dispatch fields, hand-backs, queue entries, the status board, PR titles).
 - **The goal and the reason** for each role, in a sentence or two.
+
+Put each rule on the right side: a **skill** is a command you type, and an **agent** is a worker it sends out. See "Where rules live" in [`docs/design.md`](docs/design.md).
 
 Leave out everything else: fixes for one project's bug, commands the model already knows, step-by-step procedures, stories from past runs, and rules repeated from another file. When a test run finds a problem, fix it with a general check, not a new bullet that names the bug.
 
