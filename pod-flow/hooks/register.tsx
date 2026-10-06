@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Dispatch, TreeLine } from '../types'
-import { buildTree, latestHalt, parseDispatch, parsePlan, parseSprint, prefixes } from './model'
+import { buildTree, latestHalt, parseDispatch, parsePlan, parseSprint, prefixes, summarize } from './model'
 import type { PlanDoc, SprintDoc } from './model'
 
 const PANE = 'pod-flow'
@@ -127,11 +127,13 @@ export const register: Register = on => {
     const { Box, Text } = $.ui.resolve(e)
     const rows = await read($, lines)
     const stems = prefixes(rows)
-    const room = Math.max(1, (e.viewport?.rows ?? 30) - 4)
+    const summary = summarize(rows)
+    const room = Math.max(1, (e.viewport?.rows ?? 30) - 5)
 
     return (
       <Box flexDirection="column">
         {rows.length === 0 && <Text dimColor>Waiting for the plan and sprint docs.</Text>}
+        {summary && <Text wrap="truncate-end" bold>{summary}</Text>}
         {rows.slice(0, room).map((row, i) => (
           <Text wrap="truncate-end" color={COLOR[row.status]} dimColor={row.status === 'waiting'}>
             {stems[i]}

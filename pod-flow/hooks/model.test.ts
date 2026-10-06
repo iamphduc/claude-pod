@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 
-import { buildTree, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, prefixes, tableRows } from './model'
+import { buildTree, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, prefixes, summarize, tableRows } from './model'
 
 const PLAN = `# Plan: Long runs
 
@@ -143,4 +143,22 @@ test('prefixes draw branches and close them under the last sibling', () => {
   expect(stems[0]).toBe('')
   expect(stems[1]).toBe('├─ ')
   expect(stems.at(-1)).toBe('└─ ')
+})
+
+test('summarize reports sprint, wave, running and blocked counts', () => {
+  const lines = buildTree({
+    plan: parsePlan(PLAN, 'long-runs'),
+    sprints: [parseSprint(SPRINT, false)!],
+    spawns: { e1: { type: 'pod:engineer', description: 'B1 search box' } },
+    live: [{ id: 'e1', type: 'pod:engineer', status: 'running' }],
+  })
+  expect(summarize(lines)).toBe('sprint 2/3 · wave 2/2 · 1 running')
+})
+
+test('summarize counts blocked slices and says when all sprints are done', () => {
+  const blocked = parseSprint(SPRINT.replaceAll('| pending | — | A1 |', '| blocked | — | A1 |'), false)!
+  const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [blocked], spawns: {}, live: [] })
+  expect(summarize(lines)).toContain('2 blocked')
+  const done = parsePlan(PLAN.replace('| ui | Build the screens | active |', '| ui | Build the screens | done |').replace('planned', 'done'), 'long-runs')
+  expect(summarize(buildTree({ plan: done, sprints: [], spawns: {}, live: [] }))).toBe('all sprints done')
 })

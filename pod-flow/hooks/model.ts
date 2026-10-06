@@ -123,6 +123,32 @@ const waveStatus = (rows: Row[], liveSlices: Set<string>) => {
 
 const short = (text: string, max: number) => (text.length > max ? `${text.slice(0, max - 1)}…` : text)
 
+/** One line of overall progress: where the run is, and what needs a look. */
+export function summarize(lines: TreeLine[]): string {
+  const sprints = lines.filter(l => l.kind === 'sprint')
+  if (sprints.length === 0) return ''
+  const doneSprints = sprints.filter(l => l.status === 'done').length
+  const active = lines.findIndex(l => l.kind === 'sprint' && l.status === 'running')
+  const parts: string[] = []
+  if (doneSprints === sprints.length) {
+    parts.push('all sprints done')
+  } else {
+    parts.push(`sprint ${Math.min(doneSprints + 1, sprints.length)}/${sprints.length}`)
+    if (active >= 0) {
+      const rest = lines.slice(active + 1)
+      const end = rest.findIndex(l => l.kind === 'sprint')
+      const waves = (end < 0 ? rest : rest.slice(0, end)).filter(l => l.kind === 'wave')
+      const doneWaves = waves.filter(l => l.status === 'done').length
+      if (waves.length > 0) parts.push(`wave ${Math.min(doneWaves + 1, waves.length)}/${waves.length}`)
+    }
+  }
+  const working = lines.filter(l => (l.kind === 'slice' || l.kind === 'agent') && l.status === 'running').length
+  const blocked = lines.filter(l => l.status === 'blocked' && l.kind !== 'wave').length
+  if (working > 0) parts.push(`${working} running`)
+  if (blocked > 0) parts.push(`${blocked} blocked`)
+  return parts.join(' · ')
+}
+
 /** The branch drawing (`├─ `, `└─ `, `│  `) in front of each line. */
 export function prefixes(lines: TreeLine[]): string[] {
   const hasLater: boolean[] = []
