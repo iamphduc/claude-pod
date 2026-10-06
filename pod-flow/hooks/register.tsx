@@ -24,6 +24,7 @@ const COLOR: Record<string, string | undefined> = {
 type Dollar = EngineInterface
 
 let isTimerOn = false
+const lastSeen: Record<string, number> = {}
 
 async function readText($: Dollar, path: string): Promise<string> {
   try {
@@ -73,7 +74,8 @@ async function refresh($: Dollar) {
   const live = (await $.agent.list()).map((a: { id: string; type: string; status: string }) => ({ id: a.id, type: a.type, status: a.status }))
   const halt = latestHalt(await readText($, 'docs/handoff-queue.md'))
   const known = await read($, spawns)
-  await update($, lines, () => buildTree({ plan, sprints, spawns: known, live, halt }))
+  const now = await $.clock.now()
+  await update($, lines, () => buildTree({ plan, sprints, spawns: known, live, halt, now, lastSeen }))
 }
 
 async function activate($: Dollar) {
@@ -107,12 +109,18 @@ export const register: Register = on => {
       const dispatch: Dispatch = {
         type: e.subagentType,
         description: e.description,
+        startedAt: await $.clock.now(),
         ...parseDispatch(e.prompt),
       }
       await update($, spawns, known => ({ ...known, [result.agentId as string]: dispatch }))
       void refresh($)
     }
     return result
+  })
+
+  on('tool.call', async ($, e, next) => {
+    if (e.agentId) lastSeen[e.agentId] = await $.clock.now()
+    return next(e)
   })
 
   on('command.run', { command: 'pod-flow' }, async $ => {

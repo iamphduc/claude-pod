@@ -1,6 +1,7 @@
 export type Dispatch = {
   type: string
   description: string
+  startedAt?: number
   sprint?: string
   slice?: string
   branch?: string

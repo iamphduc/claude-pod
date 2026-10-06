@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 
-import { buildTree, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, prefixes, summarize, tableRows } from './model'
+import { ageNote, buildTree, formatAge, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, prefixes, summarize, tableRows } from './model'
 
 const PLAN = `# Plan: Long runs
 
@@ -161,4 +161,27 @@ test('summarize counts blocked slices and says when all sprints are done', () =>
   expect(summarize(lines)).toContain('2 blocked')
   const done = parsePlan(PLAN.replace('| ui | Build the screens | active |', '| ui | Build the screens | done |').replace('planned', 'done'), 'long-runs')
   expect(summarize(buildTree({ plan: done, sprints: [], spawns: {}, live: [] }))).toBe('all sprints done')
+})
+
+test('formatAge writes seconds, minutes and hours', () => {
+  expect([45_000, 180_000, 3_900_000].map(formatAge)).toEqual(['45s', '3m', '1h05m'])
+})
+
+test('ageNote adds a quiet flag after two silent minutes', () => {
+  expect(ageNote(0, 170_000, 180_000)).toBe('3m')
+  expect(ageNote(0, 30_000, 180_000)).toBe('3m · quiet 2m')
+  expect(ageNote(0, undefined, 60_000)).toBe('1m')
+  expect(ageNote(undefined, undefined, 60_000)).toBeUndefined()
+})
+
+test('buildTree shows how long a running engineer has run', () => {
+  const lines = buildTree({
+    plan: parsePlan(PLAN, 'long-runs'),
+    sprints: [parseSprint(SPRINT, false)!],
+    spawns: { e1: { type: 'pod:engineer', description: 'B1 search box', startedAt: 0 } },
+    live: [{ id: 'e1', type: 'pod:engineer', status: 'running' }],
+    now: 300_000,
+    lastSeen: { e1: 100_000 },
+  })
+  expect(lines.find(l => l.kind === 'slice' && l.text.startsWith('B1'))?.note).toBe('5m · quiet 3m')
 })

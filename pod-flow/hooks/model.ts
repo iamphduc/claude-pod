@@ -163,24 +163,47 @@ export function prefixes(lines: TreeLine[]): string[] {
   })
 }
 
+export const QUIET_MS = 2 * 60 * 1000
+
+/** `45s`, `3m`, `1h05m`. */
+export function formatAge(ms: number): string {
+  const sec = Math.max(0, Math.floor(ms / 1000))
+  if (sec < 60) return `${sec}s`
+  const min = Math.floor(sec / 60)
+  if (min < 60) return `${min}m`
+  return `${Math.floor(min / 60)}h${String(min % 60).padStart(2, '0')}m`
+}
+
+/** How long an agent has run, and how long it has been silent once that passes QUIET_MS. */
+export function ageNote(startedAt: number | undefined, lastAt: number | undefined, now: number | undefined): string | undefined {
+  if (startedAt === undefined || now === undefined) return undefined
+  const note = formatAge(now - startedAt)
+  const silent = now - (lastAt ?? startedAt)
+  return silent >= QUIET_MS ? `${note} · quiet ${formatAge(silent)}` : note
+}
+
 export type TreeInput = {
   plan: PlanDoc
   sprints: SprintDoc[]
   spawns: Record<string, Dispatch>
   live: LiveAgent[]
   halt?: string
+  now?: number
+  lastSeen?: Record<string, number>
 }
 
-export function buildTree({ plan, sprints, spawns, live, halt }: TreeInput): TreeLine[] {
+export function buildTree({ plan, sprints, spawns, live, halt, now, lastSeen = {} }: TreeInput): TreeLine[] {
   const running = live.filter(a => a.status === 'running')
   const dispatchOf = (a: LiveAgent) => spawns[a.id]
   const codes = sprints.flatMap(s => s.rows.map(r => r.slice))
-  const liveSlices = new Set(
-    running.flatMap(a => {
-      const slice = sliceOf(dispatchOf(a), codes)
-      return slice ? [slice] : []
-    }),
-  )
+  const agentOfSlice = new Map<string, LiveAgent>()
+  for (const a of running) {
+    const slice = sliceOf(dispatchOf(a), codes)
+    if (slice) agentOfSlice.set(slice, a)
+  }
+  const liveSlices = new Set(agentOfSlice.keys())
+  const ageOf = (a: LiveAgent | undefined) =>
+    a ? ageNote(dispatchOf(a)?.startedAt, lastSeen[a.id], now) : undefined
   const lines: TreeLine[] = [
     { depth: 0, kind: 'plan', text: plan.title, status: plan.status === 'archived' ? 'done' : 'running' },
   ]
@@ -212,7 +235,7 @@ export function buildTree({ plan, sprints, spawns, live, halt }: TreeInput): Tre
           kind: 'slice',
           text: `${row.slice} ${short(row.title, 40)}`,
           status: isLive ? 'running' : (SLICE_STATUS[row.status] ?? row.status),
-          note: row.confidence === '—' ? undefined : row.confidence,
+          note: isLive ? ageOf(agentOfSlice.get(row.slice)) : row.confidence === '—' ? undefined : row.confidence,
         })
       }
     }
@@ -227,7 +250,7 @@ export function buildTree({ plan, sprints, spawns, live, halt }: TreeInput): Tre
       kind: 'agent',
       text: (d?.type ?? agent.type).replace(/^pod:/, ''),
       status: 'running',
-      note: short(d?.description ?? '', 40) || undefined,
+      note: [short(d?.description ?? '', 40), ageOf(agent)].filter(Boolean).join(' · ') || undefined,
     })
   }
 
