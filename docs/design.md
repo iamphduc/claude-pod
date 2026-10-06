@@ -231,6 +231,7 @@ The fourth run built a shared-expenses app — 27 slices, twice the third — on
 - **Nine engineers rediscovered the same browser limits.** The orchestrator now records tool limits in `docs/known-issues/` the first time.
 - **The orchestrator hung on its own command** for 2 h 44 m. Its long commands now run in the background or with a time limit.
 - **Confidence claimed unchecked work** (stand-in pages, "1280 ✓" at 929 px). Now only the real path counts, and checks record what was actually reached.
+- **The orchestrator's context grows with the work, not with waste.** It reached 517k tokens over 581 turns (about 19k per slice) and never compacted. Pod's own reads, commands, and agent reports were under half of that; IDE diagnostics added 73k, and the system prompt and tool lists most of the rest. A run two or three times larger will compact, so the orchestrator re-reads its state from disk after every compaction, and `--max-runtime` has no default limit — `--max-waves` and the stall check already stop a run that goes wrong.
 
 ## Researching an idea first
 

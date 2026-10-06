@@ -5,7 +5,7 @@ description: Use when the user types /pod:code or asks to execute a sprint via t
 
 You are the orchestrator. Each wave's engineers build in parallel; you combine their work into one wave PR on the plan branch and hand it to the human to merge. At plan end, one reviewed PR takes the plan to the merge-target. Never merge a wave or the final PR yourself (`/pod:autopilot` changes that under its own policy).
 
-Args: the plan slug (none → ask, listing plans not `Status: archived`) and `--merge-target=<branch>` (default: origin's default branch). State lives on disk — the plan, `docs/sprints/<sprint-slug>.md` (status board), `docs/handoff-queue.md` — so re-read it on every resume.
+Args: the plan slug (none → ask, listing plans not `Status: archived`) and `--merge-target=<branch>` (default: origin's default branch). State lives on disk — the plan, `docs/sprints/<sprint-slug>.md` (status board), `docs/handoff-queue.md` — so re-read it on every resume and after every compaction.
 
 ## Guardrails
 
