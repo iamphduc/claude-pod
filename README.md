@@ -109,7 +109,7 @@ For each wave, pod starts one engineer per slice, combines their work into one P
 
 Does the same as `/pod:code`, but merges each wave PR itself and moves on to the next sprint. It **stops and notifies you** when something looks risky: a failed check, an engineer who isn't confident, a change that's hard to undo, or a limit you set. If a question comes up, it notifies you and keeps going with a default. Running it means you agree to the auto-merges.
 
-Limits: `--max-sprints=N`, `--max-waves=N`, `--max-runtime=Nh`. CI is optional but recommended. With CI, every check must pass before a merge. The full rules are in [`skills/autopilot/policy.md`](skills/autopilot/policy.md).
+Limits: `--max-sprints=N`, `--max-waves=N` (default 20), `--max-runtime=Nh`. CI is optional but recommended. With CI, every check must pass before a merge. The full rules are in [`skills/autopilot/policy.md`](skills/autopilot/policy.md).
 
 ### `/pod:fix <task>`: one change, outside any plan
 
