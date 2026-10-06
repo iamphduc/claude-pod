@@ -115,7 +115,7 @@ Run one plan per session: after a plan completes, run `/clear` before the next `
 
 ### `/pod:fix <task>`: one change, outside any plan
 
-One engineer builds the change test-first, the reviewer checks it, and you merge the PR. It branches off `main` (or `--merge-target=<branch>`), never off a plan branch. Add `--no-review` for trivial changes.
+One engineer builds the change test-first, the reviewer checks it, and you merge the PR. It branches off `main` (or `--merge-target=<branch>`), never off a plan branch. Add `--no-review` for trivial changes. Small, contained fixes run on Sonnet, the rest on Opus; `--model=sonnet|opus` picks one yourself.
 
 ### `/pod:create-wave-prompts [sprint] [wave]`: run engineers yourself
 

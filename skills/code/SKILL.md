@@ -21,6 +21,7 @@ Args: the plan slug (none → ask, listing plans not `Status: archived`) and `--
 ## Contracts
 
 - **Dispatch:** all of a wave's `pod:engineer` calls in one message, no `isolation`, with the engineer's **Required dispatch context**: merge-target `<plan-slug>`, `teardown: defer`, dev ports `3000 + 10i` / `3001 + 10i` (*i* = the slice's status-board row), and any `NOTE for <slice-code>:` from earlier slices. Ports `3000`/`3001` are yours, `3010`/`3011` a fix engineer's, `3020`/`3021` the reviewer's.
+- **Model:** each slice's engineer runs on its **Model:** (none → `opus`), passed as the `Agent` call's `model`; wave fixes and the plan fix pass run on `opus`. A `sonnet` slice that reports `BLOCKED` or `Confidence: low` is re-dispatched once on `opus` in its worktree before you act on it; the new report replaces the first.
 - **Names:** worktrees at `<parent-repo>/.claude/worktrees/<branch>`. Slice branches come from the sprint doc; wave head `<sprint-slug>-w<N>`, wave fix `<sprint-slug>-w<N>-fix`, sync `<plan-slug>-sync`, review `<plan-slug>-review`, plan fix `<plan-slug>-fix`.
 - **Wave PR:** titled `Wave <N>`, to `<plan-slug>`. The body opens with `Door: two-way`, or `Door: one-way — <what>, undo: <how>` per one-way slice, then each slice with its `NOTE`s, stray paths, any wave fix, and the Look check line.
 - **Look check line:** `Look check: <each width you actually reached> ✓ · close-ups: <what> · colors: <match, or the off-Look values> · <defects, or none>`, or why it was skipped.
@@ -52,7 +53,7 @@ Append a `## Sprint summary` to the sprint doc — the next sprint-planner and `
 - **Synced with merge-target:** <up to date | synced N commits>
 - **Slices shipped:** <slice-code list>
 - **Queue entries:** resolved <N>, deferred <M> — link the deferred ones
-- **Slice log:** one line per slice — `<slice-code>: <Confidence> · test-first <yes | partly — why | n/a> · runtime <what was driven> · <N> NOTEs · time lost <none | what>` — plus each wave fix and stall
+- **Slice log:** one line per slice — `<slice-code>: <model, or sonnet→opus> · <Confidence> · test-first <yes | partly — why | n/a> · runtime <what was driven> · <N> NOTEs · time lost <none | what>` — plus each wave fix and stall
 - **Agent context at hand-back:** <sum of each agent's reported `subagent_tokens`> — *each agent's final context size, not tokens billed*; say so wherever it's quoted
 
 Then archive the sprint doc to `docs/sprints/archive/`, mark its plan row `done`, prune the queue per its own rule, and commit and push `docs/`. A `planned` row left → end: `Sprint <sprint-slug> complete. Reply 'continue' to start the next sprint.` None → **Plan complete**.

@@ -20,6 +20,7 @@ Draft the next `planned` sprint of `docs/plans/<plan-slug>.md` as a sprint doc, 
 - **Criteria are tests.** Each `[test]` criterion names the test file and test name, and those files are in the slice's **Files owned**. `[manual]` only for what no test can check (how it looks or feels). Tests are for behavior: docs are checked by using them (the smoke recipe runs every wave), never by tests on their wording. Logic is never `[manual]` — move it out of hard-to-test glue into a small module with its own tests. No test runner yet → the first wave is one slice that sets one up.
 - **Rules name their edges.** A loose rule gets built exactly as written. For each rule in a Scope or the Shared contract, say what it covers and what happens at its boundaries (time, failure, repeats), each with a `[test]` criterion.
 - **One-way doors are marked.** A slice that destroys or migrates existing data, sends to real people, moves money, changes auth or permissions, breaks a public API, or touches secrets or production is a one-way door — mark it in **One-way door:**; the human decides. Everything else is two-way and goes ahead.
+- **Pick each slice's model.** `sonnet` for contained work with clear criteria — a dependency bump, config, copy or style, a small bug with a known cause in one or two files. `opus` for anything that sets or consumes the Shared contract, crosses slices, touches auth, data, or security, or is a one-way door, and always for `B1` and `L1`. Unsure → `opus`.
 - **`docs/features.md` is never in Files owned** — the orchestrator writes its rows.
 - **Bootstrap** (no application code yet): wave 1 is one slice, `B1`, title starting `Bootstrap:`, that every other slice depends on — the thinnest runnable stack with one passing test. It fills `docs/codebase-structure.md`'s **Stack & conventions**, **`## Smoke recipe`** (install step, start commands, ports from env, a `Verification:` command, `127.0.0.1` not `localhost`), and **`## CI`** (`none` unless the plan's Key decisions ask for CI). With CI, it adds `.github/workflows/pod-ci.yml`: on `pull_request` and on `push` to the merge-target, a **verify** job running the `Verification:` command and a **secrets** job (`gitleaks/gitleaks-action@v2`).
 - **The look.** When the plan's `## Look` isn't `none`, the first sprint that builds UI gets a **look foundation** slice `L1` (title starting `Look:`) in its earliest possible wave; every UI slice depends on it. `L1` turns the Look into design tokens, self-hosted fonts, and base control styles, and owns those theme files — no other slice edits them. Its tests check each token's value, 4.5:1 text contrast, and fonts served from the app. Every UI slice's Scope says to use only the tokens and follow the Look; its `[manual]` criteria say what to look at, at desktop and 375 px.
@@ -54,6 +55,7 @@ What more than one slice depends on, stated once: shared types and fields, API r
   - `[manual] <behavior> — <how to check it>`
 - **Depends on:** <slice codes or —>
 - **One-way door:** <none, or what can't be undone and how it would be undone>
+- **Model:** <sonnet | opus>
 ````
 
 ## Field rules
