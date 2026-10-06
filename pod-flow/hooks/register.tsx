@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Dispatch, TreeLine } from '../types'
-import { buildTree, latestHalt, parseDispatch, parsePlan, parseSprint, prefixes, summarize } from './model'
+import { buildTree, latestHalt, parseDispatch, parsePlan, parseSprint, prefixes, summarize, visibleLines } from './model'
 import type { PlanDoc, SprintDoc } from './model'
 
 const PANE = 'pod-flow'
@@ -11,6 +11,7 @@ const RUN_SKILL = /(^|:)(autopilot|ship)$/
 
 const isActive = atom({ plugin: 'pod-flow', key: 'isActive' } as const, false)
 const lines = atom({ plugin: 'pod-flow', key: 'lines' } as const, [] as TreeLine[])
+const expanded = atom({ plugin: 'pod-flow', key: 'expanded' } as const, [] as string[])
 const spawns = atom({ plugin: 'pod-flow', key: 'spawns' } as const, {} as Record<string, Dispatch>)
 
 const GLYPH: Record<string, string> = { running: '●', pushed: '◐', done: '✓', blocked: '✗', waiting: '○' }
@@ -132,23 +133,46 @@ export const register: Register = on => {
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
-    const { Box, Text } = $.ui.resolve(e)
-    const rows = await read($, lines)
+    const { Box, Text, Button } = $.ui.resolve(e)
+    const all = await read($, lines)
+    const open = await read($, expanded)
+    const summary = summarize(all)
+    const rows = visibleLines(all, open)
     const stems = prefixes(rows)
-    const summary = summarize(rows)
     const room = Math.max(1, (e.viewport?.rows ?? 30) - 5)
+    const width = Math.max(20, e.props.bodyColumns - 2)
 
     return (
       <Box flexDirection="column">
-        {rows.length === 0 && <Text dimColor>Waiting for the plan and sprint docs.</Text>}
         {summary && <Text wrap="truncate-end" bold>{summary}</Text>}
-        {rows.slice(0, room).map((row, i) => (
-          <Text wrap="truncate-end" color={COLOR[row.status]} dimColor={row.status === 'waiting'}>
-            {stems[i]}
-            {GLYPH[row.status] ?? '·'} {row.text}
-            {row.note ? `  ${row.note}` : ''}
-          </Text>
-        ))}
+        {rows.length === 0 && <Text dimColor>Waiting for the plan and sprint docs.</Text>}
+        {rows.slice(0, room).map((row, i) => {
+          const glyph = GLYPH[row.status] ?? '·'
+          const isFoldable = row.kind === 'sprint' && row.status === 'done' && row.detail !== undefined
+          if (isFoldable) {
+            const isOpen = open.includes(row.sprint ?? '')
+            const label = `${stems[i]}${isOpen ? '▾' : '▸'} ${glyph} ${row.text}  ${isOpen ? (row.note ?? '') : row.detail}`
+            return (
+              <Button
+                plain
+                dimColor
+                label={label.length > width ? `${label.slice(0, width - 1)}…` : label}
+                onPress={() =>
+                  update($, expanded, list =>
+                    list.includes(row.sprint ?? '') ? list.filter(s => s !== row.sprint) : [...list, row.sprint ?? ''],
+                  )
+                }
+              />
+            )
+          }
+          return (
+            <Text wrap="truncate-end" color={COLOR[row.status]} dimColor={row.status === 'waiting'}>
+              {stems[i]}
+              {glyph} {row.text}
+              {row.note ? `  ${row.note}` : ''}
+            </Text>
+          )
+        })}
         {rows.length > room && <Text dimColor>… {rows.length - room} more lines</Text>}
       </Box>
     )

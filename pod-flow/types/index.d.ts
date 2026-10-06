@@ -15,6 +15,8 @@ export type TreeLine = {
   text: string
   status: string
   note?: string
+  sprint?: string
+  detail?: string
 }
 
 declare module 'claude-code' {
@@ -23,6 +25,7 @@ declare module 'claude-code' {
       isActive: boolean
       lines: TreeLine[]
       spawns: Record<string, Dispatch>
+      expanded: string[]
     }
   }
 }

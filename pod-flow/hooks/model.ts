@@ -149,6 +149,14 @@ export function summarize(lines: TreeLine[]): string {
   return parts.join(' · ')
 }
 
+/** A finished sprint with a board folds to its own line unless the person opened it. */
+export function visibleLines(lines: TreeLine[], expanded: string[]): TreeLine[] {
+  const folded = new Set(
+    lines.filter(l => l.kind === 'sprint' && l.status === 'done' && l.detail && !expanded.includes(l.sprint ?? '')).map(l => l.sprint),
+  )
+  return lines.filter(l => l.kind === 'sprint' || !folded.has(l.sprint))
+}
+
 /** The branch drawing (`├─ `, `└─ `, `│  `) in front of each line. */
 export function prefixes(lines: TreeLine[]): string[] {
   const hasLater: boolean[] = []
@@ -210,14 +218,17 @@ export function buildTree({ plan, sprints, spawns, live, halt, now, lastSeen = {
 
   for (const sprint of plan.sprints) {
     const doc = sprints.find(s => s.slug === sprint.slug)
+    const waves = [...new Set((doc?.rows ?? []).map(r => r.wave))].sort((a, b) => a - b)
+    const slices = doc?.rows.length ?? 0
     lines.push({
       depth: 1,
       kind: 'sprint',
       text: sprint.slug,
       status: sprint.status === 'done' ? 'done' : sprint.status === 'active' ? 'running' : 'waiting',
       note: short(sprint.goal, 48),
+      sprint: sprint.slug,
+      detail: doc ? `${waves.length} ${waves.length === 1 ? 'wave' : 'waves'} · ${slices} ${slices === 1 ? 'slice' : 'slices'}` : undefined,
     })
-    const waves = [...new Set((doc?.rows ?? []).map(r => r.wave))].sort((a, b) => a - b)
     for (const wave of waves) {
       const rows = doc!.rows.filter(r => r.wave === wave)
       const doneCount = rows.filter(r => r.status === 'done').length
@@ -227,6 +238,7 @@ export function buildTree({ plan, sprints, spawns, live, halt, now, lastSeen = {
         text: `wave ${wave}`,
         status: waveStatus(rows, liveSlices),
         note: `${doneCount}/${rows.length} done`,
+        sprint: sprint.slug,
       })
       for (const row of rows) {
         const isLive = liveSlices.has(row.slice)
@@ -236,6 +248,7 @@ export function buildTree({ plan, sprints, spawns, live, halt, now, lastSeen = {
           text: `${row.slice} ${short(row.title, 40)}`,
           status: isLive ? 'running' : (SLICE_STATUS[row.status] ?? row.status),
           note: isLive ? ageOf(agentOfSlice.get(row.slice)) : row.confidence === '—' ? undefined : row.confidence,
+          sprint: sprint.slug,
         })
       }
     }

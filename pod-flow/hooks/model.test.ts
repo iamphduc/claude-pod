@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 
-import { ageNote, buildTree, formatAge, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, prefixes, summarize, tableRows } from './model'
+import { ageNote, buildTree, formatAge, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, prefixes, summarize, tableRows, visibleLines } from './model'
 
 const PLAN = `# Plan: Long runs
 
@@ -184,4 +184,24 @@ test('buildTree shows how long a running engineer has run', () => {
     lastSeen: { e1: 100_000 },
   })
   expect(lines.find(l => l.kind === 'slice' && l.text.startsWith('B1'))?.note).toBe('5m · quiet 3m')
+})
+
+test('visibleLines folds a finished sprint with a board, and opens it on request', () => {
+  const done = SPRINT.replaceAll('| pending |', '| done |')
+  const plan = parsePlan(PLAN.replace('| ui | Build the screens | active |', '| ui | Build the screens | done |'), 'long-runs')
+  const lines = buildTree({ plan, sprints: [parseSprint(done, true)!], spawns: {}, live: [] })
+
+  const folded = visibleLines(lines, [])
+  expect(folded.some(l => l.kind === 'slice')).toBe(false)
+  expect(folded.find(l => l.sprint === 'ui' && l.kind === 'sprint')?.detail).toBe('2 waves · 4 slices')
+
+  const opened = visibleLines(lines, ['ui'])
+  expect(opened.filter(l => l.kind === 'slice')).toHaveLength(4)
+})
+
+test('visibleLines never folds a sprint that is running or has no board', () => {
+  const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [parseSprint(SPRINT, false)!], spawns: {}, live: [] })
+  const shown = visibleLines(lines, [])
+  expect(shown.filter(l => l.kind === 'slice')).toHaveLength(4)
+  expect(shown.some(l => l.kind === 'sprint' && l.text === 'core')).toBe(true)
 })
