@@ -114,11 +114,24 @@ const SLICE_STATUS: Record<string, string> = {
   blocked: 'blocked',
 }
 
-const waveStatus = (rows: Row[], liveSlices: Set<string>) => {
-  if (rows.every(r => r.status === 'done' || /merged/i.test(r.pr))) return 'done'
-  if (rows.some(r => r.status === 'blocked')) return 'blocked'
-  if (rows.some(r => liveSlices.has(r.slice) || r.status === 'pushed')) return 'running'
-  return 'waiting'
+/** What a board's PR cell says: nothing yet, a wave PR open, merged, skipped, or blocked. */
+export function prState(pr: string): { state: 'none' | 'open' | 'merged' | 'skipped' | 'blocked'; number?: string } {
+  if (/merged/i.test(pr)) return { state: 'merged' }
+  if (/skipped/i.test(pr)) return { state: 'skipped' }
+  if (/blocked/i.test(pr)) return { state: 'blocked' }
+  if (/https?:\/\//i.test(pr)) return { state: 'open', number: /\/pull\/(\d+)/.exec(pr)?.[1] }
+  return { state: 'none' }
+}
+
+const waveStatus = (rows: Row[], liveSlices: Set<string>): { status: string; tag?: string } => {
+  const prs = rows.map(r => prState(r.pr))
+  if (prs.some(p => p.state === 'skipped')) return { status: 'blocked', tag: 'skipped' }
+  const open = prs.find(p => p.state === 'open')
+  if (open) return { status: 'running', tag: open.number ? `PR #${open.number} open` : 'PR open' }
+  if (rows.every(r => r.status === 'done' || /merged/i.test(r.pr))) return { status: 'done' }
+  if (rows.some(r => r.status === 'blocked')) return { status: 'blocked' }
+  if (rows.some(r => liveSlices.has(r.slice) || r.status === 'pushed')) return { status: 'running' }
+  return { status: 'waiting' }
 }
 
 const short = (text: string, max: number) => (text.length > max ? `${text.slice(0, max - 1)}…` : text)
@@ -232,12 +245,13 @@ export function buildTree({ plan, sprints, spawns, live, halt, now, lastSeen = {
     for (const wave of waves) {
       const rows = doc!.rows.filter(r => r.wave === wave)
       const doneCount = rows.filter(r => r.status === 'done').length
+      const state = waveStatus(rows, liveSlices)
       lines.push({
         depth: 2,
         kind: 'wave',
         text: `wave ${wave}`,
-        status: waveStatus(rows, liveSlices),
-        note: `${doneCount}/${rows.length} done`,
+        status: state.status,
+        note: [state.tag, `${doneCount}/${rows.length} done`].filter(Boolean).join(' · '),
         sprint: sprint.slug,
       })
       for (const row of rows) {

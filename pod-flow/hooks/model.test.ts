@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 
-import { ageNote, buildTree, formatAge, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, prefixes, summarize, tableRows, visibleLines } from './model'
+import { ageNote, buildTree, formatAge, prState, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, prefixes, summarize, tableRows, visibleLines } from './model'
 
 const PLAN = `# Plan: Long runs
 
@@ -204,4 +204,32 @@ test('visibleLines never folds a sprint that is running or has no board', () => 
   const shown = visibleLines(lines, [])
   expect(shown.filter(l => l.kind === 'slice')).toHaveLength(4)
   expect(shown.some(l => l.kind === 'sprint' && l.text === 'core')).toBe(true)
+})
+
+test('prState reads the board PR cell', () => {
+  expect(prState('—')).toEqual({ state: 'none' })
+  expect(prState('merged')).toEqual({ state: 'merged' })
+  expect(prState('skipped — verification failed')).toEqual({ state: 'skipped' })
+  expect(prState('blocked')).toEqual({ state: 'blocked' })
+  expect(prState('https://github.com/me/app/pull/12')).toEqual({ state: 'open', number: '12' })
+  expect(prState('[#12](https://github.com/me/app/pull/12)')).toEqual({ state: 'open', number: '12' })
+})
+
+const waveNote = (pr: string, status = 'pushed') => {
+  const board = SPRINT.replaceAll('| ui-B1 | — | pending |', `| ui-B1 | ${pr} | ${status} |`).replaceAll('| ui-B2 | — | pending |', `| ui-B2 | ${pr} | ${status} |`)
+  const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [parseSprint(board, false)!], spawns: {}, live: [] })
+  return lines.find(l => l.kind === 'wave' && l.text === 'wave 2')
+}
+
+test('a wave with an open PR says so', () => {
+  expect(waveNote('https://github.com/me/app/pull/12')).toMatchObject({ status: 'running', note: 'PR #12 open · 0/2 done' })
+})
+
+test('an open PR wins even when every slice is marked done', () => {
+  expect(waveNote('https://github.com/me/app/pull/12', 'done')).toMatchObject({ status: 'running', note: 'PR #12 open · 2/2 done' })
+})
+
+test('a merged wave is done, and a skipped one is blocked', () => {
+  expect(waveNote('merged', 'done')).toMatchObject({ status: 'done', note: '2/2 done' })
+  expect(waveNote('skipped — verification failed')).toMatchObject({ status: 'blocked', note: 'skipped · 0/2 done' })
 })
