@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 
-import { ageNote, buildTree, formatAge, prState, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, prefixes, summarize, tableRows, visibleLines } from './model'
+import { ageNote, buildTree, fit, formatAge, prState, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, prefixes, summarize, tableRows, visibleLines } from './model'
 
 const PLAN = `# Plan: Long runs
 
@@ -232,4 +232,36 @@ test('an open PR wins even when every slice is marked done', () => {
 test('a merged wave is done, and a skipped one is blocked', () => {
   expect(waveNote('merged', 'done')).toMatchObject({ status: 'done', note: '2/2 done' })
   expect(waveNote('skipped — verification failed')).toMatchObject({ status: 'blocked', note: 'skipped · 0/2 done' })
+})
+
+test('fit keeps the note and shortens the name when the row is too long', () => {
+  expect(fit('├─ ✓ short', '3 waves', 40)).toBe('├─ ✓ short  3 waves')
+  const row = fit('├─ ✓ king-safety-endgame', '3 waves · 3 slices', 40)
+  expect(row).toBe('├─ ✓ king-safety-en…  3 waves · 3 slices')
+  expect(row.length).toBeLessThanOrEqual(40)
+})
+
+test('fit keeps the whole name and cuts the end of a long note', () => {
+  const row = fit('└─ ● engineer', '4m · Fix inaudible capture sound', 40)
+  expect(row).toBe('└─ ● engineer  4m · Fix inaudible captu…')
+  expect(row.length).toBeLessThanOrEqual(40)
+})
+
+test('an agent line puts its age before its description', () => {
+  const lines = buildTree({
+    plan: parsePlan(PLAN, 'long-runs'),
+    sprints: [],
+    spawns: { f1: { type: 'pod:engineer', description: 'Fix inaudible capture sound', startedAt: 0 } },
+    live: [{ id: 'f1', type: 'pod:engineer', status: 'running' }],
+    now: 240_000,
+    lastSeen: { f1: 230_000 },
+  })
+  expect(lines.find(l => l.kind === 'agent')?.note).toBe('4m · Fix inaudible capture sound')
+})
+
+test('the plan shows done once every sprint is done and no agent runs', () => {
+  const done = parsePlan(PLAN.replace('| ui | Build the screens | active |', '| ui | Build the screens | done |').replace('planned', 'done'), 'long-runs')
+  expect(buildTree({ plan: done, sprints: [], spawns: {}, live: [] })[0]?.status).toBe('done')
+  const busy = buildTree({ plan: done, sprints: [], spawns: {}, live: [{ id: 'f1', type: 'pod:engineer', status: 'running' }] })
+  expect(busy[0]?.status).toBe('running')
 })

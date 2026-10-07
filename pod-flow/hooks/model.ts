@@ -170,6 +170,23 @@ export function visibleLines(lines: TreeLine[], expanded: string[]): TreeLine[] 
   return lines.filter(l => l.kind === 'sprint' || !folded.has(l.sprint))
 }
 
+const MIN_HEAD = 16
+
+/**
+ * One row's text in `width` cells. A long name gives way with `…` and the note after it stays
+ * whole; when the note is long too, the name keeps its room and the note loses its end.
+ */
+export function fit(head: string, note: string | undefined, width: number): string {
+  const tail = note ? `  ${note}` : ''
+  if (head.length + tail.length <= width) return `${head}${tail}`
+  const room = width - tail.length
+  if (room >= MIN_HEAD) return `${head.slice(0, room - 1)}…${tail}`
+  const shortHead = head.length > MIN_HEAD ? `${head.slice(0, MIN_HEAD - 1)}…` : head
+  const noteRoom = width - shortHead.length - 2
+  if (!note || noteRoom < 4) return `${head}${tail}`.slice(0, Math.max(0, width - 1)) + '…'
+  return `${shortHead}  ${note.slice(0, noteRoom - 1)}…`
+}
+
 /** The branch drawing (`├─ `, `└─ `, `│  `) in front of each line. */
 export function prefixes(lines: TreeLine[]): string[] {
   const hasLater: boolean[] = []
@@ -225,8 +242,11 @@ export function buildTree({ plan, sprints, spawns, live, halt, now, lastSeen = {
   const liveSlices = new Set(agentOfSlice.keys())
   const ageOf = (a: LiveAgent | undefined) =>
     a ? ageNote(dispatchOf(a)?.startedAt, lastSeen[a.id], now) : undefined
+  const isPlanDone =
+    plan.status === 'archived' ||
+    (plan.sprints.length > 0 && plan.sprints.every(s => s.status === 'done') && running.length === 0)
   const lines: TreeLine[] = [
-    { depth: 0, kind: 'plan', text: plan.title, status: plan.status === 'archived' ? 'done' : 'running' },
+    { depth: 0, kind: 'plan', text: plan.title, status: isPlanDone ? 'done' : 'running' },
   ]
 
   for (const sprint of plan.sprints) {
@@ -277,7 +297,7 @@ export function buildTree({ plan, sprints, spawns, live, halt, now, lastSeen = {
       kind: 'agent',
       text: (d?.type ?? agent.type).replace(/^pod:/, ''),
       status: 'running',
-      note: [short(d?.description ?? '', 40), ageOf(agent)].filter(Boolean).join(' · ') || undefined,
+      note: [ageOf(agent), short(d?.description ?? '', 40)].filter(Boolean).join(' · ') || undefined,
     })
   }
 

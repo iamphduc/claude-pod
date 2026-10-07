@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Dispatch, TreeLine } from '../types'
-import { buildTree, latestHalt, parseDispatch, parsePlan, parseSprint, prefixes, summarize, visibleLines } from './model'
+import { buildTree, fit, latestHalt, parseDispatch, parsePlan, parseSprint, prefixes, summarize, visibleLines } from './model'
 import type { PlanDoc, SprintDoc } from './model'
 
 const PANE = 'pod-flow'
@@ -151,12 +151,12 @@ export const register: Register = on => {
           const isFoldable = row.kind === 'sprint' && row.status === 'done' && row.detail !== undefined
           if (isFoldable) {
             const isOpen = open.includes(row.sprint ?? '')
-            const label = `${stems[i]}${isOpen ? '▾' : '▸'} ${glyph} ${row.text}  ${isOpen ? (row.note ?? '') : row.detail}`
+            const label = fit(`${stems[i]}${isOpen ? '▾' : '▸'} ${glyph} ${row.text}`, isOpen ? row.note : row.detail, width)
             return (
               <Button
                 plain
                 dimColor
-                label={label.length > width ? `${label.slice(0, width - 1)}…` : label}
+                label={label}
                 onPress={() =>
                   update($, expanded, list =>
                     list.includes(row.sprint ?? '') ? list.filter(s => s !== row.sprint) : [...list, row.sprint ?? ''],
@@ -167,9 +167,7 @@ export const register: Register = on => {
           }
           return (
             <Text wrap="truncate-end" color={COLOR[row.status]} dimColor={row.status === 'waiting'}>
-              {stems[i]}
-              {glyph} {row.text}
-              {row.note ? `  ${row.note}` : ''}
+              {fit(`${stems[i]}${glyph} ${row.text}`, row.note, width)}
             </Text>
           )
         })}
