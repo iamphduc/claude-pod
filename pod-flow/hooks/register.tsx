@@ -133,9 +133,14 @@ export const register: Register = on => {
     return next(e)
   })
 
-  on('command.run', { command: 'pod-flow' }, async $ => {
+  on('command.run', { command: 'pod-flow' }, async ($, e) => {
+    // `/pod-flow preview` opens the tree without a run, to try the mod on a project's docs.
+    if (e.args.trim() === 'preview') {
+      await activate($)
+      return { text: 'pod flow preview opened.' }
+    }
     if (!(await read($, isActive))) {
-      return { text: 'No /pod:autopilot or /pod:ship run in this session yet.' }
+      return { text: 'No /pod:autopilot or /pod:ship run in this session yet. Use /pod-flow preview to try it.' }
     }
     await startRefreshing($)
     await $.ui.open({ id: PANE, title: 'pod flow' })
