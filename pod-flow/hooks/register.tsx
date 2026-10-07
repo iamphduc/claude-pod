@@ -1,0 +1,193 @@
+import { atom, read, update } from 'claude-code'
+import type { EngineInterface, Register } from 'claude-code'
+
+import type { Dispatch, TreeLine } from '../types'
+import { buildTree, fit, latestHalt, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, summarize, visibleLines } from './model'
+import type { PlanDoc, SprintDoc } from './model'
+
+const PANE = 'pod-flow'
+const REFRESH_MS = 3000
+const RUN_SKILL = /(^|:)(autopilot|ship)$/
+
+const isActive = atom({ plugin: 'pod-flow', key: 'isActive' } as const, false)
+const lines = atom({ plugin: 'pod-flow', key: 'lines' } as const, [] as TreeLine[])
+const expanded = atom({ plugin: 'pod-flow', key: 'expanded' } as const, [] as string[])
+const spawns = atom({ plugin: 'pod-flow', key: 'spawns' } as const, {} as Record<string, Dispatch>)
+
+const GLYPH: Record<string, string> = { running: '●', pushed: '◐', done: '✓', blocked: '✗', waiting: '○' }
+const COLOR: Record<string, string | undefined> = {
+  running: 'yellow',
+  pushed: 'cyan',
+  done: 'green',
+  blocked: 'red',
+}
+
+type Dollar = EngineInterface
+
+let isTimerOn = false
+const lastSeen: Record<string, number> = {}
+
+async function readText($: Dollar, path: string): Promise<string> {
+  try {
+    return String(await $.fs.read(path))
+  } catch {
+    return ''
+  }
+}
+
+async function listNames($: Dollar, dir: string): Promise<{ name: string; mtimeMs: number }[]> {
+  try {
+    const entries = await $.fs.list(dir)
+    return entries.filter((f: { kind: string; name: string }) => f.kind === 'file' && f.name.endsWith('.md'))
+  } catch {
+    return []
+  }
+}
+
+async function newestActivePlan($: Dollar): Promise<PlanDoc | undefined> {
+  const files = (await listNames($, 'docs/plans')).sort((a, b) => b.mtimeMs - a.mtimeMs)
+  for (const file of files) {
+    const plan = parsePlan(await readText($, `docs/plans/${file.name}`), file.name.replace(/\.md$/, ''))
+    if (plan.status !== 'archived' && plan.sprints.length > 0) return plan
+  }
+  return undefined
+}
+
+async function sprintDocs($: Dollar, dir: string, isArchived: boolean): Promise<SprintDoc[]> {
+  const docs: SprintDoc[] = []
+  for (const file of await listNames($, dir)) {
+    const doc = parseSprint(await readText($, `${dir}/${file.name}`), isArchived, file.name.replace(/\.md$/, ''))
+    if (doc) docs.push(doc)
+  }
+  return docs
+}
+
+async function refresh($: Dollar) {
+  const plan = await newestActivePlan($)
+  if (!plan) {
+    await update($, lines, () => [])
+    return
+  }
+  const sprints = [
+    ...(await sprintDocs($, 'docs/sprints', false)),
+    ...(await sprintDocs($, 'docs/sprints/archive', true)),
+  ].filter(s => s.plan === '' || s.plan === plan.slug)
+  const live = (await $.agent.list()).map((a: { id: string; type: string; status: string }) => ({ id: a.id, type: a.type, status: a.status }))
+  const queueText = await readText($, 'docs/handoff-queue.md')
+  const halt = latestHalt(queueText)
+  const queue = parseQueue(queueText)
+  const known = await read($, spawns)
+  const now = await $.clock.now()
+  await update($, lines, () => buildTree({ plan, sprints, spawns: known, live, halt, now, lastSeen, queue }))
+}
+
+/** Keeps the tree fresh: a timer, started once per load of this module. */
+async function startRefreshing($: Dollar) {
+  if (!isTimerOn) {
+    isTimerOn = true
+    $.clock.every(REFRESH_MS, () => void refresh($))
+  }
+  await refresh($)
+}
+
+async function activate($: Dollar) {
+  await update($, isActive, () => true)
+  void $.ui.open({ id: PANE, title: 'pod flow' })
+  await startRefreshing($)
+}
+
+export const register: Register = on => {
+  on('session.start', async ($, e, next) => {
+    await $.command.register({
+      name: 'pod-flow',
+      description: 'Show the pod run tree (during /pod:autopilot or /pod:ship)',
+    })
+    // A reload runs this again with the run's state kept: pick the refresh back up.
+    if (await read($, isActive)) await startRefreshing($)
+    return next(e)
+  })
+
+  on('skill.prompt', async ($, e, next) => {
+    const result = await next(e)
+    if (RUN_SKILL.test(e.skill)) await activate($)
+    return result
+  })
+
+  on('agent.spawn', async ($, e, next) => {
+    const result = await next(e)
+    if ('agentId' in result && result.agentId && (await read($, isActive))) {
+      const dispatch: Dispatch = {
+        type: e.subagentType,
+        description: e.description,
+        startedAt: await $.clock.now(),
+        ...parseDispatch(e.prompt),
+      }
+      await update($, spawns, known => ({ ...known, [result.agentId as string]: dispatch }))
+      void refresh($)
+    }
+    return result
+  })
+
+  on('tool.call', async ($, e, next) => {
+    if (e.agentId) lastSeen[e.agentId] = await $.clock.now()
+    return next(e)
+  })
+
+  on('command.run', { command: 'pod-flow' }, async ($, e) => {
+    // `/pod-flow preview` opens the tree without a run, to try the mod on a project's docs.
+    if (e.args.trim() === 'preview') {
+      await activate($)
+      return { text: 'pod flow preview opened.' }
+    }
+    if (!(await read($, isActive))) {
+      return { text: 'No /pod:autopilot or /pod:ship run in this session yet. Use /pod-flow preview to try it.' }
+    }
+    await startRefreshing($)
+    await $.ui.open({ id: PANE, title: 'pod flow' })
+    return { text: 'pod flow opened.' }
+  })
+
+  on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
+    const { Box, Text, Button } = $.ui.resolve(e)
+    const all = await read($, lines)
+    const open = await read($, expanded)
+    const summary = summarize(all)
+    const rows = visibleLines(all, open)
+    const stems = prefixes(rows)
+    const room = Math.max(1, (e.viewport?.rows ?? 30) - 5)
+    const width = Math.max(20, e.props.bodyColumns - 2)
+
+    return (
+      <Box flexDirection="column">
+        {summary && <Text wrap="truncate-end" bold>{summary}</Text>}
+        {rows.length === 0 && <Text dimColor>Waiting for the plan and sprint docs.</Text>}
+        {rows.slice(0, room).map((row, i) => {
+          const glyph = row.kind === 'concern' ? '⚠' : (GLYPH[row.status] ?? '·')
+          const isFoldable = row.kind === 'sprint' && row.status === 'done' && row.detail !== undefined
+          if (isFoldable) {
+            const isOpen = open.includes(row.sprint ?? '')
+            const label = fit(`${stems[i]}${isOpen ? '▾' : '▸'} ${glyph} ${row.text}`, isOpen ? row.note : row.detail, width)
+            return (
+              <Button
+                plain
+                dimColor
+                label={label}
+                onPress={() =>
+                  update($, expanded, list =>
+                    list.includes(row.sprint ?? '') ? list.filter(s => s !== row.sprint) : [...list, row.sprint ?? ''],
+                  )
+                }
+              />
+            )
+          }
+          return (
+            <Text wrap="truncate-end" color={COLOR[row.status]} dimColor={row.status === 'waiting'}>
+              {fit(`${stems[i]}${glyph} ${row.text}`, row.note, width)}
+            </Text>
+          )
+        })}
+        {rows.length > room && <Text dimColor>… {rows.length - room} more lines</Text>}
+      </Box>
+    )
+  })
+}

@@ -1,0 +1,7 @@
+{
+  "name": "pod-flow",
+  "version": "0.1.0",
+  "description": "Live tree of a pod run (plan, sprints, waves, engineers) beside the transcript while /pod:autopilot or /pod:ship runs.",
+  "author": { "name": "Duc Pham" },
+  "types": "./types/index.d.ts"
+}
