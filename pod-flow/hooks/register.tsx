@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Dispatch, TreeLine } from '../types'
-import { buildTree, fit, latestHalt, parseDispatch, parsePlan, parseSprint, prefixes, summarize, visibleLines } from './model'
+import { buildTree, fit, latestHalt, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, summarize, visibleLines } from './model'
 import type { PlanDoc, SprintDoc } from './model'
 
 const PANE = 'pod-flow'
@@ -73,10 +73,12 @@ async function refresh($: Dollar) {
     ...(await sprintDocs($, 'docs/sprints/archive', true)),
   ].filter(s => s.plan === '' || s.plan === plan.slug)
   const live = (await $.agent.list()).map((a: { id: string; type: string; status: string }) => ({ id: a.id, type: a.type, status: a.status }))
-  const halt = latestHalt(await readText($, 'docs/handoff-queue.md'))
+  const queueText = await readText($, 'docs/handoff-queue.md')
+  const halt = latestHalt(queueText)
+  const queue = parseQueue(queueText)
   const known = await read($, spawns)
   const now = await $.clock.now()
-  await update($, lines, () => buildTree({ plan, sprints, spawns: known, live, halt, now, lastSeen }))
+  await update($, lines, () => buildTree({ plan, sprints, spawns: known, live, halt, now, lastSeen, queue }))
 }
 
 /** Keeps the tree fresh: a timer, started once per load of this module. */
@@ -155,7 +157,7 @@ export const register: Register = on => {
         {summary && <Text wrap="truncate-end" bold>{summary}</Text>}
         {rows.length === 0 && <Text dimColor>Waiting for the plan and sprint docs.</Text>}
         {rows.slice(0, room).map((row, i) => {
-          const glyph = GLYPH[row.status] ?? '·'
+          const glyph = row.kind === 'concern' ? '⚠' : (GLYPH[row.status] ?? '·')
           const isFoldable = row.kind === 'sprint' && row.status === 'done' && row.detail !== undefined
           if (isFoldable) {
             const isOpen = open.includes(row.sprint ?? '')

@@ -105,16 +105,62 @@ export function parseSprint(md: string, isArchived: boolean, fileSlug?: string):
 
 /** The newest still-pending entry the orchestrator wrote: a halt waiting on the human. */
 export function latestHalt(queue: string): string | undefined {
-  const halts = queue.split(/\r?\n/).flatMap(line => {
+  const halts = parseQueue(queue).filter(e => e.isPending && /^orchestrator\b/i.test(e.route))
+  return halts.at(-1)?.body
+}
+
+export type QueueEntry = {
+  type: string
+  route: string
+  sprint?: string
+  slice?: string
+  body: string
+  isPending: boolean
+}
+
+/** The entries of the handoff queue: `- [date · TYPE · from → to · sprint: x · slice: y] body **Resolution:** …`. */
+export function parseQueue(queue: string): QueueEntry[] {
+  return queue.split(/\r?\n/).flatMap(line => {
     const m = /^-\s*`?\[([^\]]+)\]`?\s*(.*)$/.exec(line.trim())
     if (!m) return []
     const head = (m[1] ?? '').split('·').map(part => part.trim())
-    const isOrchestrator = /^orchestrator\b/i.test(head[2] ?? '')
-    const isPending = /\*\*Resolution:\*\*\s*pending/i.test(m[2] ?? '')
-    if (!isOrchestrator || !isPending) return []
-    return [(m[2] ?? '').replace(/\*\*Resolution:\*\*.*$/i, '').trim()]
+    const field = (name: string) => head.find(h => h.toLowerCase().startsWith(`${name}:`))?.slice(name.length + 1).trim()
+    const rest = m[2] ?? ''
+    return [
+      {
+        type: (head[1] ?? '').toUpperCase(),
+        route: head[2] ?? '',
+        sprint: field('sprint'),
+        slice: field('slice'),
+        body: rest.replace(/\*\*Resolution:\*\*.*$/i, '').trim(),
+        isPending: /\*\*Resolution:\*\*\s*pending/i.test(rest),
+      },
+    ]
   })
-  return halts.at(-1)
+}
+
+/** An entry's first sentence as plain text: no bold, code ticks or link syntax. */
+export function concernText(body: string): string {
+  const plain = body
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/[*`]/g, '')
+    .replace(/^\s*(someday|fix next|needs your decision|before hosting)\s*:\s*/i, '')
+    .trim()
+  return plain.split(/(?<=[.!?])\s/)[0] ?? plain
+}
+
+const MAX_CONCERNS = 2
+
+/**
+ * The still-pending entries worth showing under a slice: the newest few. A finished slice shows
+ * only a BLOCKED one, since the rest of its queue is notes that never get resolved.
+ */
+export function concernsFor(entries: QueueEntry[], sprint: string, row: Row): QueueEntry[] {
+  const finished = isDone(row)
+  return entries
+    .filter(e => e.isPending && e.slice === row.slice && (!e.sprint || e.sprint === sprint))
+    .filter(e => e.type !== 'SOLVED' && (!finished || e.type === 'BLOCKED'))
+    .slice(-MAX_CONCERNS)
 }
 
 /** What an engineer's dispatch prompt says about where it works. */
@@ -198,7 +244,7 @@ export function summarize(lines: TreeLine[]): string {
     }
   }
   const working = lines.filter(l => (l.kind === 'slice' || l.kind === 'agent') && l.status === 'running').length
-  const blocked = lines.filter(l => l.status === 'blocked' && l.kind !== 'wave').length
+  const blocked = lines.filter(l => l.status === 'blocked' && l.kind !== 'wave' && l.kind !== 'concern').length
   if (working > 0) parts.push(`${working} running`)
   if (blocked > 0) parts.push(`${blocked} blocked`)
   if (lines.some(l => l.kind === 'halt' && l.status === 'pushed')) parts.push('waiting on you')
@@ -272,10 +318,11 @@ export type TreeInput = {
   live: LiveAgent[]
   halt?: string
   now?: number
+  queue?: QueueEntry[]
   lastSeen?: Record<string, number>
 }
 
-export function buildTree({ plan, sprints, spawns, live, halt, now, lastSeen = {} }: TreeInput): TreeLine[] {
+export function buildTree({ plan, sprints, spawns, live, halt, now, lastSeen = {}, queue = [] }: TreeInput): TreeLine[] {
   const running = live.filter(a => a.status === 'running')
   const dispatchOf = (a: LiveAgent) => spawns[a.id]
   const codes = sprints.flatMap(s => s.rows.map(r => r.slice))
@@ -331,6 +378,15 @@ export function buildTree({ plan, sprints, spawns, live, halt, now, lastSeen = {
           note: isLive ? ageOf(agentOfSlice.get(row.slice)) : row.confidence === '—' ? undefined : row.confidence,
           sprint: sprint.slug,
         })
+        for (const entry of concernsFor(queue, sprint.slug, row)) {
+          lines.push({
+            depth: 4,
+            kind: 'concern',
+            text: short(concernText(entry.body), 80),
+            status: entry.type === 'BLOCKED' ? 'blocked' : 'waiting',
+            sprint: sprint.slug,
+          })
+        }
       }
     }
   }

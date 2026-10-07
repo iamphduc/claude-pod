@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 
-import { ageNote, buildTree, fit, formatAge, prState, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, prefixes, summarize, tableRows, visibleLines } from './model'
+import { ageNote, buildTree, concernText, fit, parseQueue, formatAge, prState, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, prefixes, summarize, tableRows, visibleLines } from './model'
 
 const PLAN = `# Plan: Long runs
 
@@ -374,4 +374,53 @@ test('a gate halt still counts as blocked', () => {
   const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [], spawns: {}, live: [], halt: 'Gate 4: wave check failed' })
   expect(lines.at(-1)).toMatchObject({ kind: 'halt', text: 'halted', status: 'blocked' })
   expect(summarize(lines)).toContain('1 blocked')
+})
+
+const QUEUE = [
+  '- `[2026-10-06 · PENDING · engineer (B1) → orchestrator · sprint: ui · slice: B1]` The **search** box needs a `debounce`. See [the doc](docs/x.md). Second sentence. **Resolution:** pending',
+  '- `[2026-10-06 · BLOCKED · engineer → orchestrator · sprint: ui · slice: B2]` Filters need a design call. **Resolution:** pending',
+  '- `[2026-10-05 · PENDING · reviewer → orchestrator · sprint: ui · slice: A1]` Someday: rename the helper. **Resolution:** pending',
+  '- `[2026-10-05 · PENDING · engineer → orchestrator · sprint: ui · slice: B1]` Old note already settled. **Resolution:** 2026-10-06 — fixed',
+  '- `[2026-10-04 · SOLVED · engineer → orchestrator · sprint: ui · slice: B1]` Solved thing. **Resolution:** pending',
+  '- `[2026-10-04 · PENDING · engineer → orchestrator · sprint: other · slice: B1]` Different sprint. **Resolution:** pending',
+].join('\n')
+
+test('parseQueue reads type, route, sprint, slice, body and whether it is pending', () => {
+  const entries = parseQueue(QUEUE)
+  expect(entries).toHaveLength(6)
+  expect(entries[0]).toMatchObject({ type: 'PENDING', route: 'engineer (B1) → orchestrator', sprint: 'ui', slice: 'B1', isPending: true })
+  expect(entries[3]?.isPending).toBe(false)
+  expect(entries[0]?.body).not.toContain('Resolution')
+})
+
+test('concernText gives the first sentence as plain text', () => {
+  expect(concernText('The **search** box needs a `debounce`. See [the doc](docs/x.md). Second sentence.')).toBe('The search box needs a debounce.')
+  expect(concernText('**Someday:** rename the helper.')).toBe('rename the helper.')
+})
+
+const concernLines = (queue: string) =>
+  buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [parseSprint(SPRINT, false)!], spawns: {}, live: [], queue: parseQueue(queue) }).filter(l => l.kind === 'concern')
+
+test('a slice that is not done shows its pending concerns, nothing resolved or from another sprint', () => {
+  const lines = concernLines(QUEUE)
+  expect(lines.map(l => `${l.status} ${l.text}`)).toEqual(['waiting The search box needs a debounce.', 'blocked Filters need a design call.'])
+})
+
+test('a finished slice hides its notes, but still shows a BLOCKED one', () => {
+  const finished = concernLines(QUEUE).some(l => l.text.includes('rename the helper'))
+  expect(finished).toBe(false)
+  const blocked = QUEUE + '\n- `[2026-10-06 · BLOCKED · engineer → orchestrator · sprint: ui · slice: A1]` Needs a decision. **Resolution:** pending'
+  expect(concernLines(blocked).some(l => l.text === 'Needs a decision.')).toBe(true)
+})
+
+test('a slice shows at most the two newest concerns', () => {
+  const many = [1, 2, 3, 4].map(n => `- \`[2026-10-0${n} · PENDING · e → o · sprint: ui · slice: B1]\` Note ${n}. **Resolution:** pending`).join('\n')
+  expect(concernLines(many).map(l => l.text)).toEqual(['Note 3.', 'Note 4.'])
+})
+
+test('concerns sit under their slice, and do not add to the blocked count', () => {
+  const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [parseSprint(SPRINT, false)!], spawns: {}, live: [], queue: parseQueue(QUEUE) })
+  const at = lines.findIndex(l => l.kind === 'concern' && l.text.startsWith('Filters'))
+  expect(lines[at - 1]?.text.startsWith('B2')).toBe(true)
+  expect(summarize(lines)).not.toContain('blocked')
 })

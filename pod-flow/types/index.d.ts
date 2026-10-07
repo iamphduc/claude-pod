@@ -7,7 +7,7 @@ export type Dispatch = {
   branch?: string
 }
 
-export type TreeKind = 'plan' | 'sprint' | 'wave' | 'slice' | 'agent' | 'halt'
+export type TreeKind = 'plan' | 'sprint' | 'wave' | 'slice' | 'agent' | 'halt' | 'concern'
 
 export type TreeLine = {
   depth: number
