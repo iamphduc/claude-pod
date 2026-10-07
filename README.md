@@ -27,19 +27,13 @@ You need Claude Code, `git`, and the GitHub CLI (`gh`), logged in.
 
 The tree opens beside the transcript when you start `/pod:autopilot` or `/pod:ship`. To open it again, run `/pod-flow`. pod-flow only reads your `docs/` files and the session's agent list. It needs a Claude Code build with function hooks, which are in early access.
 
-**2. Set up your project** (from the repo root, new or existing):
-
-```
-/pod:init
-```
-
-**3. Ship an idea:**
+**2. Ship an idea** (from the repo root, new or existing):
 
 ```
 /pod:ship a habit tracker with streaks and reminders
 ```
 
-That's it. pod researches the idea, interviews you, writes the plan, asks you to reply `go`, and then builds it.
+That's it. pod researches the idea, interviews you, writes the plan, sets pod up in the project if needed, asks you to reply `go`, and then builds it. A small change runs as one fix instead of a plan. After a stop, run `/pod:ship` again to pick up where it left off.
 
 ## Which command do I use?
 
