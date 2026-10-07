@@ -265,3 +265,113 @@ test('the plan shows done once every sprint is done and no agent runs', () => {
   const busy = buildTree({ plan: done, sprints: [], spawns: {}, live: [{ id: 'f1', type: 'pod:engineer', status: 'running' }] })
   expect(busy[0]?.status).toBe('running')
 })
+
+// A board as chess-web writes it: extra Difficulty and Agent columns, no Confidence, "#3 merged" in PR.
+const CHESS_BOARD = `# Sprint: Engine Foundation
+
+_From plan: docs/plans/pure-engine-refactor.md · Slug: engine-foundation · Status: archived · Generated: 2026-06-04_
+
+## Status board
+
+| Wave | Slice | Title | Difficulty | Agent | Branch | PR | Status | Depends on |
+|------|-------|-------|------------|-------|--------|----|--------|------------|
+| 1 | harness | Stand up the Vitest test harness | 2 | engineer-junior | engine-foundation-harness | #3 merged | done | — |
+| 2 | gamestate | Define the immutable GameState | 3 | engineer-senior | engine-foundation-gamestate | #4 merged | done | harness |
+| 2 | tracer | Tracer-bullet legalMoves | 3 | engineer-senior | engine-foundation-tracer | #5 merged | done | harness |
+`
+
+const CHESS_PLAN = `# Plan: Pure engine
+
+_Generated: 2026-06-01 · Status: active_
+
+| Sprint | Goal | Status | Depends on |
+|--------|------|--------|------------|
+| engine-foundation | Build the engine base | done | — |
+`
+
+test('parseSprint reads a board by its header names, whatever the column order', () => {
+  const sprint = parseSprint(CHESS_BOARD, true)
+  expect(sprint?.rows[0]).toEqual({
+    wave: 1,
+    slice: 'harness',
+    title: 'Stand up the Vitest test harness',
+    branch: 'engine-foundation-harness',
+    pr: '#3 merged',
+    status: 'done',
+    confidence: '—',
+  })
+})
+
+test("a board with a different layout still shows merged waves as done with no stray notes", () => {
+  const lines = buildTree({
+    plan: parsePlan(CHESS_PLAN, 'pure-engine'),
+    sprints: [parseSprint(CHESS_BOARD, true)!],
+    spawns: {},
+    live: [],
+  })
+  const waves = lines.filter(l => l.kind === 'wave')
+  expect(waves.map(w => `${w.text} ${w.status} ${w.note}`)).toEqual(['wave 1 done 1/1 done', 'wave 2 done 2/2 done'])
+  const slices = lines.filter(l => l.kind === 'slice')
+  expect(slices.every(l => l.status === 'done' && l.note === undefined)).toBe(true)
+})
+
+test('an open PR in that layout shows on its wave', () => {
+  const open = CHESS_BOARD.replaceAll('| #4 merged | done |', '| https://github.com/me/chess/pull/4 | pushed |').replaceAll('| #5 merged | done |', '| https://github.com/me/chess/pull/4 | pushed |')
+  const lines = buildTree({ plan: parsePlan(CHESS_PLAN, 'pure-engine'), sprints: [parseSprint(open, false)!], spawns: {}, live: [] })
+  expect(lines.find(l => l.kind === 'wave' && l.text === 'wave 2')).toMatchObject({ status: 'running', note: 'PR #4 open · 0/2 done' })
+})
+
+const PR4 = 'https://github.com/me/chess/pull/4'
+
+test('a done slice with a PR link is merged once the sprint is archived', () => {
+  const board = CHESS_BOARD.replaceAll('| #4 merged |', `| ${PR4} |`).replaceAll('| #5 merged |', `| ${PR4} |`)
+  const lines = buildTree({ plan: parsePlan(CHESS_PLAN, 'pure-engine'), sprints: [parseSprint(board, true)!], spawns: {}, live: [] })
+  expect(lines.find(l => l.kind === 'wave' && l.text === 'wave 2')).toMatchObject({ status: 'done', note: '2/2 done' })
+})
+
+test('a done slice with a PR link is merged once a later wave has started', () => {
+  const board = `| Wave | Slice | Title | Branch | PR | Status |
+|------|-------|-------|--------|----|--------|
+| 1 | A | one | b-A | ${PR4} | done |
+| 2 | B | two | b-B | — | pushed |
+`
+  const doc = parseSprint(`_From plan: docs/plans/p.md · Slug: s · Status: active_\n\n${board}`, false)!
+  const plan = parsePlan(`# Plan: P\n\n_Status: active_\n\n| Sprint | Goal | Status | Depends on |\n|---|---|---|---|\n| s | g | active | — |\n`, 'p')
+  const lines = buildTree({ plan, sprints: [doc], spawns: {}, live: [] })
+  expect(lines.find(l => l.kind === 'wave' && l.text === 'wave 1')).toMatchObject({ status: 'done' })
+})
+
+test('merged as a status counts as done', () => {
+  const board = CHESS_BOARD.replaceAll('| #3 merged | done |', '| — | merged |').replaceAll('| #4 merged | done |', '| — | merged |').replaceAll('| #5 merged | done |', '| — | merged |')
+  const lines = buildTree({ plan: parsePlan(CHESS_PLAN, 'pure-engine'), sprints: [parseSprint(board, false)!], spawns: {}, live: [] })
+  expect(lines.filter(l => l.kind === 'wave').every(w => w.status === 'done')).toBe(true)
+})
+
+test('a status cell with a PR link in front still reads as its status word', () => {
+  const board = CHESS_BOARD.replace('| #3 merged | done |', '| — | [#225](https://github.com/me/chess/pull/225) merged |')
+  expect(parseSprint(board, true)?.rows[0]?.status).toBe('merged')
+})
+
+test('parseSprint falls back to the file name when a doc has no Slug header', () => {
+  expect(parseSprint('# Old sprint\n\n' + tableRowsFixture(), true, 'roster-foundation')?.slug).toBe('roster-foundation')
+  expect(parseSprint('# Old sprint', true)).toBeUndefined()
+})
+
+function tableRowsFixture() {
+  return '| Wave | Slice | Title | Status |\n|---|---|---|---|\n| 1 | a | t | done |\n'
+}
+
+test('a finished plan waiting on its final PR is a hand-back, not a halt', () => {
+  const done = parsePlan(PLAN.replace('| ui | Build the screens | active |', '| ui | Build the screens | done |').replace('planned', 'done'), 'long-runs')
+  const lines = buildTree({ plan: done, sprints: [], spawns: {}, live: [], halt: 'plan board-feel complete — final PR https://github.com/me/app/pull/55' }).filter(l => l.kind !== 'sprint')
+  expect(lines.at(-1)).toMatchObject({ kind: 'halt', text: 'waiting on you', status: 'pushed' })
+  const summary = summarize(buildTree({ plan: done, sprints: [], spawns: {}, live: [], halt: 'plan board-feel complete' }))
+  expect(summary).toContain('waiting on you')
+  expect(summary).not.toContain('blocked')
+})
+
+test('a gate halt still counts as blocked', () => {
+  const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [], spawns: {}, live: [], halt: 'Gate 4: wave check failed' })
+  expect(lines.at(-1)).toMatchObject({ kind: 'halt', text: 'halted', status: 'blocked' })
+  expect(summarize(lines)).toContain('1 blocked')
+})

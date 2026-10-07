@@ -56,7 +56,7 @@ async function newestActivePlan($: Dollar): Promise<PlanDoc | undefined> {
 async function sprintDocs($: Dollar, dir: string, isArchived: boolean): Promise<SprintDoc[]> {
   const docs: SprintDoc[] = []
   for (const file of await listNames($, dir)) {
-    const doc = parseSprint(await readText($, `${dir}/${file.name}`), isArchived)
+    const doc = parseSprint(await readText($, `${dir}/${file.name}`), isArchived, file.name.replace(/\.md$/, ''))
     if (doc) docs.push(doc)
   }
   return docs
@@ -71,7 +71,7 @@ async function refresh($: Dollar) {
   const sprints = [
     ...(await sprintDocs($, 'docs/sprints', false)),
     ...(await sprintDocs($, 'docs/sprints/archive', true)),
-  ].filter(s => s.plan === plan.slug)
+  ].filter(s => s.plan === '' || s.plan === plan.slug)
   const live = (await $.agent.list()).map((a: { id: string; type: string; status: string }) => ({ id: a.id, type: a.type, status: a.status }))
   const halt = latestHalt(await readText($, 'docs/handoff-queue.md'))
   const known = await read($, spawns)
@@ -79,14 +79,19 @@ async function refresh($: Dollar) {
   await update($, lines, () => buildTree({ plan, sprints, spawns: known, live, halt, now, lastSeen }))
 }
 
-async function activate($: Dollar) {
-  await update($, isActive, () => true)
+/** Keeps the tree fresh: a timer, started once per load of this module. */
+async function startRefreshing($: Dollar) {
   if (!isTimerOn) {
     isTimerOn = true
     $.clock.every(REFRESH_MS, () => void refresh($))
   }
-  void $.ui.open({ id: PANE, title: 'pod flow' })
   await refresh($)
+}
+
+async function activate($: Dollar) {
+  await update($, isActive, () => true)
+  void $.ui.open({ id: PANE, title: 'pod flow' })
+  await startRefreshing($)
 }
 
 export const register: Register = on => {
@@ -95,6 +100,8 @@ export const register: Register = on => {
       name: 'pod-flow',
       description: 'Show the pod run tree (during /pod:autopilot or /pod:ship)',
     })
+    // A reload runs this again with the run's state kept: pick the refresh back up.
+    if (await read($, isActive)) await startRefreshing($)
     return next(e)
   })
 
@@ -128,6 +135,7 @@ export const register: Register = on => {
     if (!(await read($, isActive))) {
       return { text: 'No /pod:autopilot or /pod:ship run in this session yet.' }
     }
+    await startRefreshing($)
     await $.ui.open({ id: PANE, title: 'pod flow' })
     return { text: 'pod flow opened.' }
   })

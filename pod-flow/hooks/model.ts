@@ -26,19 +26,39 @@ const cellsOf = (line: string) =>
 
 const isRow = (line: string) => /^\s*\|/.test(line)
 
-/** The body rows of the first table whose first header cell is `first`. */
-export function tableRows(md: string, first: string): string[][] {
+/** The header cells and body rows of the first table whose first header cell is `first`. */
+export function readTable(md: string, first: string): { headers: string[]; rows: string[][] } {
   const lines = md.split(/\r?\n/)
   const at = lines.findIndex(
     line => isRow(line) && (cellsOf(line)[0] ?? '').toLowerCase() === first.toLowerCase(),
   )
-  if (at < 0) return []
+  if (at < 0) return { headers: [], rows: [] }
   const rows: string[][] = []
   for (const line of lines.slice(at + 2)) {
     if (!isRow(line)) break
     rows.push(cellsOf(line))
   }
-  return rows
+  return { headers: cellsOf(lines[at] ?? '').map(h => h.toLowerCase()), rows }
+}
+
+/** The body rows of the first table whose first header cell is `first`. */
+export function tableRows(md: string, first: string): string[][] {
+  return readTable(md, first).rows
+}
+
+/** A row's cell by header name; a column the table lacks reads as `fallback`. */
+const cellBy = (headers: string[], row: string[], name: string, fallback = '') => {
+  const at = headers.indexOf(name)
+  return at < 0 ? fallback : (row[at] ?? fallback)
+}
+
+function sprintRows(md: string): PlanDoc['sprints'] {
+  const { headers, rows } = readTable(md, 'Sprint')
+  return rows.map(row => ({
+    slug: cellBy(headers, row, 'sprint'),
+    goal: cellBy(headers, row, 'goal'),
+    status: cellBy(headers, row, 'status', 'planned'),
+  }))
 }
 
 export function parsePlan(md: string, slug: string): PlanDoc {
@@ -46,30 +66,40 @@ export function parsePlan(md: string, slug: string): PlanDoc {
     slug,
     title: /^#\s+(.+)$/m.exec(md)?.[1]?.replace(/^Plan:\s*/i, '') ?? slug,
     status: /Status:\s*(\w+)/.exec(md)?.[1] ?? 'active',
-    sprints: tableRows(md, 'Sprint').map(([slug, goal, status]) => ({
-      slug: slug ?? '',
-      goal: goal ?? '',
-      status: status ?? 'planned',
-    })),
+    sprints: sprintRows(md),
   }
 }
 
-export function parseSprint(md: string, isArchived: boolean): SprintDoc | undefined {
-  const slug = /Slug:\s*([\w-]+)/.exec(md)?.[1]
+const STATUS_WORDS = ['pending', 'pushed', 'done', 'merged', 'blocked']
+
+/** The status in a cell, even when a PR link sits in front of it (`[#225](…) merged`). */
+const statusWord = (cell: string) => {
+  const words = cell.toLowerCase().split(/[^a-z]+/).filter(w => STATUS_WORDS.includes(w))
+  return words.at(-1) ?? cell
+}
+
+function boardRows(md: string): Row[] {
+  const { headers, rows } = readTable(md, 'Wave')
+  return rows.map(row => ({
+    wave: Number(cellBy(headers, row, 'wave')) || 0,
+    slice: cellBy(headers, row, 'slice'),
+    title: cellBy(headers, row, 'title'),
+    branch: cellBy(headers, row, 'branch'),
+    pr: cellBy(headers, row, 'pr', '—'),
+    status: statusWord(cellBy(headers, row, 'status', 'pending')),
+    confidence: cellBy(headers, row, 'confidence', '—'),
+  }))
+}
+
+/** `fileSlug` stands in for older sprint docs that have no `Slug:` header. */
+export function parseSprint(md: string, isArchived: boolean, fileSlug?: string): SprintDoc | undefined {
+  const slug = /Slug:\s*([\w-]+)/.exec(md)?.[1] ?? fileSlug
   if (!slug) return undefined
   return {
     slug,
     plan: /From plan:\s*docs\/plans\/([\w-]+)\.md/.exec(md)?.[1] ?? '',
     isArchived,
-    rows: tableRows(md, 'Wave').map(([wave, slice, title, branch, pr, status, confidence]) => ({
-      wave: Number(wave) || 0,
-      slice: slice ?? '',
-      title: title ?? '',
-      branch: branch ?? '',
-      pr: pr ?? '—',
-      status: status ?? 'pending',
-      confidence: confidence ?? '—',
-    })),
+    rows: boardRows(md),
   }
 }
 
@@ -123,12 +153,24 @@ export function prState(pr: string): { state: 'none' | 'open' | 'merged' | 'skip
   return { state: 'none' }
 }
 
-const waveStatus = (rows: Row[], liveSlices: Set<string>): { status: string; tag?: string } => {
-  const prs = rows.map(r => prState(r.pr))
+/** A slice is finished when its status says so, or its PR cell says merged. */
+export const isDone = (row: Row) =>
+  row.status === 'done' || row.status === 'merged' || prState(row.pr).state === 'merged'
+
+/**
+ * A link on a finished slice is its wave's PR. It is merged once the wave is settled (the sprint is
+ * archived, or a later wave has started); before that the PR may still be open.
+ */
+const waveStatus = (rows: Row[], liveSlices: Set<string>, isSettled: boolean): { status: string; tag?: string } => {
+  const prs = rows.map(r => {
+    if (r.status === 'merged' || prState(r.pr).state === 'merged') return { state: 'merged' as const }
+    if (r.status === 'done' && isSettled) return { state: 'merged' as const }
+    return prState(r.pr)
+  })
   if (prs.some(p => p.state === 'skipped')) return { status: 'blocked', tag: 'skipped' }
   const open = prs.find(p => p.state === 'open')
   if (open) return { status: 'running', tag: open.number ? `PR #${open.number} open` : 'PR open' }
-  if (rows.every(r => r.status === 'done' || /merged/i.test(r.pr))) return { status: 'done' }
+  if (rows.every(isDone)) return { status: 'done' }
   if (rows.some(r => r.status === 'blocked')) return { status: 'blocked' }
   if (rows.some(r => liveSlices.has(r.slice) || r.status === 'pushed')) return { status: 'running' }
   return { status: 'waiting' }
@@ -159,6 +201,7 @@ export function summarize(lines: TreeLine[]): string {
   const blocked = lines.filter(l => l.status === 'blocked' && l.kind !== 'wave').length
   if (working > 0) parts.push(`${working} running`)
   if (blocked > 0) parts.push(`${blocked} blocked`)
+  if (lines.some(l => l.kind === 'halt' && l.status === 'pushed')) parts.push('waiting on you')
   return parts.join(' · ')
 }
 
@@ -200,6 +243,8 @@ export function prefixes(lines: TreeLine[]): string[] {
     return `${stem}${isLast ? '└─ ' : '├─ '}`
   })
 }
+
+const HAND_BACK = /(complete|final PR|hand-?back|awaiting)/i
 
 export const QUIET_MS = 2 * 60 * 1000
 
@@ -264,8 +309,10 @@ export function buildTree({ plan, sprints, spawns, live, halt, now, lastSeen = {
     })
     for (const wave of waves) {
       const rows = doc!.rows.filter(r => r.wave === wave)
-      const doneCount = rows.filter(r => r.status === 'done').length
-      const state = waveStatus(rows, liveSlices)
+      const doneCount = rows.filter(isDone).length
+      const later = doc!.rows.filter(r => r.wave > wave)
+      const isSettled = doc!.isArchived || later.some(r => r.status !== 'pending' || liveSlices.has(r.slice))
+      const state = waveStatus(rows, liveSlices, isSettled)
       lines.push({
         depth: 2,
         kind: 'wave',
@@ -303,7 +350,15 @@ export function buildTree({ plan, sprints, spawns, live, halt, now, lastSeen = {
 
   const haltText = halt?.replace(/^[\s—-]+|[\s—-]+$/g, '')
   if (haltText && running.length === 0) {
-    lines.push({ depth: 1, kind: 'halt', text: 'waiting on you', status: 'blocked', note: haltText })
+    // A finished plan's final PR is a hand-back for you to merge, not a failure.
+    const isHandBack = HAND_BACK.test(haltText)
+    lines.push({
+      depth: 1,
+      kind: 'halt',
+      text: isHandBack ? 'waiting on you' : 'halted',
+      status: isHandBack ? 'pushed' : 'blocked',
+      note: haltText,
+    })
   }
   return lines
 }
