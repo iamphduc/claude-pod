@@ -23,18 +23,21 @@ const FILES: Record<string, string> = {
   'docs/sprints/one.md': SPRINT,
 }
 
+// The engine hands fs hooks an absolute path (on Windows, with backslashes): match on its end.
+const endsAt = (path: string, rel: string) => path.replaceAll('\\', '/').endsWith(`/${rel}`)
+
 const world = (on: Parameters<typeof mock.clock>[0], opened: string[]) => {
   mock.clock(on)
   on('fs.list', (_$, e) => {
-    const names = Object.keys(FILES).filter(p => p.startsWith(`${e.path}/`))
+    const names = Object.keys(FILES).filter(p => endsAt(e.path, p.slice(0, p.lastIndexOf('/'))))
     return {
       value: names.map(p => ({ name: p.split('/').at(-1)!, kind: 'file' as const, size: 1, mtimeMs: 1, isLink: false })),
     }
   })
   on('fs.read', (_$, e) => {
-    const text = FILES[e.path]
-    if (text === undefined) throw new Error('ENOENT')
-    return { value: text }
+    const file = Object.keys(FILES).find(p => endsAt(e.path, p))
+    if (file === undefined) throw new Error('ENOENT')
+    return { value: FILES[file]! }
   })
   on('agent.list', () => ({ value: [] }))
   on('skill.prompt', (_$, e) => ({ text: e.text }))
