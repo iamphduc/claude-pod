@@ -7,7 +7,7 @@ export type Dispatch = {
   branch?: string
 }
 
-export type TreeKind = 'plan' | 'sprint' | 'wave' | 'slice' | 'agent' | 'halt' | 'concern'
+export type TreeKind = 'plan' | 'sprint' | 'wave' | 'slice' | 'agent' | 'halt' | 'hint' | 'concern'
 
 export type TreeLine = {
   depth: number
@@ -17,6 +17,8 @@ export type TreeLine = {
   note?: string
   sprint?: string
   detail?: string
+  /** The rest of the row above, drawn under it without a branch of its own. */
+  isContinued?: boolean
 }
 
 declare module 'claude-code' {
