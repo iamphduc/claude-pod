@@ -519,3 +519,10 @@ test('a wave fix sits under its own wave, not as a loose agent or a slice', () =
   expect(lines.find(l => l.text.startsWith('B1'))?.status).not.toBe('running')
   expect(lines.some(l => l.kind === 'review' || l.kind === 'agent')).toBe(false)
 })
+
+test('a blocked status wins over a merged PR cell, so the wave does not count it done', () => {
+  const doc = parseSprint(SPRINT.replace('| merged | done | high |', '| merged | blocked | high |'), true)!
+  const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [doc], spawns: {}, live: [] })
+  expect(lines.find(l => l.text.startsWith('A1'))?.status).toBe('blocked')
+  expect(lines.find(l => l.kind === 'wave' && l.text === 'wave 1')?.note).toBe('1/2 done')
+})

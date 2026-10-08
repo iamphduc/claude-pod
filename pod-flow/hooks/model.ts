@@ -229,8 +229,10 @@ export function prState(pr: string): { state: 'none' | 'open' | 'merged' | 'skip
 }
 
 /** A slice is finished when its status says so, or its PR cell says merged. */
+// A blocked or skipped status wins over a merged PR cell, so a wave never counts a ✗ slice as done.
 export const isDone = (row: Row) =>
-  row.status === 'done' || row.status === 'merged' || prState(row.pr).state === 'merged'
+  row.status !== 'blocked' && row.status !== 'skipped' &&
+  (row.status === 'done' || row.status === 'merged' || prState(row.pr).state === 'merged')
 
 /**
  * A link on a finished slice is its wave's PR. It is merged once the wave is settled (the sprint is
