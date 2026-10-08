@@ -323,6 +323,67 @@ export function milestones(lines: TreeLine[]): Map<string, string> {
   return found
 }
 
+/**
+ * The run as a little tree, for where no pane can draw: finished sprints as one count, then only
+ * what is running, blocked or waiting on you.
+ */
+export function snapshot(lines: TreeLine[]): string {
+  const rows: TreeLine[] = []
+  const row = (depth: number, text: string) => rows.push({ depth, kind: 'plan', text, status: '' })
+  const summary = [summarize(lines), lines.find(l => l.kind === 'plan')?.note].filter(Boolean).join(' · ')
+  if (summary) row(0, summary)
+  const sprints = lines.filter(l => l.kind === 'sprint')
+  const done = sprints.filter(l => l.status === 'done').length
+  if (done > 0) row(1, `${GLYPH.done} ${done} ${done === 1 ? 'sprint' : 'sprints'} done`)
+  for (const [i, line] of lines.entries()) {
+    const glyph = GLYPH[line.status] ?? '·'
+    if (line.kind === 'sprint') {
+      // Under each sprint: one line per wave with work running, and each blocked slice.
+      const end = lines.findIndex((l, n) => n > i && l.depth <= 1)
+      const body = lines.slice(i + 1, end < 0 ? undefined : end)
+      const children: string[] = []
+      let wave: TreeLine | undefined
+      let busy: string[] = []
+      const closeWave = () => {
+        if (wave && busy.length > 0) children.push(`${GLYPH.running} ${wave.text} · ${busy.join(' · ')}`)
+        busy = []
+      }
+      for (const l of body) {
+        if (l.kind === 'wave') {
+          closeWave()
+          wave = l
+        } else if ((l.kind === 'slice' || l.kind === 'round') && l.status === 'running') {
+          busy.push([l.text, l.note].filter(Boolean).join(' '))
+        } else if (l.kind === 'slice' && l.status === 'blocked') {
+          closeWave()
+          children.push(`${GLYPH.blocked} ${wave?.text} · ${l.text.split(' ')[0]} blocked`)
+        }
+      }
+      closeWave()
+      // A finished sprint with nothing to show is already in the count above.
+      if (line.status === 'done' && children.length === 0) continue
+      row(1, `${glyph} ${line.text}`)
+      for (const child of children) row(2, child)
+    } else if (line.kind === 'review') {
+      const after = lines.slice(i + 1)
+      const end = after.findIndex(l => l.kind !== 'round')
+      const rounds = end < 0 ? after : after.slice(0, end)
+      const live = rounds.find(r => r.status === 'running')
+      row(1, `${glyph} review · ${live ? [live.text, live.note].filter(Boolean).join(' ') : `${rounds.length} ${rounds.length === 1 ? 'round' : 'rounds'}`}`)
+    } else if (line.kind === 'agent') {
+      row(1, `${glyph} ${[line.text, line.note].filter(Boolean).join(' · ')}`)
+    } else if (line.kind === 'halt') {
+      row(1, `${glyph} ${line.text}  ${line.note ?? ''}`.trimEnd())
+      const after = lines.slice(i + 1)
+      const end = after.findIndex(l => l.kind !== 'hint')
+      const hints = end < 0 ? after : after.slice(0, end)
+      if (hints.length > 0) row(2, `➜ ${hints.map(h => h.text).join(', ')}`)
+    }
+  }
+  const stems = prefixes(rows)
+  return rows.map((r, i) => `${stems[i]}${r.text}`).join('\n')
+}
+
 /** A finished sprint with a board folds to its own line unless the person opened it. */
 export function visibleLines(lines: TreeLine[], expanded: string[]): TreeLine[] {
   const folded = new Set(

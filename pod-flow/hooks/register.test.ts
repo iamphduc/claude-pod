@@ -127,3 +127,28 @@ test('the resume hint under a halt is drawn cyan, not dim', async ($, on) => {
   expect(hint).toMatchObject({ props: { color: 'cyan' } })
   expect((hint as { props?: { dimColor?: boolean } }).props?.dimColor).toBeFalsy()
 })
+
+const run = ($: { command: { run: (input: never) => Promise<unknown> } }, args: string) =>
+  $.command.run({ command: 'pod-flow', args } as never) as Promise<{ text: string }>
+
+test('/pod-flow prints a short snapshot when the pane cannot be placed', async ($, on) => {
+  world(on, [], false)
+  on('session.surfaces', () => ({ value: ['terminal' as const] }))
+  const { text } = await run($, 'preview')
+  expect(text).toBe('sprint 1/1 · wave 1/1\n└─ ● one\n(no pane: terminal is 100 columns, below 144)')
+})
+
+test('/pod-flow opens the pane when it fits, and /pod-flow text always prints', async ($, on) => {
+  world(on, [])
+  on('session.surfaces', () => ({ value: ['terminal' as const] }))
+  expect((await run($, 'preview')).text).toBe('pod flow preview opened.')
+  expect((await run($, 'text')).text).toBe('sprint 1/1 · wave 1/1\n└─ ● one')
+})
+
+test('/pod-flow prints the snapshot where nothing draws, as under -p', async ($, on) => {
+  const opened: string[] = []
+  world(on, opened)
+  on('session.surfaces', () => ({ value: [] }))
+  expect((await run($, 'preview')).text).toBe('sprint 1/1 · wave 1/1\n└─ ● one')
+  expect(opened).toEqual([])
+})
