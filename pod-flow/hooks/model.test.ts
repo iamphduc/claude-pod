@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 
-import { ageNote, buildTree, formatTokens, tokenTotals, turnTokens, concernText, fit, parseQueue, formatAge, prState, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, milestones, prefixes, summarize, tableRows, visibleLines } from './model'
+import { ageNote, buildTree, snapshot, formatTokens, tokenTotals, turnTokens, concernText, fit, parseQueue, formatAge, prState, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, milestones, prefixes, summarize, tableRows, visibleLines } from './model'
 
 const PLAN = `# Plan: Long runs
 
@@ -394,7 +394,7 @@ function tableRowsFixture() {
 test('a finished plan waiting on its final PR is a hand-back, not a halt', () => {
   const done = parsePlan(PLAN.replace('| ui | Build the screens | active |', '| ui | Build the screens | done |').replace('planned', 'done'), 'long-runs')
   const lines = buildTree({ plan: done, sprints: [], spawns: {}, live: [], halt: 'plan board-feel complete — final PR https://github.com/me/app/pull/55' }).filter(l => l.kind !== 'sprint')
-  expect(lines.at(-1)).toMatchObject({ kind: 'halt', text: 'waiting on you', status: 'pushed' })
+  expect(lines.find(l => l.kind === 'halt')).toMatchObject({ kind: 'halt', text: 'waiting on you', status: 'pushed' })
   const summary = summarize(buildTree({ plan: done, sprints: [], spawns: {}, live: [], halt: 'plan board-feel complete' }))
   expect(summary).toContain('waiting on you')
   expect(summary).not.toContain('blocked')
@@ -581,4 +581,48 @@ test('long goals and titles are kept whole, and cut only by the pane width', () 
   expect(slice.text).toBe(`A1 ${title}`)
   expect(fit(slice.text, slice.note, 120)).toBe(`A1 ${title}  high`)
   expect(fit(slice.text, slice.note, 40)).toMatch(/…  high$/)
+})
+
+test('a final PR URL reads as its number, with a merge line of its own', () => {
+  const done = parsePlan(PLAN.replace('| ui | Build the screens | active |', '| ui | Build the screens | done |').replace('planned', 'done'), 'long-runs')
+  const halt = 'plan long-runs complete — final PR https://github.com/me/app/pull/58, review pass, 1 open entries sorted in the hand-back'
+  const lines = buildTree({ plan: done, sprints: [], spawns: {}, live: [], halt })
+  expect(lines.find(l => l.kind === 'halt')?.note).toBe('plan long-runs complete — final PR #58, review pass, 1 open entries sorted in the hand-back')
+  expect(lines.at(-1)).toMatchObject({ depth: 2, kind: 'hint', text: 'merge PR #58' })
+  expect([...milestones(lines).values()].at(-1)).toBe('◐ WAITING ON YOU · merge PR #58 · plan long-runs complete — final PR #58, review pass, 1 open entries sorted in the hand-back')
+})
+
+test('snapshot is a little tree: finished sprints as a count, then only what runs, is blocked or waits on you', () => {
+  const coreDoc = SPRINT.replace('Slug: ui', 'Slug: core').replace('| merged | done | high |', '| merged | blocked | high |')
+  // Only wave 1, so its slice codes do not clash with the ui board's wave 2.
+  const core = parseSprint(coreDoc.split('\n').filter(l => !l.startsWith('| 2 |')).join('\n'), true)!
+  const ui = parseSprint(SPRINT, false)!
+  const lines = buildTree({
+    plan: parsePlan(PLAN, 'long-runs'),
+    sprints: [core, ui],
+    spawns: {
+      b1: { type: 'pod:engineer', description: 'B1', sprint: 'ui', slice: 'B1', startedAt: 0 },
+      r1: { type: 'pod:reviewer', description: 'Review plan', plan: 'long-runs', startedAt: 1 },
+    },
+    live: [{ id: 'b1', type: 'pod:engineer', status: 'running' }],
+    now: 4 * 60_000,
+    lastSeen: { b1: 4 * 60_000 },
+    tokens: { b1: 140_000 },
+    halt: 'Gate 4: wave check failed',
+  })
+  expect(snapshot(lines).split('\n')).toEqual([
+    'sprint 2/3 · wave 2/2 · 1 running · 1 blocked · 140k tokens',
+    '├─ ✓ 1 sprint done',
+    '├─ ✓ core',
+    '│  └─ ✗ wave 1 · A1 blocked',
+    '├─ ● ui',
+    '│  └─ ● wave 2 · B1 Search box 4m',
+    '├─ ○ polish',
+    '└─ ✓ review · 1 round',
+  ])
+})
+
+test('snapshot ends with the halt and what to do', () => {
+  const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [], spawns: {}, live: [], halt: 'Gate 4: wave check failed', haltType: 'BLOCKED' })
+  expect(snapshot(lines).split('\n').slice(-2)).toEqual(['└─ ✗ halted  Gate 4: wave check failed', '   └─ ➜ fix it first, then /pod:autopilot to resume'])
 })

@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Dispatch, TreeLine } from '../types'
-import { buildTree, fit, GLYPH, latestHalt, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, summarize, turnTokens, visibleLines } from './model'
+import { buildTree, fit, GLYPH, latestHalt, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, snapshot, summarize, turnTokens, visibleLines } from './model'
 import type { PlanDoc, SprintDoc } from './model'
 
 const PANE = 'pod-flow'
@@ -173,17 +173,21 @@ export const register: Register = on => {
   })
 
   on('command.run', { command: 'pod-flow' }, async ($, e) => {
+    const arg = e.args.trim()
     // `/pod-flow preview` opens the tree without a run, to try the mod on a project's docs.
-    if (e.args.trim() === 'preview') {
-      await activate($)
-      return { text: 'pod flow preview opened.' }
-    }
-    if (!(await read($, isActive))) {
+    if (arg === 'preview') {
+      await update($, isActive, () => true)
+    } else if (!(await read($, isActive))) {
       return { text: 'No /pod:autopilot or /pod:ship run in this session yet. Use /pod-flow preview to try it.' }
     }
     await startRefreshing($)
-    await $.ui.open({ id: PANE, title: 'pod flow' })
-    return { text: 'pod flow opened.' }
+    const text = snapshot(await read($, lines)) || 'Waiting for the plan and sprint docs.'
+    if (arg === 'text') return { text }
+    // Where no pane can draw (-p, a narrow terminal, a surface without panes), the run comes back as a few lines.
+    if ((await $.session.surfaces()).length === 0) return { text }
+    const opened = await $.ui.open({ id: PANE, title: 'pod flow' })
+    if (!opened.isPlaced) return { text: `${text}\n(no pane: ${opened.reason})` }
+    return { text: arg === 'preview' ? 'pod flow preview opened.' : 'pod flow opened.' }
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
