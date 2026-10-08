@@ -78,6 +78,17 @@ test('latestHalt returns the newest pending orchestrator entry only', () => {
   expect(latestHalt('- `[2026-10-01 · BLOCKED · orchestrator → human]` Done **Resolution:** 2026-10-02 — ok')).toBeUndefined()
 })
 
+test('latestHalt skips a pending orchestrator note that names no gate', () => {
+  const queue = [
+    '- `[2026-10-03 · BLOCKED · orchestrator → human · sprint: ui]` auto-merge-fail: PR #14 failed CI **Resolution:** pending',
+    // chess-web's queue keeps notes like this one, which never stopped the run.
+    '- `[2026-10-06 · PENDING · orchestrator → human · sprint: ui · slice: wave 2]` **Someday (Look):** the picker hangs past the board edge. **Resolution:** pending',
+  ].join('\n')
+  expect(latestHalt(queue)?.body).toBe('auto-merge-fail: PR #14 failed CI')
+  expect(latestHalt(queue.split('\n')[1]!)).toBeUndefined()
+  expect(latestHalt('- `[2026-10-06 · PENDING · orchestrator → human]` plan board-feel complete — final PR #55 **Resolution:** pending')?.type).toBe('PENDING')
+})
+
 test('buildTree maps plan, sprints, waves and slices, and marks a live engineer', () => {
   const lines = buildTree({
     plan: parsePlan(PLAN, 'long-runs'),

@@ -103,9 +103,17 @@ export function parseSprint(md: string, isArchived: boolean, fileSlug?: string):
   }
 }
 
-/** The newest still-pending entry the orchestrator wrote: a halt waiting on the human, and its queue type. */
+/** A halt entry names its gate, by number or by name (the gate table in skills/autopilot/policy.md). */
+const GATE = /\bgate\s*\d|blocked-concern|plan-review-fail|auto-merge-fail|inter-wave-verify|safety-bound|escalation-valve|plan-complete/i
+
+/**
+ * The newest still-pending halt the orchestrator wrote, and its queue type: an entry that names a gate,
+ * or the plan-complete hand-back. Its other pending notes (a "someday" idea) don't stop the run.
+ */
 export function latestHalt(queue: string): { body: string; type: string } | undefined {
-  const halt = parseQueue(queue).filter(e => e.isPending && /^orchestrator\b/i.test(e.route)).at(-1)
+  const halt = parseQueue(queue)
+    .filter(e => e.isPending && /^orchestrator\b/i.test(e.route) && (GATE.test(e.body) || HAND_BACK.test(e.body)))
+    .at(-1)
   return halt && { body: halt.body, type: halt.type }
 }
 
