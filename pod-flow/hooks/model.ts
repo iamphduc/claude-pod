@@ -434,6 +434,7 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
     const doc = sprints.find(s => s.slug === sprint.slug)
     const waves = [...new Set((doc?.rows ?? []).map(r => r.wave))].sort((a, b) => a - b)
     const slices = doc?.rows.length ?? 0
+    const blockedCount = (doc?.rows ?? []).filter(r => r.status === 'blocked').length
     lines.push({
       depth: 1,
       kind: 'sprint',
@@ -442,6 +443,7 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
       note: short(sprint.goal, 48),
       sprint: sprint.slug,
       detail: doc ? `${waves.length} ${waves.length === 1 ? 'wave' : 'waves'} · ${slices} ${slices === 1 ? 'slice' : 'slices'}` : undefined,
+      blockedCount: blockedCount || undefined,
     })
     for (const wave of waves) {
       const rows = doc!.rows.filter(r => r.wave === wave)

@@ -20,6 +20,8 @@ export type TreeLine = {
   note?: string
   sprint?: string
   detail?: string
+  /** A sprint's blocked slices, shown in red on its folded row. */
+  blockedCount?: number
   /** The rest of the row above, drawn under it without a branch of its own. */
   isContinued?: boolean
 }

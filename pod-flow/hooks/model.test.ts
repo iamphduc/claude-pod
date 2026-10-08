@@ -526,3 +526,10 @@ test('a blocked status wins over a merged PR cell, so the wave does not count it
   expect(lines.find(l => l.text.startsWith('A1'))?.status).toBe('blocked')
   expect(lines.find(l => l.kind === 'wave' && l.text === 'wave 1')?.note).toBe('1/2 done')
 })
+
+test('a sprint counts its blocked slices for its folded row', () => {
+  const doc = parseSprint(SPRINT.replace('| merged | done | high |', '| merged | blocked | high |'), true)!
+  const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [doc], spawns: {}, live: [] })
+  expect(lines.find(l => l.kind === 'sprint' && l.text === 'ui')?.blockedCount).toBe(1)
+  expect(lines.find(l => l.kind === 'sprint' && l.text === 'core')?.blockedCount).toBeUndefined()
+})
