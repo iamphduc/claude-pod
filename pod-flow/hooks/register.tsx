@@ -192,7 +192,8 @@ export const register: Register = on => {
           const isFoldable = row.kind === 'sprint' && row.status === 'done' && row.detail !== undefined
           if (isFoldable) {
             const isOpen = open.includes(row.sprint ?? '')
-            const label = fit(`${stems[i]}${isOpen ? '▾' : '▸'} ${glyph} ${row.text}`, isOpen ? row.note : row.detail, width)
+            // Only a finished sprint folds, so the fold arrow stands in for its ✓.
+            const label = fit(`${stems[i]}${isOpen ? '▾' : '▸'} ${row.text}`, isOpen ? row.note : row.detail, width)
             return (
               <Button
                 plain
