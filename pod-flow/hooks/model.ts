@@ -555,16 +555,21 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
   if (haltText && running.length === 0) {
     // A finished plan's final PR is a hand-back for you to merge, not a failure.
     const isHandBack = HAND_BACK.test(haltText)
+    // A pull request URL reads as its short number.
+    const pull = /https?:\/\/[^\s,;)]+?\/pull\/(\d+)/.exec(haltText)
     lines.push({
       depth: 1,
       kind: 'halt',
       text: isHandBack ? 'waiting on you' : 'halted',
       status: isHandBack ? 'pushed' : 'blocked',
-      note: haltText,
+      note: pull ? haltText.replace(pull[0], `#${pull[1]}`) : haltText,
     })
     // On lines of their own, short enough for a narrow pane, so a long reason never hides them.
     if (!isHandBack) {
       resumeHint(haltType).forEach((text, n) => lines.push({ depth: 2, kind: 'hint', text, status: 'waiting', isContinued: n > 0 }))
+    } else if (pull) {
+      // The note's end is the first thing a narrow pane cuts, so the PR to merge gets a line of its own.
+      lines.push({ depth: 2, kind: 'hint', text: `merge PR #${pull[1]}`, status: 'waiting' })
     }
   }
   return lines

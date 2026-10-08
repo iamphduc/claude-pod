@@ -394,7 +394,7 @@ function tableRowsFixture() {
 test('a finished plan waiting on its final PR is a hand-back, not a halt', () => {
   const done = parsePlan(PLAN.replace('| ui | Build the screens | active |', '| ui | Build the screens | done |').replace('planned', 'done'), 'long-runs')
   const lines = buildTree({ plan: done, sprints: [], spawns: {}, live: [], halt: 'plan board-feel complete — final PR https://github.com/me/app/pull/55' }).filter(l => l.kind !== 'sprint')
-  expect(lines.at(-1)).toMatchObject({ kind: 'halt', text: 'waiting on you', status: 'pushed' })
+  expect(lines.find(l => l.kind === 'halt')).toMatchObject({ kind: 'halt', text: 'waiting on you', status: 'pushed' })
   const summary = summarize(buildTree({ plan: done, sprints: [], spawns: {}, live: [], halt: 'plan board-feel complete' }))
   expect(summary).toContain('waiting on you')
   expect(summary).not.toContain('blocked')
@@ -581,4 +581,13 @@ test('long goals and titles are kept whole, and cut only by the pane width', () 
   expect(slice.text).toBe(`A1 ${title}`)
   expect(fit(slice.text, slice.note, 120)).toBe(`A1 ${title}  high`)
   expect(fit(slice.text, slice.note, 40)).toMatch(/…  high$/)
+})
+
+test('a final PR URL reads as its number, with a merge line of its own', () => {
+  const done = parsePlan(PLAN.replace('| ui | Build the screens | active |', '| ui | Build the screens | done |').replace('planned', 'done'), 'long-runs')
+  const halt = 'plan long-runs complete — final PR https://github.com/me/app/pull/58, review pass, 1 open entries sorted in the hand-back'
+  const lines = buildTree({ plan: done, sprints: [], spawns: {}, live: [], halt })
+  expect(lines.find(l => l.kind === 'halt')?.note).toBe('plan long-runs complete — final PR #58, review pass, 1 open entries sorted in the hand-back')
+  expect(lines.at(-1)).toMatchObject({ depth: 2, kind: 'hint', text: 'merge PR #58' })
+  expect([...milestones(lines).values()].at(-1)).toBe('◐ WAITING ON YOU · merge PR #58 · plan long-runs complete — final PR #58, review pass, 1 open entries sorted in the hand-back')
 })
