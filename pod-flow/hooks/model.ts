@@ -1,3 +1,5 @@
+import type { ModelUsage } from 'claude-code'
+
 import type { Dispatch, TreeLine } from '../types'
 
 export type Row = {
@@ -275,9 +277,11 @@ export function summarize(lines: TreeLine[]): string {
     }
   }
   const working = lines.filter(l => (l.kind === 'slice' || l.kind === 'agent' || l.kind === 'round') && l.status === 'running').length
-  const blocked = lines.filter(l => l.status === 'blocked' && l.kind !== 'wave' && l.kind !== 'concern' && l.kind !== 'review').length
+  const blocked = lines.filter(l => l.status === 'blocked' && l.kind !== 'wave' && l.kind !== 'concern' && l.kind !== 'review' && l.kind !== 'halt').length
   if (working > 0) parts.push(`${working} running`)
   if (blocked > 0) parts.push(`${blocked} blocked`)
+  // A halt says so itself, not as one more blocked row.
+  if (lines.some(l => l.kind === 'halt' && l.status === 'blocked')) parts.push('halted')
   if (lines.some(l => l.kind === 'halt' && l.status === 'pushed')) parts.push('waiting on you')
   return parts.join(' · ')
 }
@@ -374,6 +378,42 @@ export function formatAge(ms: number): string {
   return `${Math.floor(min / 60)}h${String(min % 60).padStart(2, '0')}m`
 }
 
+/** A token count in a few characters: `950`, `9.9k`, `410k`, `1.2M`. */
+export function formatTokens(n: number): string {
+  if (n < 1000) return `${n}`
+  if (n < 10_000) return `${(n / 1000).toFixed(1)}k`
+  if (n < 1_000_000) return `${Math.round(n / 1000)}k`
+  return `${(n / 1_000_000).toFixed(1)}M`
+}
+
+/** What a turn adds to an agent's total. Cache reads cost a tenth as much and would swamp the rest, so they stay out. */
+export const turnTokens = (u: ModelUsage) =>
+  u.input_tokens + u.output_tokens + u.cache_creation_input_tokens
+
+export type TokenTotals = { sprints: Map<string, number>; review: number; plan: number }
+
+/** Each spawned agent's tokens, added to the sprint or review it worked for, and to the plan. */
+export function tokenTotals(spawns: Record<string, Dispatch>, tokens: Record<string, number>, sprints: SprintDoc[], planSlug: string): TokenTotals {
+  const totals: TokenTotals = { sprints: new Map(), review: 0, plan: 0 }
+  const codes = sprints.flatMap(s => s.rows.map(r => r.slice))
+  for (const [id, d] of Object.entries(spawns)) {
+    const n = tokens[id] ?? 0
+    if (n === 0) continue
+    totals.plan += n
+    const round = roundOf(d, planSlug)
+    if (round && round.wave === undefined) {
+      totals.review += n
+      continue
+    }
+    const slice = round ? undefined : sliceOf(d, codes)
+    const sprint = round?.sprint ?? (slice && (sprints.find(s => s.slug === d.sprint && s.rows.some(r => r.slice === slice)) ?? sprints.find(s => s.rows.some(r => r.slice === slice)))?.slug)
+    if (sprint) totals.sprints.set(sprint, (totals.sprints.get(sprint) ?? 0) + n)
+  }
+  return totals
+}
+
+const tokenNote = (n: number | undefined) => (n ? `${formatTokens(n)} tokens` : undefined)
+
 /** How long an agent has run, and how long it has been silent once that passes QUIET_MS. */
 export function ageNote(startedAt: number | undefined, lastAt: number | undefined, now: number | undefined): string | undefined {
   if (startedAt === undefined || now === undefined) return undefined
@@ -392,9 +432,12 @@ export type TreeInput = {
   now?: number
   queue?: QueueEntry[]
   lastSeen?: Record<string, number>
+  /** Tokens per agent id, summed over its turns. */
+  tokens?: Record<string, number>
 }
 
-export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, lastSeen = {}, queue = [] }: TreeInput): TreeLine[] {
+export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, lastSeen = {}, queue = [], tokens = {} }: TreeInput): TreeLine[] {
+  const spent = tokenTotals(spawns, tokens, sprints, plan.slug)
   const running = live.filter(a => a.status === 'running')
   const dispatchOf = (a: LiveAgent) => spawns[a.id]
   const codes = sprints.flatMap(s => s.rows.map(r => r.slice))
@@ -427,7 +470,7 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
     plan.status === 'archived' ||
     (plan.sprints.length > 0 && plan.sprints.every(s => s.status === 'done') && running.length === 0)
   const lines: TreeLine[] = [
-    { depth: 0, kind: 'plan', text: plan.title, status: isPlanDone ? 'done' : 'running' },
+    { depth: 0, kind: 'plan', text: plan.title, status: isPlanDone ? 'done' : 'running', note: tokenNote(spent.plan) },
   ]
 
   for (const sprint of plan.sprints) {
@@ -440,9 +483,11 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
       kind: 'sprint',
       text: sprint.slug,
       status: sprint.status === 'done' ? 'done' : sprint.status === 'active' ? 'running' : 'waiting',
-      note: short(sprint.goal, 48),
+      note: [tokenNote(spent.sprints.get(sprint.slug)), sprint.goal].filter(Boolean).join(' · '),
       sprint: sprint.slug,
-      detail: doc ? `${waves.length} ${waves.length === 1 ? 'wave' : 'waves'} · ${slices} ${slices === 1 ? 'slice' : 'slices'}` : undefined,
+      detail: doc
+        ? [`${waves.length} ${waves.length === 1 ? 'wave' : 'waves'}`, `${slices} ${slices === 1 ? 'slice' : 'slices'}`, tokenNote(spent.sprints.get(sprint.slug))].filter(Boolean).join(' · ')
+        : undefined,
       blockedCount: blockedCount || undefined,
     })
     for (const wave of waves) {
@@ -465,7 +510,7 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
         lines.push({
           depth: 3,
           kind: 'slice',
-          text: `${row.slice} ${short(row.title, 40)}`,
+          text: `${row.slice} ${row.title}`,
           status: isLive ? 'running' : (SLICE_STATUS[row.status] ?? row.status),
           note: isLive ? ageOf(agentOfSlice.get(row.slice)) : row.confidence === '—' ? undefined : row.confidence,
           sprint: sprint.slug,
@@ -489,7 +534,7 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
   if (reviews.length > 0) {
     const children = reviews.map(r => roundLine(r, 2))
     const isRunning = children.some(l => l.status === 'running')
-    lines.push({ depth: 1, kind: 'review', text: 'review', status: isRunning ? 'running' : children.at(-1)!.status })
+    lines.push({ depth: 1, kind: 'review', text: 'review', status: isRunning ? 'running' : children.at(-1)!.status, note: tokenNote(spent.review) })
     lines.push(...children)
   }
 

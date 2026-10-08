@@ -33,6 +33,7 @@ declare module 'claude-code' {
       lines: TreeLine[]
       spawns: Record<string, Dispatch>
       expanded: string[]
+      tokens: Record<string, number>
     }
   }
 }
