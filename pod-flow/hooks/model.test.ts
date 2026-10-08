@@ -572,3 +572,13 @@ test('a halt is not counted as one more blocked row', () => {
   expect(lines.some(l => l.kind === 'halt' && l.status === 'blocked')).toBe(true)
   expect(summarize(lines)).toMatch(/ · 1 blocked · halted$/)
 })
+
+test('long goals and titles are kept whole, and cut only by the pane width', () => {
+  const title = 'Perft harness plus start-position node counts at depth one to three'
+  const doc = parseSprint(SPRINT.replace('List screen', title), false)!
+  const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [doc], spawns: {}, live: [] })
+  const slice = lines.find(l => l.text.startsWith('A1'))!
+  expect(slice.text).toBe(`A1 ${title}`)
+  expect(fit(slice.text, slice.note, 120)).toBe(`A1 ${title}  high`)
+  expect(fit(slice.text, slice.note, 40)).toMatch(/…  high$/)
+})

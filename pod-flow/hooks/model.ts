@@ -483,7 +483,7 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
       kind: 'sprint',
       text: sprint.slug,
       status: sprint.status === 'done' ? 'done' : sprint.status === 'active' ? 'running' : 'waiting',
-      note: [tokenNote(spent.sprints.get(sprint.slug)), short(sprint.goal, 48)].filter(Boolean).join(' · '),
+      note: [tokenNote(spent.sprints.get(sprint.slug)), sprint.goal].filter(Boolean).join(' · '),
       sprint: sprint.slug,
       detail: doc
         ? [`${waves.length} ${waves.length === 1 ? 'wave' : 'waves'}`, `${slices} ${slices === 1 ? 'slice' : 'slices'}`, tokenNote(spent.sprints.get(sprint.slug))].filter(Boolean).join(' · ')
@@ -510,7 +510,7 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
         lines.push({
           depth: 3,
           kind: 'slice',
-          text: `${row.slice} ${short(row.title, 40)}`,
+          text: `${row.slice} ${row.title}`,
           status: isLive ? 'running' : (SLICE_STATUS[row.status] ?? row.status),
           note: isLive ? ageOf(agentOfSlice.get(row.slice)) : row.confidence === '—' ? undefined : row.confidence,
           sprint: sprint.slug,
