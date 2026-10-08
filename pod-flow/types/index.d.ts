@@ -5,9 +5,12 @@ export type Dispatch = {
   sprint?: string
   slice?: string
   branch?: string
+  /** A reviewer's plan slug and round, from its dispatch. */
+  plan?: string
+  round?: number
 }
 
-export type TreeKind = 'plan' | 'sprint' | 'wave' | 'slice' | 'agent' | 'halt' | 'hint' | 'concern'
+export type TreeKind = 'plan' | 'sprint' | 'wave' | 'slice' | 'agent' | 'halt' | 'hint' | 'concern' | 'review' | 'round'
 
 export type TreeLine = {
   depth: number
@@ -17,6 +20,8 @@ export type TreeLine = {
   note?: string
   sprint?: string
   detail?: string
+  /** A sprint's blocked slices, shown in red on its folded row. */
+  blockedCount?: number
   /** The rest of the row above, drawn under it without a branch of its own. */
   isContinued?: boolean
 }

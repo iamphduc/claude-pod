@@ -192,20 +192,22 @@ export const register: Register = on => {
           const isFoldable = row.kind === 'sprint' && row.status === 'done' && row.detail !== undefined
           if (isFoldable) {
             const isOpen = open.includes(row.sprint ?? '')
+            const toggle = () =>
+              update($, expanded, list =>
+                list.includes(row.sprint ?? '') ? list.filter(s => s !== row.sprint) : [...list, row.sprint ?? ''],
+              )
             // Only a finished sprint folds, so the fold arrow stands in for its ✓.
-            const label = fit(`${stems[i]}${isOpen ? '▾' : '▸'} ${row.text}`, isOpen ? row.note : row.detail, width)
-            return (
-              <Button
-                plain
-                dimColor
-                label={label}
-                onPress={() =>
-                  update($, expanded, list =>
-                    list.includes(row.sprint ?? '') ? list.filter(s => s !== row.sprint) : [...list, row.sprint ?? ''],
-                  )
-                }
-              />
-            )
+            const name = `${stems[i]}${isOpen ? '▾' : '▸'} ${row.text}`
+            if (!isOpen && row.blockedCount) {
+              // A Button takes no color: the red count is its own Text beside it, so a folded ✗ still shows.
+              return (
+                <Box flexDirection="row">
+                  <Button plain dimColor label={name} onPress={toggle} />
+                  <Text wrap="truncate-end" color="red">{`  ${row.detail} · ${row.blockedCount} blocked`}</Text>
+                </Box>
+              )
+            }
+            return <Button plain dimColor label={fit(name, isOpen ? row.note : row.detail, width)} onPress={toggle} />
           }
           return (
             <Text wrap="truncate-end" color={COLOR[row.status]} dimColor={row.status === 'waiting'}>
