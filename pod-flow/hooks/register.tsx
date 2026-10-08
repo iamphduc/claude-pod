@@ -188,7 +188,7 @@ export const register: Register = on => {
         {summary && <Text wrap="truncate-end" bold>{summary}</Text>}
         {rows.length === 0 && <Text dimColor>Waiting for the plan and sprint docs.</Text>}
         {rows.slice(0, room).map((row, i) => {
-          const glyph = row.isContinued ? ' ' : row.kind === 'concern' ? '⚠' : row.kind === 'hint' ? '↻' : (GLYPH[row.status] ?? '·')
+          const glyph = row.isContinued ? ' ' : row.kind === 'concern' ? '⚠' : row.kind === 'hint' ? '➜' : (GLYPH[row.status] ?? '·')
           const isFoldable = row.kind === 'sprint' && row.status === 'done' && row.detail !== undefined
           if (isFoldable) {
             const isOpen = open.includes(row.sprint ?? '')
