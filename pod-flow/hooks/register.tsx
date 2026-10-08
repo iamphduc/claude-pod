@@ -223,7 +223,8 @@ export const register: Register = on => {
             return <Button plain dimColor label={fit(name, isOpen ? row.note : row.detail, width)} onPress={toggle} />
           }
           return (
-            <Text wrap="truncate-end" color={COLOR[row.status]} dimColor={row.status === 'waiting'}>
+            // The resume hint is what you do next: cyan, as a hand-back is, never dim.
+            <Text wrap="truncate-end" color={row.kind === 'hint' ? 'cyan' : COLOR[row.status]} dimColor={row.kind !== 'hint' && row.status === 'waiting'}>
               {fit(`${stems[i]}${glyph} ${row.text}`, row.note, width)}
             </Text>
           )

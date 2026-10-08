@@ -117,3 +117,13 @@ test('the turns of a spawned agent add up its tokens, and other loops add none',
   expect(drawn).toContain('one  6.4k tokens · First')
   expect(drawn).not.toContain('13k')
 })
+
+test('the resume hint under a halt is drawn cyan, not dim', async ($, on) => {
+  const files = { ...docs(), 'docs/handoff-queue.md': '- `[2026-10-06 · BLOCKED · orchestrator → human]` Gate 4: wave check failed **Resolution:** pending' }
+  world(on, [], true, [], files)
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 120 } as never })
+  const hint = await pane.find({ type: 'Text', text: /➜ fix it first/ })
+  expect(hint).toMatchObject({ props: { color: 'cyan' } })
+  expect((hint as { props?: { dimColor?: boolean } }).props?.dimColor).toBeFalsy()
+})
