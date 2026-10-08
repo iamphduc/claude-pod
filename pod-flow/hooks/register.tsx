@@ -104,7 +104,7 @@ async function buildLines($: Dollar) {
   const queue = parseQueue(queueText)
   const known = await read($, spawns)
   const now = await $.clock.now()
-  await update($, lines, () => buildTree({ plan, sprints, spawns: known, live, halt, now, lastSeen, queue }))
+  await update($, lines, () => buildTree({ plan, sprints, spawns: known, live, halt: halt?.body, haltType: halt?.type, now, lastSeen, queue }))
 }
 
 /** Keeps the tree fresh: a timer, started once per load of this module. */
@@ -188,7 +188,7 @@ export const register: Register = on => {
         {summary && <Text wrap="truncate-end" bold>{summary}</Text>}
         {rows.length === 0 && <Text dimColor>Waiting for the plan and sprint docs.</Text>}
         {rows.slice(0, room).map((row, i) => {
-          const glyph = row.kind === 'concern' ? '⚠' : (GLYPH[row.status] ?? '·')
+          const glyph = row.isContinued ? ' ' : row.kind === 'concern' ? '⚠' : row.kind === 'hint' ? '↻' : (GLYPH[row.status] ?? '·')
           const isFoldable = row.kind === 'sprint' && row.status === 'done' && row.detail !== undefined
           if (isFoldable) {
             const isOpen = open.includes(row.sprint ?? '')

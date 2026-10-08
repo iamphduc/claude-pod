@@ -103,11 +103,15 @@ export function parseSprint(md: string, isArchived: boolean, fileSlug?: string):
   }
 }
 
-/** The newest still-pending entry the orchestrator wrote: a halt waiting on the human. */
-export function latestHalt(queue: string): string | undefined {
-  const halts = parseQueue(queue).filter(e => e.isPending && /^orchestrator\b/i.test(e.route))
-  return halts.at(-1)?.body
+/** The newest still-pending entry the orchestrator wrote: a halt waiting on the human, and its queue type. */
+export function latestHalt(queue: string): { body: string; type: string } | undefined {
+  const halt = parseQueue(queue).filter(e => e.isPending && /^orchestrator\b/i.test(e.route)).at(-1)
+  return halt && { body: halt.body, type: halt.type }
 }
+
+/** What to do after a halt: a BLOCKED gate needs a fix first, a PENDING one only a resume (skills/autopilot/policy.md). */
+export const resumeHint = (type: string | undefined): string[] =>
+  type === 'BLOCKED' ? ['fix it first', 'then /pod:autopilot to resume'] : ['/pod:autopilot to resume']
 
 export type QueueEntry = {
   type: string
@@ -263,7 +267,7 @@ export function milestones(lines: TreeLine[]): Map<string, string> {
   const found = new Map<string, string>()
   const sprintCount = lines.filter(l => l.kind === 'sprint').length
   let sprintNumber = 0
-  for (const line of lines) {
+  for (const [i, line] of lines.entries()) {
     const where = `${line.sprint} · ${line.text}`
     if (line.kind === 'plan' && line.status === 'done') found.set('plan', `${GLYPH.done} plan ${line.text} done`)
     if (line.kind === 'sprint') {
@@ -277,7 +281,13 @@ export function milestones(lines: TreeLine[]): Map<string, string> {
       if (line.status === 'blocked' && line.note?.includes('skipped')) found.set(`${where} skipped`, `${GLYPH.blocked} SKIPPED · ${where}`)
     }
     if (line.kind === 'slice' && line.status === 'blocked') found.set(`${where} blocked`, `${GLYPH.blocked} BLOCKED · ${where}`)
-    if (line.kind === 'halt') found.set(`halt ${line.note}`, `${GLYPH[line.status]} ${line.text.toUpperCase()} · ${line.note}`)
+    if (line.kind === 'halt') {
+      // The action leads, so the line says what to do before why.
+      const after = lines.slice(i + 1)
+      const end = after.findIndex(l => l.kind !== 'hint')
+      const hint = (end < 0 ? after : after.slice(0, end)).map(l => l.text).join(', ')
+      found.set(`halt ${line.note}`, [`${GLYPH[line.status]} ${line.text.toUpperCase()}`, hint, line.note].filter(Boolean).join(' · '))
+    }
   }
   return found
 }
@@ -310,14 +320,17 @@ export function fit(head: string, note: string | undefined, width: number): stri
 /** The branch drawing (`├─ `, `└─ `, `│  `) in front of each line. */
 export function prefixes(lines: TreeLine[]): string[] {
   const hasLater: boolean[] = []
+  const stems: string[] = []
   return lines.map((line, i) => {
     if (line.depth === 0) return ''
-    const after = lines.slice(i + 1).find(l => l.depth <= line.depth)
+    // A continued row keeps the row above's stem, with its branch turned into a plain rail.
+    if (line.isContinued) return (stems[i] = (stems[i - 1] ?? '').replace('└─ ', '   ').replace('├─ ', '│  '))
+    const after = lines.slice(i + 1).find(l => l.depth <= line.depth && !l.isContinued)
     const isLast = after?.depth !== line.depth
     hasLater[line.depth] = !isLast
     let stem = ''
     for (let d = 1; d < line.depth; d++) stem += hasLater[d] ? '│  ' : '   '
-    return `${stem}${isLast ? '└─ ' : '├─ '}`
+    return (stems[i] = `${stem}${isLast ? '└─ ' : '├─ '}`)
   })
 }
 
@@ -348,12 +361,13 @@ export type TreeInput = {
   spawns: Record<string, Dispatch>
   live: LiveAgent[]
   halt?: string
+  haltType?: string
   now?: number
   queue?: QueueEntry[]
   lastSeen?: Record<string, number>
 }
 
-export function buildTree({ plan, sprints, spawns, live, halt, now, lastSeen = {}, queue = [] }: TreeInput): TreeLine[] {
+export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, lastSeen = {}, queue = [] }: TreeInput): TreeLine[] {
   const running = live.filter(a => a.status === 'running')
   const dispatchOf = (a: LiveAgent) => spawns[a.id]
   const codes = sprints.flatMap(s => s.rows.map(r => r.slice))
@@ -446,6 +460,10 @@ export function buildTree({ plan, sprints, spawns, live, halt, now, lastSeen = {
       status: isHandBack ? 'pushed' : 'blocked',
       note: haltText,
     })
+    // On lines of their own, short enough for a narrow pane, so a long reason never hides them.
+    if (!isHandBack) {
+      resumeHint(haltType).forEach((text, n) => lines.push({ depth: 2, kind: 'hint', text, status: 'waiting', isContinued: n > 0 }))
+    }
   }
   return lines
 }

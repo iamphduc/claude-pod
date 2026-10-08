@@ -74,7 +74,7 @@ test('latestHalt returns the newest pending orchestrator entry only', () => {
     '- `[2026-10-02 · PENDING · engineer → orchestrator · sprint: ui · slice: B1]` NOTE for B2 **Resolution:** pending',
     '- `[2026-10-03 · BLOCKED · orchestrator → human · sprint: ui]` Gate 6: low confidence on B1 **Resolution:** pending',
   ].join('\n')
-  expect(latestHalt(queue)).toBe('Gate 6: low confidence on B1')
+  expect(latestHalt(queue)).toEqual({ body: 'Gate 6: low confidence on B1', type: 'BLOCKED' })
   expect(latestHalt('- `[2026-10-01 · BLOCKED · orchestrator → human]` Done **Resolution:** 2026-10-02 — ok')).toBeUndefined()
 })
 
@@ -108,7 +108,7 @@ test('buildTree lists a running agent that matches no slice', () => {
 test('buildTree shows a halt only when no agent is running', () => {
   const input = { plan: parsePlan(PLAN, 'long-runs'), sprints: [], spawns: {}, halt: 'Gate 2: plan review failed —' }
   const idle = buildTree({ ...input, live: [] })
-  expect(idle.at(-1)).toMatchObject({ kind: 'halt', status: 'blocked', note: 'Gate 2: plan review failed' })
+  expect(idle.find(l => l.kind === 'halt')).toMatchObject({ status: 'blocked', note: 'Gate 2: plan review failed' })
   const busy = buildTree({ ...input, live: [{ id: 'r1', type: 'pod:reviewer', status: 'running' }] })
   expect(busy.some(l => l.kind === 'halt')).toBe(false)
 })
@@ -391,8 +391,28 @@ test('a finished plan waiting on its final PR is a hand-back, not a halt', () =>
 
 test('a gate halt still counts as blocked', () => {
   const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [], spawns: {}, live: [], halt: 'Gate 4: wave check failed' })
-  expect(lines.at(-1)).toMatchObject({ kind: 'halt', text: 'halted', status: 'blocked' })
+  expect(lines.find(l => l.kind === 'halt')).toMatchObject({ text: 'halted', status: 'blocked' })
   expect(summarize(lines)).toContain('1 blocked')
+})
+
+test('a halt gets a resume hint on lines of its own, and a hand-back gets none', () => {
+  const input = { plan: parsePlan(PLAN, 'long-runs'), sprints: [], spawns: {}, live: [] }
+  const blocked = buildTree({ ...input, halt: 'Gate 4: wave check failed', haltType: 'BLOCKED' })
+  expect(blocked.slice(-2)).toMatchObject([
+    { depth: 2, kind: 'hint', text: 'fix it first' },
+    { depth: 2, kind: 'hint', text: 'then /pod:autopilot to resume', isContinued: true },
+  ])
+  // One branch for the hint; its second line hangs under it.
+  expect(prefixes(blocked).slice(-3)).toEqual(['└─ ', '   └─ ', '      '])
+  const pending = buildTree({ ...input, halt: 'Gate 5: --max-waves reached', haltType: 'PENDING' })
+  expect(pending.at(-1)).toMatchObject({ kind: 'hint', text: '/pod:autopilot to resume' })
+  const handBack = buildTree({ ...input, halt: 'plan long-runs complete — final PR #20', haltType: 'PENDING' })
+  expect(handBack.some(l => l.kind === 'hint')).toBe(false)
+})
+
+test('the halt milestone leads with what to do, then why', () => {
+  const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [], spawns: {}, live: [], halt: 'Gate 4: wave check failed', haltType: 'BLOCKED' })
+  expect([...milestones(lines).values()]).toContain('✗ HALTED · fix it first, then /pod:autopilot to resume · Gate 4: wave check failed')
 })
 
 const QUEUE = [
