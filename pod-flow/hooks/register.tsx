@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Dispatch, TreeLine } from '../types'
-import { buildTree, fit, latestHalt, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, summarize, visibleLines } from './model'
+import { buildTree, fit, GLYPH, latestHalt, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, summarize, visibleLines } from './model'
 import type { PlanDoc, SprintDoc } from './model'
 
 const PANE = 'pod-flow'
@@ -14,7 +14,6 @@ const lines = atom({ plugin: 'pod-flow', key: 'lines' } as const, [] as TreeLine
 const expanded = atom({ plugin: 'pod-flow', key: 'expanded' } as const, [] as string[])
 const spawns = atom({ plugin: 'pod-flow', key: 'spawns' } as const, {} as Record<string, Dispatch>)
 
-const GLYPH: Record<string, string> = { running: '●', pushed: '◐', done: '✓', blocked: '✗', waiting: '○' }
 const COLOR: Record<string, string | undefined> = {
   running: 'yellow',
   pushed: 'cyan',
@@ -25,6 +24,7 @@ const COLOR: Record<string, string | undefined> = {
 type Dollar = EngineInterface
 
 let isTimerOn = false
+let told: Set<string> | undefined
 const lastSeen: Record<string, number> = {}
 
 async function readText($: Dollar, path: string): Promise<string> {
@@ -62,7 +62,33 @@ async function sprintDocs($: Dollar, dir: string, isArchived: boolean): Promise<
   return docs
 }
 
+/**
+ * A narrow terminal, or another plugin's pane in front, hides the tree: tell the run's milestones in the transcript instead.
+ * What was already true when this module loaded is not news, so the first tree only sets the baseline.
+ */
+async function logMilestones($: Dollar) {
+  const all = await read($, lines)
+  if (all.length === 0) return
+  const found = milestones(all)
+  if (!told) {
+    told = new Set(found.keys())
+    return
+  }
+  // Hidden also when placed but behind another pane (only one is shown at a time).
+  const isVisible = (await $.ui.panes()).some(pane => pane.id === PANE && pane.isPlaced && pane.isShown)
+  for (const [key, text] of found) {
+    if (told.has(key)) continue
+    told.add(key)
+    if (!isVisible) $.ui.log(text)
+  }
+}
+
 async function refresh($: Dollar) {
+  await buildLines($)
+  await logMilestones($)
+}
+
+async function buildLines($: Dollar) {
   const plan = await newestActivePlan($)
   if (!plan) {
     await update($, lines, () => [])

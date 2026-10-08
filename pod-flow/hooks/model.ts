@@ -251,6 +251,37 @@ export function summarize(lines: TreeLine[]): string {
   return parts.join(' · ')
 }
 
+/** The symbol for each status, shared by the tree and the transcript lines. */
+export const GLYPH: Record<string, string> = { running: '●', pushed: '◐', done: '✓', blocked: '✗', waiting: '○' }
+
+/**
+ * The run's turning points in the tree: a wave opens its PR, finishes or is skipped, a slice is blocked,
+ * a sprint or the plan finishes, the run stops. Keyed so each is told once; the text leads with the tree's symbol,
+ * and what needs the person (blocked, skipped, halted, waiting on you) leads with that in capitals.
+ */
+export function milestones(lines: TreeLine[]): Map<string, string> {
+  const found = new Map<string, string>()
+  const sprintCount = lines.filter(l => l.kind === 'sprint').length
+  let sprintNumber = 0
+  for (const line of lines) {
+    const where = `${line.sprint} · ${line.text}`
+    if (line.kind === 'plan' && line.status === 'done') found.set('plan', `${GLYPH.done} plan ${line.text} done`)
+    if (line.kind === 'sprint') {
+      sprintNumber++
+      if (line.status === 'done') found.set(`sprint ${line.text}`, `${GLYPH.done} sprint ${line.text} done (${sprintNumber}/${sprintCount})`)
+    }
+    if (line.kind === 'wave') {
+      const pr = /PR (#\d+ )?open/.exec(line.note ?? '')?.[0]
+      if (pr) found.set(`${where} ${pr}`, `${GLYPH.pushed} ${where} · ${pr}`)
+      if (line.status === 'done') found.set(`${where} done`, `${GLYPH.done} ${where} done`)
+      if (line.status === 'blocked' && line.note?.includes('skipped')) found.set(`${where} skipped`, `${GLYPH.blocked} SKIPPED · ${where}`)
+    }
+    if (line.kind === 'slice' && line.status === 'blocked') found.set(`${where} blocked`, `${GLYPH.blocked} BLOCKED · ${where}`)
+    if (line.kind === 'halt') found.set(`halt ${line.note}`, `${GLYPH[line.status]} ${line.text.toUpperCase()} · ${line.note}`)
+  }
+  return found
+}
+
 /** A finished sprint with a board folds to its own line unless the person opened it. */
 export function visibleLines(lines: TreeLine[], expanded: string[]): TreeLine[] {
   const folded = new Set(

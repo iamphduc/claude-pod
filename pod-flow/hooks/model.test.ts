@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 
-import { ageNote, buildTree, concernText, fit, parseQueue, formatAge, prState, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, prefixes, summarize, tableRows, visibleLines } from './model'
+import { ageNote, buildTree, concernText, fit, parseQueue, formatAge, prState, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, milestones, prefixes, summarize, tableRows, visibleLines } from './model'
 
 const PLAN = `# Plan: Long runs
 
@@ -161,6 +161,25 @@ test('summarize counts blocked slices and says when all sprints are done', () =>
   expect(summarize(lines)).toContain('2 blocked')
   const done = parsePlan(PLAN.replace('| ui | Build the screens | active |', '| ui | Build the screens | done |').replace('planned', 'done'), 'long-runs')
   expect(summarize(buildTree({ plan: done, sprints: [], spawns: {}, live: [] }))).toBe('all sprints done')
+})
+
+test('milestones name finished waves and sprints, open PRs and blocked slices, never a wave start', () => {
+  const live = parseSprint(SPRINT.replace('| ui-B1 | — | pending |', '| ui-B1 | https://github.com/demo/app/pull/14 | pushed |').replace('| ui-B2 | — | pending |', '| ui-B2 | — | blocked |'), false)!
+  const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [live], spawns: {}, live: [] })
+  expect([...milestones(lines).values()]).toEqual([
+    '✓ sprint core done (1/3)',
+    '✓ ui · wave 1 done',
+    '◐ ui · wave 2 · PR #14 open',
+    '✗ BLOCKED · ui · B2 Filters',
+  ])
+})
+
+test('milestones name a halt and a finished plan', () => {
+  const done = parsePlan(PLAN.replace('| ui | Build the screens | active |', '| ui | Build the screens | done |').replace('planned', 'done'), 'long-runs')
+  const lines = buildTree({ plan: done, sprints: [], spawns: {}, live: [], halt: 'plan long-runs complete — final PR #20' })
+  const told = milestones(lines)
+  expect(told.get('plan')).toBe('✓ plan Long runs done')
+  expect([...told.values()]).toContain('◐ WAITING ON YOU · plan long-runs complete — final PR #20')
 })
 
 test('formatAge writes seconds, minutes and hours', () => {
