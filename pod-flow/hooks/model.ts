@@ -277,9 +277,11 @@ export function summarize(lines: TreeLine[]): string {
     }
   }
   const working = lines.filter(l => (l.kind === 'slice' || l.kind === 'agent' || l.kind === 'round') && l.status === 'running').length
-  const blocked = lines.filter(l => l.status === 'blocked' && l.kind !== 'wave' && l.kind !== 'concern' && l.kind !== 'review').length
+  const blocked = lines.filter(l => l.status === 'blocked' && l.kind !== 'wave' && l.kind !== 'concern' && l.kind !== 'review' && l.kind !== 'halt').length
   if (working > 0) parts.push(`${working} running`)
   if (blocked > 0) parts.push(`${blocked} blocked`)
+  // A halt says so itself, not as one more blocked row.
+  if (lines.some(l => l.kind === 'halt' && l.status === 'blocked')) parts.push('halted')
   if (lines.some(l => l.kind === 'halt' && l.status === 'pushed')) parts.push('waiting on you')
   return parts.join(' · ')
 }

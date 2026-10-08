@@ -400,10 +400,10 @@ test('a finished plan waiting on its final PR is a hand-back, not a halt', () =>
   expect(summary).not.toContain('blocked')
 })
 
-test('a gate halt still counts as blocked', () => {
+test('a gate halt shows as halted in the summary, with no blocked slice', () => {
   const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [], spawns: {}, live: [], halt: 'Gate 4: wave check failed' })
   expect(lines.find(l => l.kind === 'halt')).toMatchObject({ text: 'halted', status: 'blocked' })
-  expect(summarize(lines)).toContain('1 blocked')
+  expect(summarize(lines)).toBe('sprint 2/3 · halted')
 })
 
 test('a halt gets a resume hint on lines of its own, and a hand-back gets none', () => {
@@ -564,4 +564,11 @@ test('tokens roll up to the sprint, the review and the plan, not the wave', () =
   expect(lines.find(l => l.kind === 'sprint' && l.text === 'ui')?.note).toBe('175k tokens · Build the screens')
   expect(lines.find(l => l.kind === 'review')?.note).toBe('90k tokens')
   expect(lines.find(l => l.kind === 'sprint' && l.text === 'core')?.note).toBe('Build the core')
+})
+
+test('a halt is not counted as one more blocked row', () => {
+  const doc = parseSprint(SPRINT.replace('| merged | done | high |', '| merged | blocked | high |'), true)!
+  const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [doc], spawns: {}, live: [], halt: 'Gate 4: wave check failed' })
+  expect(lines.some(l => l.kind === 'halt' && l.status === 'blocked')).toBe(true)
+  expect(summarize(lines)).toMatch(/ · 1 blocked · halted$/)
 })
