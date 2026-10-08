@@ -176,14 +176,31 @@ export function concernsFor(entries: QueueEntry[], sprint: string, row: Row): Qu
 }
 
 /** What an engineer's dispatch prompt says about where it works. */
-export function parseDispatch(prompt: string): Pick<Dispatch, 'sprint' | 'slice' | 'branch'> {
+export function parseDispatch(prompt: string): Pick<Dispatch, 'sprint' | 'slice' | 'branch' | 'plan' | 'round'> {
   const field = (name: string) =>
-    new RegExp(`${name}\\W{0,4}[:=]\\s*\`?([\\w.-]+)`, 'i').exec(prompt)?.[1]
+    new RegExp(`\\b${name}\\W{0,4}[:=]\\s*\`?([\\w.-]+)`, 'i').exec(prompt)?.[1]
+  const round = Number(field('round'))
   return {
     sprint: field('sprint slug'),
     slice: field('slice code'),
     branch: field('branch(?: name)?'),
+    plan: field('plan slug'),
+    round: Number.isInteger(round) && round > 0 ? round : undefined,
   }
+}
+
+const WAVE_FIX = /^(.+)-w(\d+)-fix$/
+
+/** A plan review round, the plan's fix pass, or a wave's fix, told by the agent's type and branch. */
+export function roundOf(d: Dispatch | undefined, planSlug: string): { text: string; sprint?: string; wave?: number } | undefined {
+  if (!d) return undefined
+  if (/(^|:)reviewer$/.test(d.type)) {
+    return d.plan && d.plan !== planSlug ? undefined : { text: `round ${d.round ?? 1}` }
+  }
+  const branch = d.branch ?? ''
+  if (branch === `${planSlug}-fix`) return { text: 'fix pass' }
+  const wave = WAVE_FIX.exec(branch)
+  return wave ? { text: 'wave fix', sprint: d.sprint ?? wave[1], wave: Number(wave[2]) } : undefined
 }
 
 /** The board slice an agent works on: its prompt's slice code, else a code named in its description or branch. */
@@ -255,8 +272,8 @@ export function summarize(lines: TreeLine[]): string {
       if (waves.length > 0) parts.push(`wave ${Math.min(doneWaves + 1, waves.length)}/${waves.length}`)
     }
   }
-  const working = lines.filter(l => (l.kind === 'slice' || l.kind === 'agent') && l.status === 'running').length
-  const blocked = lines.filter(l => l.status === 'blocked' && l.kind !== 'wave' && l.kind !== 'concern').length
+  const working = lines.filter(l => (l.kind === 'slice' || l.kind === 'agent' || l.kind === 'round') && l.status === 'running').length
+  const blocked = lines.filter(l => l.status === 'blocked' && l.kind !== 'wave' && l.kind !== 'concern' && l.kind !== 'review').length
   if (working > 0) parts.push(`${working} running`)
   if (blocked > 0) parts.push(`${blocked} blocked`)
   if (lines.some(l => l.kind === 'halt' && l.status === 'pushed')) parts.push('waiting on you')
@@ -380,7 +397,24 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
   const dispatchOf = (a: LiveAgent) => spawns[a.id]
   const codes = sprints.flatMap(s => s.rows.map(r => r.slice))
   const agentOfSlice = new Map<string, LiveAgent>()
+  // Kept after they finish (the spawn record outlives the agent), so the order of rounds stays on screen.
+  const rounds = Object.entries(spawns)
+    .map(([id, d]) => ({ id, d, round: roundOf(d, plan.slug) }))
+    .filter(r => r.round !== undefined)
+    .sort((a, b) => (a.d.startedAt ?? 0) - (b.d.startedAt ?? 0))
+  const roundIds = new Set(rounds.map(r => r.id))
+  const roundStatus = (id: string) => {
+    const status = live.find(a => a.id === id)?.status
+    if (status === 'failed' || status === 'killed') return 'blocked'
+    return status === undefined || status === 'completed' ? 'done' : 'running'
+  }
+  const roundLine = (r: (typeof rounds)[number], depth: number, sprint?: string): TreeLine => {
+    const status = roundStatus(r.id)
+    const agent = live.find(a => a.id === r.id)
+    return { depth, kind: 'round', text: r.round!.text, status, note: status === 'running' ? ageOf(agent) : undefined, sprint }
+  }
   for (const a of running) {
+    if (roundIds.has(a.id)) continue
     const slice = sliceOf(dispatchOf(a), codes)
     if (slice) agentOfSlice.set(slice, a)
   }
@@ -413,11 +447,12 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
       const later = doc!.rows.filter(r => r.wave > wave)
       const isSettled = doc!.isArchived || later.some(r => r.status !== 'pending' || liveSlices.has(r.slice))
       const state = waveStatus(rows, liveSlices, isSettled)
+      const fixes = rounds.filter(r => r.round!.sprint === sprint.slug && r.round!.wave === wave).map(r => roundLine(r, 3, sprint.slug))
       lines.push({
         depth: 2,
         kind: 'wave',
         text: `wave ${wave}`,
-        status: state.status,
+        status: fixes.some(l => l.status === 'running') ? 'running' : state.status,
         note: [state.tag, `${doneCount}/${rows.length} done`].filter(Boolean).join(' · '),
         sprint: sprint.slug,
       })
@@ -441,13 +476,23 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
           })
         }
       }
+      lines.push(...fixes)
     }
   }
 
-  // Agents that match no slice (the planner, the reviewer, the reporter).
+  // The final PR's review: round 1, the fix pass, round 2, in the order they ran.
+  const reviews = rounds.filter(r => r.round!.wave === undefined)
+  if (reviews.length > 0) {
+    const children = reviews.map(r => roundLine(r, 2))
+    const isRunning = children.some(l => l.status === 'running')
+    lines.push({ depth: 1, kind: 'review', text: 'review', status: isRunning ? 'running' : children.at(-1)!.status })
+    lines.push(...children)
+  }
+
+  // Agents that match no slice or round (the planner, the reporter).
   for (const agent of running) {
     const d = dispatchOf(agent)
-    if (sliceOf(d, codes)) continue
+    if (roundIds.has(agent.id) || sliceOf(d, codes)) continue
     lines.push({
       depth: 1,
       kind: 'agent',

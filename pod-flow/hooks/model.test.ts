@@ -474,3 +474,48 @@ test('concerns sit under their slice, and do not add to the blocked count', () =
   expect(lines[at - 1]?.text.startsWith('B2')).toBe(true)
   expect(summarize(lines)).not.toContain('blocked')
 })
+
+test('parseDispatch reads a reviewer plan slug and round, and ignores words that only end in round', () => {
+  expect(parseDispatch('**plan slug**: `long-runs`\n**round**: 2')).toMatchObject({ plan: 'long-runs', round: 2 })
+  expect(parseDispatch('run it in background: true').round).toBeUndefined()
+})
+
+test('review and fix rounds sit under a review node in order, and stay after they finish', () => {
+  const lines = buildTree({
+    plan: parsePlan(PLAN, 'long-runs'),
+    sprints: [],
+    spawns: {
+      r2: { type: 'pod:reviewer', description: 'Review again', plan: 'long-runs', round: 2, startedAt: 3 },
+      r1: { type: 'pod:reviewer', description: 'Review plan', plan: 'long-runs', startedAt: 1 },
+      f1: { type: 'pod:engineer', description: 'Review fixes', branch: 'long-runs-fix', startedAt: 2 },
+      old: { type: 'pod:reviewer', description: 'Review other plan', plan: 'other', startedAt: 0 },
+    },
+    live: [
+      { id: 'r1', type: 'pod:reviewer', status: 'completed' },
+      { id: 'r2', type: 'pod:reviewer', status: 'running' },
+    ],
+  })
+  const review = lines.slice(lines.findIndex(l => l.kind === 'review'))
+  expect(review.map(l => `${l.depth} ${l.text} ${l.status}`)).toEqual([
+    '1 review running',
+    '2 round 1 done',
+    '2 fix pass done',
+    '2 round 2 running',
+  ])
+  expect(lines.some(l => l.kind === 'agent')).toBe(false)
+  expect(summarize(lines)).toContain('1 running')
+})
+
+test('a wave fix sits under its own wave, not as a loose agent or a slice', () => {
+  const lines = buildTree({
+    plan: parsePlan(PLAN, 'long-runs'),
+    sprints: [parseSprint(SPRINT, false)!],
+    spawns: { w: { type: 'pod:engineer', description: 'Fix wave 1', sprint: 'ui', slice: 'B1', branch: 'ui-w1-fix' } },
+    live: [{ id: 'w', type: 'pod:engineer', status: 'running' }],
+  })
+  const at = lines.findIndex(l => l.kind === 'round')
+  expect(lines[at]).toMatchObject({ depth: 3, text: 'wave fix', status: 'running', sprint: 'ui' })
+  expect(lines.slice(0, at).filter(l => l.kind === 'wave').at(-1)).toMatchObject({ text: 'wave 1', status: 'running' })
+  expect(lines.find(l => l.text.startsWith('B1'))?.status).not.toBe('running')
+  expect(lines.some(l => l.kind === 'review' || l.kind === 'agent')).toBe(false)
+})

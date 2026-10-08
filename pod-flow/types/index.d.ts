@@ -5,9 +5,12 @@ export type Dispatch = {
   sprint?: string
   slice?: string
   branch?: string
+  /** A reviewer's plan slug and round, from its dispatch. */
+  plan?: string
+  round?: number
 }
 
-export type TreeKind = 'plan' | 'sprint' | 'wave' | 'slice' | 'agent' | 'halt' | 'hint' | 'concern'
+export type TreeKind = 'plan' | 'sprint' | 'wave' | 'slice' | 'agent' | 'halt' | 'hint' | 'concern' | 'review' | 'round'
 
 export type TreeLine = {
   depth: number
