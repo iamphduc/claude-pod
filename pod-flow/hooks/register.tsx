@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Dispatch, TreeLine } from '../types'
-import { buildTree, fit, GLYPH, latestHalt, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, summarize, visibleLines } from './model'
+import { buildTree, fit, GLYPH, latestHalt, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, summarize, turnTokens, visibleLines } from './model'
 import type { PlanDoc, SprintDoc } from './model'
 
 const PANE = 'pod-flow'
@@ -13,6 +13,7 @@ const isActive = atom({ plugin: 'pod-flow', key: 'isActive' } as const, false)
 const lines = atom({ plugin: 'pod-flow', key: 'lines' } as const, [] as TreeLine[])
 const expanded = atom({ plugin: 'pod-flow', key: 'expanded' } as const, [] as string[])
 const spawns = atom({ plugin: 'pod-flow', key: 'spawns' } as const, {} as Record<string, Dispatch>)
+const tokens = atom({ plugin: 'pod-flow', key: 'tokens' } as const, {} as Record<string, number>)
 
 const COLOR: Record<string, string | undefined> = {
   running: 'yellow',
@@ -103,8 +104,9 @@ async function buildLines($: Dollar) {
   const halt = latestHalt(queueText)
   const queue = parseQueue(queueText)
   const known = await read($, spawns)
+  const spent = await read($, tokens)
   const now = await $.clock.now()
-  await update($, lines, () => buildTree({ plan, sprints, spawns: known, live, halt: halt?.body, haltType: halt?.type, now, lastSeen, queue }))
+  await update($, lines, () => buildTree({ plan, sprints, spawns: known, live, halt: halt?.body, haltType: halt?.type, now, lastSeen, queue, tokens: spent }))
 }
 
 /** Keeps the tree fresh: a timer, started once per load of this module. */
@@ -150,6 +152,17 @@ export const register: Register = on => {
       }
       await update($, spawns, known => ({ ...known, [result.agentId as string]: dispatch }))
       void refresh($)
+    }
+    return result
+  })
+
+  on('turn.complete', async ($, e, next) => {
+    const result = await next(e)
+    // Only agents this run spawned: each subagent run is one turn, its usage summed over its requests.
+    const id = e.agentId
+    if (id && e.usage && (await read($, spawns))[id]) {
+      const n = turnTokens(e.usage)
+      await update($, tokens, known => ({ ...known, [id]: (known[id] ?? 0) + n }))
     }
     return result
   })

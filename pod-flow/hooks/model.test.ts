@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 
-import { ageNote, buildTree, concernText, fit, parseQueue, formatAge, prState, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, milestones, prefixes, summarize, tableRows, visibleLines } from './model'
+import { ageNote, buildTree, formatTokens, tokenTotals, turnTokens, concernText, fit, parseQueue, formatAge, prState, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, milestones, prefixes, summarize, tableRows, visibleLines } from './model'
 
 const PLAN = `# Plan: Long runs
 
@@ -532,4 +532,36 @@ test('a sprint counts its blocked slices for its folded row', () => {
   const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [doc], spawns: {}, live: [] })
   expect(lines.find(l => l.kind === 'sprint' && l.text === 'ui')?.blockedCount).toBe(1)
   expect(lines.find(l => l.kind === 'sprint' && l.text === 'core')?.blockedCount).toBeUndefined()
+})
+
+test('formatTokens keeps a count to a few characters', () => {
+  expect([950, 9_940, 410_400, 1_240_000].map(formatTokens)).toEqual(['950', '9.9k', '410k', '1.2M'])
+})
+
+test('turnTokens leaves cache reads out', () => {
+  expect(turnTokens({ input_tokens: 10, output_tokens: 200, cache_creation_input_tokens: 3000, cache_read_input_tokens: 90_000 })).toBe(3210)
+})
+
+test('tokens roll up to the sprint, the review and the plan, not the wave', () => {
+  const ui = parseSprint(SPRINT, false)!
+  const spawns = {
+    a1: { type: 'pod:engineer', description: 'A1', sprint: 'ui', slice: 'A1' },
+    a2: { type: 'pod:engineer', description: 'A2 detail screen' },
+    b1: { type: 'pod:engineer', description: 'B1', sprint: 'ui', slice: 'B1' },
+    fix: { type: 'pod:engineer', description: 'Fix wave 1', branch: 'ui-w1-fix' },
+    rev: { type: 'pod:reviewer', description: 'Review plan', plan: 'long-runs' },
+    plan: { type: 'pod:sprint-planner', description: 'Draft sprint' },
+  }
+  const tokens = { a1: 100_000, a2: 50_000, b1: 20_000, fix: 5_000, rev: 90_000, plan: 1_000 }
+  const totals = tokenTotals(spawns, tokens, [ui], 'long-runs')
+  expect(totals.sprints.get('ui')).toBe(175_000)
+  expect(totals.review).toBe(90_000)
+  expect(totals.plan).toBe(266_000)
+
+  const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [ui], spawns, live: [], tokens })
+  expect(lines[0]?.note).toBe('266k tokens')
+  expect(lines.find(l => l.kind === 'wave' && l.text === 'wave 1')?.note).toBe('2/2 done')
+  expect(lines.find(l => l.kind === 'sprint' && l.text === 'ui')?.note).toBe('175k tokens · Build the screens')
+  expect(lines.find(l => l.kind === 'review')?.note).toBe('90k tokens')
+  expect(lines.find(l => l.kind === 'sprint' && l.text === 'core')?.note).toBe('Build the core')
 })

@@ -97,3 +97,23 @@ test('a pane behind another plugin pane counts as hidden', async ($, on) => {
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
   expect(logged).toEqual(['✗ BLOCKED · one · A1 First slice'])
 })
+
+test('the turns of a spawned agent add up its tokens, and other loops add none', async ($, on) => {
+  world(on, [])
+  on('agent.spawn', () => ({ agentId: 'a1', model: 'claude-opus-5-5' }))
+  on('turn.complete', () => ({ text: '' }))
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  await $.agent.spawn({ subagentType: 'pod:engineer', description: 'A1', prompt: 'sprint slug: one · slice code: A1' } as never)
+  const usage = { input_tokens: 10, output_tokens: 200, cache_creation_input_tokens: 3000, cache_read_input_tokens: 90_000, model: 'm' }
+  const turn = { answer: '', durationMs: 1, isAborted: false, turnId: 't', reason: 'answer' as const, usage }
+  await $.turn.complete({ ...turn, agentId: 'a1' })
+  await $.turn.complete({ ...turn, agentId: 'a1' })
+  await $.turn.complete({ ...turn, agentId: 'stranger' })
+  await $.turn.complete(turn)
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 120 } as never })
+  const drawn = JSON.stringify(await pane.drawn())
+  // 2 × (10 + 200 + 3000): the stranger and the main loop add nothing.
+  expect(drawn).toContain('one  6.4k tokens · First')
+  expect(drawn).not.toContain('13k')
+})
