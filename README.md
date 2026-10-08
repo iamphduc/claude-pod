@@ -27,19 +27,13 @@ You need Claude Code, `git`, and the GitHub CLI (`gh`), logged in.
 
 The tree opens beside the transcript when you start `/pod:autopilot` or `/pod:ship`. To open it again, run `/pod-flow`. pod-flow only reads your `docs/` files and the session's agent list. It needs a Claude Code build with function hooks, which are in early access.
 
-**2. Set up your project** (from the repo root, new or existing):
-
-```
-/pod:init
-```
-
-**3. Ship an idea:**
+**2. Ship an idea** (from the repo root, new or existing):
 
 ```
 /pod:ship a habit tracker with streaks and reminders
 ```
 
-That's it. pod researches the idea, interviews you, writes the plan, asks you to reply `go`, and then builds it.
+That's it. pod researches the idea, interviews you, writes the plan, sets pod up in the project if needed, asks you to reply `go`, and then builds it. A small change runs as one fix instead of a plan. After a stop, run `/pod:ship` again to pick up where it left off.
 
 ## Which command do I use?
 
@@ -87,7 +81,7 @@ Creates pod's files in `docs/` and never overwrites one that already exists. The
 
 ### `/pod:ship <idea>`: everything in one go
 
-Runs research → plan → init (only if needed) → autopilot, so you never retype the idea. You still answer the plan interview. Before autopilot starts, it shows you the plan and waits for `go`, because autopilot merges without you. If it stops partway, run `/pod:ship` again and it picks up where it left off.
+Runs research → plan → init (only if needed) → autopilot, so you never retype the idea. If the idea is one small change, it first offers to run it as `/pod:fix` instead (so does `/pod:plan`). You still answer the plan interview. Before autopilot starts, it shows you the plan and waits for `go`, because autopilot merges without you. If it stops partway, run `/pod:ship` again and it picks up where it left off.
 
 Options: `--no-research` skips research, `--deep` researches more, and `--max-*` sets autopilot's limits.
 
