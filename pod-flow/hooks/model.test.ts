@@ -371,6 +371,30 @@ test('a done slice with a PR link is merged once a later wave has started', () =
   expect(lines.find(l => l.kind === 'wave' && l.text === 'wave 1')).toMatchObject({ status: 'done' })
 })
 
+test('a running sprint-planner sits under the sprint it drafts, not loose at the end', () => {
+  const plan = parsePlan(PLAN.replace('| ui | Build the screens | active |', '| ui | Build the screens | done |'), 'long-runs')
+  const spawns = { p1: { type: 'pod:sprint-planner', description: 'Draft next sprint', startedAt: 0 } }
+  const lines = buildTree({ plan, sprints: [], spawns, live: [{ id: 'p1', type: 'pod:sprint-planner', status: 'running' }], now: 120_000 })
+  const at = lines.findIndex(l => l.kind === 'sprint' && l.text === 'polish')
+  expect(lines[at]).toMatchObject({ status: 'running' })
+  expect(lines[at + 1]).toMatchObject({ depth: 2, kind: 'agent', text: 'drafting', status: 'running' })
+  expect(lines.filter(l => l.kind === 'agent')).toHaveLength(1)
+  expect(snapshot(lines)).toBe(`sprint 3/3 · 1 running\n├─ ✓ 2 sprints done\n└─ ● polish\n   └─ ● drafting ${lines[at + 1]!.note}`)
+})
+
+test('plan and sprint statuses read the same in any case', () => {
+  const plan = parsePlan(PLAN.replace('Status: active', 'Status: Archived').replace('| core | Build the core | done |', '| core | Build the core | Done |'), 'long-runs')
+  expect(plan.status).toBe('archived')
+  expect(plan.sprints[0]?.status).toBe('done')
+})
+
+test('a sprint with a live doc runs even when its plan cell still says planned', () => {
+  const plan = parsePlan(PLAN.replace('| ui | Build the screens | active |', '| ui | Build the screens | planned |'), 'long-runs')
+  const lines = buildTree({ plan, sprints: [parseSprint(SPRINT, false)!], spawns: {}, live: [] })
+  expect(lines.filter(l => l.kind === 'sprint').map(l => `${l.text}:${l.status}`)).toEqual(['core:done', 'ui:running', 'polish:waiting'])
+  expect(summarize(lines)).toBe('sprint 2/3 · wave 2/2')
+})
+
 test('merged as a status counts as done', () => {
   const board = CHESS_BOARD.replaceAll('| #3 merged | done |', '| — | merged |').replaceAll('| #4 merged | done |', '| — | merged |').replaceAll('| #5 merged | done |', '| — | merged |')
   const lines = buildTree({ plan: parsePlan(CHESS_PLAN, 'pure-engine'), sprints: [parseSprint(board, false)!], spawns: {}, live: [] })
