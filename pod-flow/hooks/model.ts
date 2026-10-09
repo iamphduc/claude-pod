@@ -546,7 +546,8 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
       depth: 1,
       kind: 'sprint',
       text: sprint.slug,
-      status: sprint.status === 'done' ? 'done' : sprint.status === 'active' ? 'running' : 'waiting',
+      // The plan's cell can lag at `planned`: a sprint doc not yet archived means the sprint has started.
+      status: sprint.status === 'done' ? 'done' : sprint.status === 'active' || (doc && !doc.isArchived) ? 'running' : 'waiting',
       note: [tokenNote(spent.sprints.get(sprint.slug)), sprint.goal].filter(Boolean).join(' · '),
       sprint: sprint.slug,
       detail: doc

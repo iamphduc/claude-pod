@@ -371,6 +371,13 @@ test('a done slice with a PR link is merged once a later wave has started', () =
   expect(lines.find(l => l.kind === 'wave' && l.text === 'wave 1')).toMatchObject({ status: 'done' })
 })
 
+test('a sprint with a live doc runs even when its plan cell still says planned', () => {
+  const plan = parsePlan(PLAN.replace('| ui | Build the screens | active |', '| ui | Build the screens | planned |'), 'long-runs')
+  const lines = buildTree({ plan, sprints: [parseSprint(SPRINT, false)!], spawns: {}, live: [] })
+  expect(lines.filter(l => l.kind === 'sprint').map(l => `${l.text}:${l.status}`)).toEqual(['core:done', 'ui:running', 'polish:waiting'])
+  expect(summarize(lines)).toBe('sprint 2/3 · wave 2/2')
+})
+
 test('merged as a status counts as done', () => {
   const board = CHESS_BOARD.replaceAll('| #3 merged | done |', '| — | merged |').replaceAll('| #4 merged | done |', '| — | merged |').replaceAll('| #5 merged | done |', '| — | merged |')
   const lines = buildTree({ plan: parsePlan(CHESS_PLAN, 'pure-engine'), sprints: [parseSprint(board, false)!], spawns: {}, live: [] })
