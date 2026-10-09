@@ -129,6 +129,7 @@ export const register: Register = on => {
     await $.command.register({
       name: 'pod-flow',
       description: 'Show the pod run tree (during /pod:autopilot or /pod:ship)',
+      argumentHint: '[text|reset]',
     })
     // A reload runs this again with the run's state kept: pick the refresh back up.
     if (await read($, isActive)) await startRefreshing($)
@@ -174,6 +175,17 @@ export const register: Register = on => {
 
   on('command.run', { command: 'pod-flow' }, async ($, e) => {
     const arg = e.args.trim()
+    // `/pod-flow reset` forgets this session's agents (rounds, tokens) and folds, as after a test with fake agents.
+    if (arg === 'reset') {
+      await update($, spawns, () => ({}))
+      await update($, tokens, () => ({}))
+      await update($, expanded, () => [])
+      for (const id of Object.keys(lastSeen)) delete lastSeen[id]
+      // The next tree sets a fresh baseline, so nothing already there is told again.
+      told = undefined
+      if (await read($, isActive)) await refresh($)
+      return { text: 'pod flow reset.' }
+    }
     // `/pod-flow preview` opens the tree without a run, to try the mod on a project's docs.
     if (arg === 'preview') {
       await update($, isActive, () => true)

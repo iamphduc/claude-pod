@@ -497,9 +497,12 @@ export type TreeInput = {
   tokens?: Record<string, number>
 }
 
+const ENDED = new Set(['completed', 'failed', 'killed'])
+
 export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, lastSeen = {}, queue = [], tokens = {} }: TreeInput): TreeLine[] {
   const spent = tokenTotals(spawns, tokens, sprints, plan.slug)
-  const running = live.filter(a => a.status === 'running')
+  // Live until it ends: an agent `waiting` on its own background work, `pending` or `idle` is still at it.
+  const running = live.filter(a => !ENDED.has(a.status))
   const dispatchOf = (a: LiveAgent) => spawns[a.id]
   const codes = sprints.flatMap(s => s.rows.map(r => r.slice))
   const agentOfSlice = new Map<string, LiveAgent>()

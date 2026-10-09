@@ -626,3 +626,23 @@ test('snapshot ends with the halt and what to do', () => {
   const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [], spawns: {}, live: [], halt: 'Gate 4: wave check failed', haltType: 'BLOCKED' })
   expect(snapshot(lines).split('\n').slice(-2)).toEqual(['└─ ✗ halted  Gate 4: wave check failed', '   └─ ➜ fix it first, then /pod:autopilot to resume'])
 })
+
+test('an agent waiting on its own background work still runs its slice and holds back a halt', () => {
+  const lines = buildTree({
+    plan: parsePlan(PLAN, 'long-runs'),
+    sprints: [parseSprint(SPRINT, false)!],
+    spawns: { b1: { type: 'pod:engineer', description: 'B1', sprint: 'ui', slice: 'B1' } },
+    live: [{ id: 'b1', type: 'pod:engineer', status: 'waiting' }],
+    halt: 'Gate 4: wave check failed',
+  })
+  expect(lines.find(l => l.text.startsWith('B1'))?.status).toBe('running')
+  expect(lines.some(l => l.kind === 'halt')).toBe(false)
+  expect(summarize(lines)).toContain('1 running')
+  const ended = buildTree({
+    plan: parsePlan(PLAN, 'long-runs'),
+    sprints: [parseSprint(SPRINT, false)!],
+    spawns: { b1: { type: 'pod:engineer', description: 'B1', sprint: 'ui', slice: 'B1' } },
+    live: [{ id: 'b1', type: 'pod:engineer', status: 'completed' }],
+  })
+  expect(ended.find(l => l.text.startsWith('B1'))?.status).toBe('waiting')
+})
