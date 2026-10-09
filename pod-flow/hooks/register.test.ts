@@ -152,3 +152,19 @@ test('/pod-flow prints the snapshot where nothing draws, as under -p', async ($,
   expect((await run($, 'preview')).text).toBe('sprint 1/1 · wave 1/1\n└─ ● one')
   expect(opened).toEqual([])
 })
+
+test('/pod-flow reset forgets the session agents, so their rounds and tokens leave the tree', async ($, on) => {
+  world(on, [])
+  on('session.surfaces', () => ({ value: ['terminal' as const] }))
+  on('agent.spawn', () => ({ agentId: 'r1', model: 'claude-opus-5-5' }))
+  on('turn.complete', () => ({ text: '' }))
+  await run($, 'preview')
+  await $.agent.spawn({ subagentType: 'pod:reviewer', description: 'Review plan', prompt: 'plan slug: demo · round: 1' } as never)
+  const usage = { input_tokens: 10, output_tokens: 200, cache_creation_input_tokens: 3000, cache_read_input_tokens: 0, model: 'm' }
+  await $.turn.complete({ answer: '', durationMs: 1, isAborted: false, turnId: 't', reason: 'answer', agentId: 'r1', usage })
+  expect((await run($, 'text')).text).toContain('review · 1 round')
+  expect((await run($, 'reset')).text).toBe('pod flow reset.')
+  const { text } = await run($, 'text')
+  expect(text).not.toContain('review')
+  expect(text).not.toContain('tokens')
+})
