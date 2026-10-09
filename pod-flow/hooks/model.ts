@@ -67,7 +67,8 @@ export function parsePlan(md: string, slug: string): PlanDoc {
   return {
     slug,
     title: /^#\s+(.+)$/m.exec(md)?.[1]?.replace(/^Plan:\s*/i, '') ?? slug,
-    status: (/Status:\s*(\w+)/.exec(md)?.[1] ?? 'active').toLowerCase(),
+    // Letters only: a header that ends on its status (`· Status: archived_`) keeps the italic's `_` out.
+    status: (/Status:\s*([A-Za-z]+)/.exec(md)?.[1] ?? 'active').toLowerCase(),
     sprints: sprintRows(md),
   }
 }

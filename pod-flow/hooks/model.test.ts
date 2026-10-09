@@ -382,6 +382,10 @@ test('a running sprint-planner sits under the sprint it drafts, not loose at the
   expect(snapshot(lines)).toBe(`sprint 3/3 · 1 running\n├─ ✓ 2 sprints done\n└─ ● polish\n   └─ ● drafting ${lines[at + 1]!.note}`)
 })
 
+test('a plan header that ends on its status reads it without the closing underscore', () => {
+  expect(parsePlan('# Plan: P\n\n_Generated: 2026-10-01 · Status: archived_\n', 'p').status).toBe('archived')
+})
+
 test('plan and sprint statuses read the same in any case', () => {
   const plan = parsePlan(PLAN.replace('Status: active', 'Status: Archived').replace('| core | Build the core | done |', '| core | Build the core | Done |'), 'long-runs')
   expect(plan.status).toBe('archived')
