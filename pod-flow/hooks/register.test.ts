@@ -178,3 +178,12 @@ test('a sprint-planner spawned during the run shows as drafting under its sprint
   await $.agent.spawn({ subagentType: 'pod:sprint-planner', description: 'Draft next sprint', prompt: 'plan slug: demo' } as never)
   expect((await run($, 'text')).text).toBe('sprint 2/2 · 1 running\n├─ ✓ 1 sprint done\n└─ ● two\n   └─ ● drafting 0s')
 })
+
+test('an agent links to its slice by the markdown fields alone, whatever its description says', async ($, on) => {
+  world(on, [], true, [], docs(), true, [{ id: 'e1', type: 'pod:engineer', status: 'running' }])
+  on('session.surfaces', () => ({ value: ['terminal' as const] }))
+  on('agent.spawn', () => ({ agentId: 'e1', model: 'claude-opus-5-5' }))
+  await run($, 'preview')
+  await $.agent.spawn({ subagentType: 'pod:engineer', description: 'background helper', prompt: '- **sprint slug:** one\n- **slice code:** A1' } as never)
+  expect((await run($, 'text')).text).toBe('sprint 1/1 · wave 1/1 · 1 running\n└─ ● one\n   └─ ● wave 1 · A1 First slice 0s')
+})
