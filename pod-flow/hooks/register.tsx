@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Dispatch, TreeLine } from '../types'
-import { buildTree, fit, GLYPH, latestHalt, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, snapshot, summarize, turnTokens, visibleLines } from './model'
+import { buildTree, fit, GLYPH, latestHalt, mainCheckout, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, snapshot, summarize, turnTokens, visibleLines } from './model'
 import type { PlanDoc, SprintDoc } from './model'
 
 const PANE = 'pod-flow'
@@ -45,10 +45,10 @@ async function listNames($: Dollar, dir: string): Promise<{ name: string; mtimeM
   }
 }
 
-async function newestActivePlan($: Dollar): Promise<PlanDoc | undefined> {
-  const files = (await listNames($, 'docs/plans')).sort((a, b) => b.mtimeMs - a.mtimeMs)
+async function newestActivePlan($: Dollar, docs: string): Promise<PlanDoc | undefined> {
+  const files = (await listNames($, `${docs}/plans`)).sort((a, b) => b.mtimeMs - a.mtimeMs)
   for (const file of files) {
-    const plan = parsePlan(await readText($, `docs/plans/${file.name}`), file.name.replace(/\.md$/, ''))
+    const plan = parsePlan(await readText($, `${docs}/plans/${file.name}`), file.name.replace(/\.md$/, ''))
     if (plan.status !== 'archived' && plan.sprints.length > 0) return plan
   }
   return undefined
@@ -90,17 +90,19 @@ async function refresh($: Dollar) {
 }
 
 async function buildLines($: Dollar) {
-  const plan = await newestActivePlan($)
+  // The main checkout's docs, even while the run works in one of its worktrees, whose copy of the board is old.
+  const docs = `${mainCheckout(await $.session.root())}/docs`
+  const plan = await newestActivePlan($, docs)
   if (!plan) {
     await update($, lines, () => [])
     return
   }
   const sprints = [
-    ...(await sprintDocs($, 'docs/sprints', false)),
-    ...(await sprintDocs($, 'docs/sprints/archive', true)),
+    ...(await sprintDocs($, `${docs}/sprints`, false)),
+    ...(await sprintDocs($, `${docs}/sprints/archive`, true)),
   ].filter(s => s.plan === '' || s.plan === plan.slug)
   const live = (await $.agent.list()).map((a: { id: string; type: string; status: string }) => ({ id: a.id, type: a.type, status: a.status }))
-  const queueText = await readText($, 'docs/handoff-queue.md')
+  const queueText = await readText($, `${docs}/handoff-queue.md`)
   const halt = latestHalt(queueText)
   const queue = parseQueue(queueText)
   const known = await read($, spawns)

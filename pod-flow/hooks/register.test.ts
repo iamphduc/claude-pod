@@ -26,16 +26,19 @@ const docs = (): Record<string, string> => ({
 // The engine hands fs hooks an absolute path (on Windows, with backslashes): match on its end.
 const endsAt = (path: string, rel: string) => path.replaceAll('\\', '/').endsWith(`/${rel}`)
 
-const world = (on: Parameters<typeof mock.clock>[0], opened: string[], isPlaced = true, logged: string[] = [], files = docs(), isShown = isPlaced, agents: { id: string; type: string; status: string }[] = []) => {
+const world = (on: Parameters<typeof mock.clock>[0], opened: string[], isPlaced = true, logged: string[] = [], files = docs(), isShown = isPlaced, agents: { id: string; type: string; status: string }[] = [], root = 'E:\\proj') => {
   mock.clock(on)
+  on('session.root', () => ({ value: root }))
+  // Docs live only in the main checkout, E:\proj: a worktree's copy is old, so here it has none.
+  const isOutsideDocs = (path: string) => !path.replaceAll('\\', '/').startsWith('E:/proj/docs')
   on('fs.list', (_$, e) => {
-    const names = Object.keys(files).filter(p => endsAt(e.path, p.slice(0, p.lastIndexOf('/'))))
+    const names = isOutsideDocs(e.path) ? [] : Object.keys(files).filter(p => endsAt(e.path, p.slice(0, p.lastIndexOf('/'))))
     return {
       value: names.map(p => ({ name: p.split('/').at(-1)!, kind: 'file' as const, size: 1, mtimeMs: 1, isLink: false })),
     }
   })
   on('fs.read', (_$, e) => {
-    const file = Object.keys(files).find(p => endsAt(e.path, p))
+    const file = isOutsideDocs(e.path) ? undefined : Object.keys(files).find(p => endsAt(e.path, p))
     if (file === undefined) throw new Error('ENOENT')
     return { value: files[file]! }
   })
@@ -186,4 +189,11 @@ test('an agent links to its slice by the markdown fields alone, whatever its des
   await run($, 'preview')
   await $.agent.spawn({ subagentType: 'pod:engineer', description: 'background helper', prompt: '- **sprint slug:** one\n- **slice code:** A1' } as never)
   expect((await run($, 'text')).text).toBe('sprint 1/1 · wave 1/1 · 1 running\n└─ ● one\n   └─ ● wave 1 · A1 First slice 0s')
+})
+
+test('a session working in a worktree still reads the main checkout docs', async ($, on) => {
+  world(on, [], true, [], docs(), true, [], 'E:\\proj\\.claude\\worktrees\\one-w1')
+  on('session.surfaces', () => ({ value: ['terminal' as const] }))
+  await run($, 'preview')
+  expect((await run($, 'text')).text).toBe('sprint 1/1 · wave 1/1\n└─ ● one')
 })
