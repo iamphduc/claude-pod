@@ -371,6 +371,12 @@ test('a done slice with a PR link is merged once a later wave has started', () =
   expect(lines.find(l => l.kind === 'wave' && l.text === 'wave 1')).toMatchObject({ status: 'done' })
 })
 
+test('plan and sprint statuses read the same in any case', () => {
+  const plan = parsePlan(PLAN.replace('Status: active', 'Status: Archived').replace('| core | Build the core | done |', '| core | Build the core | Done |'), 'long-runs')
+  expect(plan.status).toBe('archived')
+  expect(plan.sprints[0]?.status).toBe('done')
+})
+
 test('a sprint with a live doc runs even when its plan cell still says planned', () => {
   const plan = parsePlan(PLAN.replace('| ui | Build the screens | active |', '| ui | Build the screens | planned |'), 'long-runs')
   const lines = buildTree({ plan, sprints: [parseSprint(SPRINT, false)!], spawns: {}, live: [] })

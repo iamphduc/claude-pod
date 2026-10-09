@@ -59,7 +59,7 @@ function sprintRows(md: string): PlanDoc['sprints'] {
   return rows.map(row => ({
     slug: cellBy(headers, row, 'sprint'),
     goal: cellBy(headers, row, 'goal'),
-    status: cellBy(headers, row, 'status', 'planned'),
+    status: cellBy(headers, row, 'status', 'planned').toLowerCase(),
   }))
 }
 
@@ -67,7 +67,7 @@ export function parsePlan(md: string, slug: string): PlanDoc {
   return {
     slug,
     title: /^#\s+(.+)$/m.exec(md)?.[1]?.replace(/^Plan:\s*/i, '') ?? slug,
-    status: /Status:\s*(\w+)/.exec(md)?.[1] ?? 'active',
+    status: (/Status:\s*(\w+)/.exec(md)?.[1] ?? 'active').toLowerCase(),
     sprints: sprintRows(md),
   }
 }
