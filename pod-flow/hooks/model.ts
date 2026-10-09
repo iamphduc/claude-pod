@@ -639,7 +639,8 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
     lines.push({
       depth: 1,
       kind: 'halt',
-      text: isHandBack ? 'waiting on you' : 'halted',
+      // Short, so a narrow pane never cuts it: the hint below says what you are waited on for.
+      text: isHandBack ? 'waiting' : 'halted',
       status: isHandBack ? 'pushed' : 'blocked',
       note: pull ? haltText.replace(pull[0], `#${pull[1]}`) : haltText,
     })

@@ -190,7 +190,7 @@ test('milestones name a halt and a finished plan', () => {
   const lines = buildTree({ plan: done, sprints: [], spawns: {}, live: [], halt: 'plan long-runs complete — final PR #20' })
   const told = milestones(lines)
   expect(told.get('plan')).toBe('✓ plan Long runs done')
-  expect([...told.values()]).toContain('◐ WAITING ON YOU · plan long-runs complete — final PR #20')
+  expect([...told.values()]).toContain('◐ WAITING · plan long-runs complete — final PR #20')
 })
 
 test('formatAge writes seconds, minutes and hours', () => {
@@ -422,7 +422,7 @@ function tableRowsFixture() {
 test('a finished plan waiting on its final PR is a hand-back, not a halt', () => {
   const done = parsePlan(PLAN.replace('| ui | Build the screens | active |', '| ui | Build the screens | done |').replace('planned', 'done'), 'long-runs')
   const lines = buildTree({ plan: done, sprints: [], spawns: {}, live: [], halt: 'plan board-feel complete — final PR https://github.com/me/app/pull/55' }).filter(l => l.kind !== 'sprint')
-  expect(lines.find(l => l.kind === 'halt')).toMatchObject({ kind: 'halt', text: 'waiting on you', status: 'pushed' })
+  expect(lines.find(l => l.kind === 'halt')).toMatchObject({ kind: 'halt', text: 'waiting', status: 'pushed' })
   const summary = summarize(buildTree({ plan: done, sprints: [], spawns: {}, live: [], halt: 'plan board-feel complete' }))
   expect(summary).toContain('waiting on you')
   expect(summary).not.toContain('blocked')
@@ -634,7 +634,7 @@ test('a final PR URL reads as its number, with a merge line of its own', () => {
   const lines = buildTree({ plan: done, sprints: [], spawns: {}, live: [], halt })
   expect(lines.find(l => l.kind === 'halt')?.note).toBe('plan long-runs complete — final PR #58, review pass, 1 open entries sorted in the hand-back')
   expect(lines.at(-1)).toMatchObject({ depth: 2, kind: 'hint', text: 'merge PR #58' })
-  expect([...milestones(lines).values()].at(-1)).toBe('◐ WAITING ON YOU · merge PR #58 · plan long-runs complete — final PR #58, review pass, 1 open entries sorted in the hand-back')
+  expect([...milestones(lines).values()].at(-1)).toBe('◐ WAITING · merge PR #58 · plan long-runs complete — final PR #58, review pass, 1 open entries sorted in the hand-back')
 })
 
 test('snapshot is a little tree: finished sprints as a count, then only what runs, is blocked or waits on you', () => {

@@ -232,3 +232,11 @@ test('starting a new run clears the tree of the plan the last run finished', asy
   await $.skill.prompt({ skill: 'pod:ship', text: 'next idea' })
   expect((await run($, 'text')).text).toBe('Waiting for the plan and sprint docs.')
 })
+
+test('a narrow pane shows the whole hand-back label, waiting', async ($, on) => {
+  const files = { ...docs(), 'docs/handoff-queue.md': '- `[2026-10-09 · PENDING · orchestrator → human · plan: demo]` plan demo complete — final PR https://github.com/me/demo/pull/8, review pass **Resolution:** pending' }
+  world(on, [], true, [], files)
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 42 } as never })
+  expect(await pane.find({ type: 'Text', text: /◐ waiting {2}plan demo/ })).toBeDefined()
+})
