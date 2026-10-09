@@ -197,3 +197,46 @@ test('a session working in a worktree still reads the main checkout docs', async
   await run($, 'preview')
   expect((await run($, 'text')).text).toBe('sprint 1/1 · wave 1/1\n└─ ● one')
 })
+
+const close = (files: Record<string, string>) => {
+  // What a run's close-out leaves: the plan archived, its sprint done and moved to the archive.
+  files['docs/plans/demo.md'] = PLAN.replace('Status: active', 'Status: archived').replace('| one | First | active |', '| one | First | done |')
+  files['docs/sprints/archive/one.md'] = SPRINT.replace('Status: active', 'Status: archived').replace('| pending |', '| done |')
+  delete files['docs/sprints/one.md']
+}
+
+test('the tree stays once the run archives its plan', async ($, on) => {
+  const files = docs()
+  world(on, [], true, [], files)
+  on('session.surfaces', () => ({ value: ['terminal' as const] }))
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  close(files)
+  expect((await run($, 'text')).text).toBe('all sprints done\n└─ ✓ 1 sprint done')
+})
+
+test('an archived plan this session never showed stays hidden', async ($, on) => {
+  const files = docs()
+  close(files)
+  world(on, [], true, [], files)
+  on('session.surfaces', () => ({ value: ['terminal' as const] }))
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  expect((await run($, 'text')).text).toBe('Waiting for the plan and sprint docs.')
+})
+
+test('starting a new run clears the tree of the plan the last run finished', async ($, on) => {
+  const files = docs()
+  world(on, [], true, [], files)
+  on('session.surfaces', () => ({ value: ['terminal' as const] }))
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  close(files)
+  await $.skill.prompt({ skill: 'pod:ship', text: 'next idea' })
+  expect((await run($, 'text')).text).toBe('Waiting for the plan and sprint docs.')
+})
+
+test('a narrow pane shows the whole hand-back label, waiting', async ($, on) => {
+  const files = { ...docs(), 'docs/handoff-queue.md': '- `[2026-10-09 · PENDING · orchestrator → human · plan: demo]` plan demo complete — final PR https://github.com/me/demo/pull/8, review pass **Resolution:** pending' }
+  world(on, [], true, [], files)
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 42 } as never })
+  expect(await pane.find({ type: 'Text', text: /◐ waiting {2}plan demo/ })).toBeDefined()
+})

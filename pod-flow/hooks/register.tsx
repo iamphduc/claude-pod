@@ -14,6 +14,7 @@ const lines = atom({ plugin: 'pod-flow', key: 'lines' } as const, [] as TreeLine
 const expanded = atom({ plugin: 'pod-flow', key: 'expanded' } as const, [] as string[])
 const spawns = atom({ plugin: 'pod-flow', key: 'spawns' } as const, {} as Record<string, Dispatch>)
 const tokens = atom({ plugin: 'pod-flow', key: 'tokens' } as const, {} as Record<string, number>)
+const planShown = atom({ plugin: 'pod-flow', key: 'planShown' } as const, '')
 
 const COLOR: Record<string, string | undefined> = {
   running: 'yellow',
@@ -45,13 +46,18 @@ async function listNames($: Dollar, dir: string): Promise<{ name: string; mtimeM
   }
 }
 
-async function newestActivePlan($: Dollar, docs: string): Promise<PlanDoc | undefined> {
+/** The newest plan not archived; else the one this run showed, which the run's close-out archived. */
+async function planToShow($: Dollar, docs: string): Promise<PlanDoc | undefined> {
   const files = (await listNames($, `${docs}/plans`)).sort((a, b) => b.mtimeMs - a.mtimeMs)
+  const shown = await read($, planShown)
+  let finished: PlanDoc | undefined
   for (const file of files) {
     const plan = parsePlan(await readText($, `${docs}/plans/${file.name}`), file.name.replace(/\.md$/, ''))
-    if (plan.status !== 'archived' && plan.sprints.length > 0) return plan
+    if (plan.sprints.length === 0) continue
+    if (plan.status !== 'archived') return plan
+    if (plan.slug === shown) finished = plan
   }
-  return undefined
+  return finished
 }
 
 async function sprintDocs($: Dollar, dir: string, isArchived: boolean): Promise<SprintDoc[]> {
@@ -92,11 +98,12 @@ async function refresh($: Dollar) {
 async function buildLines($: Dollar) {
   // The main checkout's docs, even while the run works in one of its worktrees, whose copy of the board is old.
   const docs = `${mainCheckout(await $.session.root())}/docs`
-  const plan = await newestActivePlan($, docs)
+  const plan = await planToShow($, docs)
   if (!plan) {
     await update($, lines, () => [])
     return
   }
+  if (plan.slug !== (await read($, planShown))) await update($, planShown, () => plan.slug)
   const sprints = [
     ...(await sprintDocs($, `${docs}/sprints`, false)),
     ...(await sprintDocs($, `${docs}/sprints/archive`, true)),
@@ -122,6 +129,8 @@ async function startRefreshing($: Dollar) {
 
 async function activate($: Dollar) {
   await update($, isActive, () => true)
+  // A new run starts from the docs: a plan the last run finished doesn't stand in for it.
+  await update($, planShown, () => '')
   void $.ui.open({ id: PANE, title: 'pod flow' })
   await startRefreshing($)
 }
@@ -182,6 +191,7 @@ export const register: Register = on => {
       await update($, spawns, () => ({}))
       await update($, tokens, () => ({}))
       await update($, expanded, () => [])
+      await update($, planShown, () => '')
       for (const id of Object.keys(lastSeen)) delete lastSeen[id]
       // The next tree sets a fresh baseline, so nothing already there is told again.
       told = undefined

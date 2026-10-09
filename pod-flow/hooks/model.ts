@@ -67,7 +67,8 @@ export function parsePlan(md: string, slug: string): PlanDoc {
   return {
     slug,
     title: /^#\s+(.+)$/m.exec(md)?.[1]?.replace(/^Plan:\s*/i, '') ?? slug,
-    status: (/Status:\s*(\w+)/.exec(md)?.[1] ?? 'active').toLowerCase(),
+    // Letters only: a header that ends on its status (`· Status: archived_`) keeps the italic's `_` out.
+    status: (/Status:\s*([A-Za-z]+)/.exec(md)?.[1] ?? 'active').toLowerCase(),
     sprints: sprintRows(md),
   }
 }
@@ -638,7 +639,8 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
     lines.push({
       depth: 1,
       kind: 'halt',
-      text: isHandBack ? 'waiting on you' : 'halted',
+      // Short, so a narrow pane never cuts it: the hint below says what you are waited on for.
+      text: isHandBack ? 'waiting' : 'halted',
       status: isHandBack ? 'pushed' : 'blocked',
       note: pull ? haltText.replace(pull[0], `#${pull[1]}`) : haltText,
     })
