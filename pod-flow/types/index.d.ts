@@ -34,6 +34,8 @@ declare module 'claude-code' {
       spawns: Record<string, Dispatch>
       expanded: string[]
       tokens: Record<string, number>
+      /** The plan slug this run showed, kept so the tree stays once the plan is archived. */
+      planShown: string
     }
   }
 }

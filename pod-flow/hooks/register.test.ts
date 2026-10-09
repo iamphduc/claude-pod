@@ -197,3 +197,38 @@ test('a session working in a worktree still reads the main checkout docs', async
   await run($, 'preview')
   expect((await run($, 'text')).text).toBe('sprint 1/1 · wave 1/1\n└─ ● one')
 })
+
+const close = (files: Record<string, string>) => {
+  // What a run's close-out leaves: the plan archived, its sprint done and moved to the archive.
+  files['docs/plans/demo.md'] = PLAN.replace('Status: active', 'Status: archived').replace('| one | First | active |', '| one | First | done |')
+  files['docs/sprints/archive/one.md'] = SPRINT.replace('Status: active', 'Status: archived').replace('| pending |', '| done |')
+  delete files['docs/sprints/one.md']
+}
+
+test('the tree stays once the run archives its plan', async ($, on) => {
+  const files = docs()
+  world(on, [], true, [], files)
+  on('session.surfaces', () => ({ value: ['terminal' as const] }))
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  close(files)
+  expect((await run($, 'text')).text).toBe('all sprints done\n└─ ✓ 1 sprint done')
+})
+
+test('an archived plan this session never showed stays hidden', async ($, on) => {
+  const files = docs()
+  close(files)
+  world(on, [], true, [], files)
+  on('session.surfaces', () => ({ value: ['terminal' as const] }))
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  expect((await run($, 'text')).text).toBe('Waiting for the plan and sprint docs.')
+})
+
+test('starting a new run clears the tree of the plan the last run finished', async ($, on) => {
+  const files = docs()
+  world(on, [], true, [], files)
+  on('session.surfaces', () => ({ value: ['terminal' as const] }))
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  close(files)
+  await $.skill.prompt({ skill: 'pod:ship', text: 'next idea' })
+  expect((await run($, 'text')).text).toBe('Waiting for the plan and sprint docs.')
+})
