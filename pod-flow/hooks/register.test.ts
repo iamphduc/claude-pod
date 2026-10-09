@@ -26,7 +26,7 @@ const docs = (): Record<string, string> => ({
 // The engine hands fs hooks an absolute path (on Windows, with backslashes): match on its end.
 const endsAt = (path: string, rel: string) => path.replaceAll('\\', '/').endsWith(`/${rel}`)
 
-const world = (on: Parameters<typeof mock.clock>[0], opened: string[], isPlaced = true, logged: string[] = [], files = docs(), isShown = isPlaced) => {
+const world = (on: Parameters<typeof mock.clock>[0], opened: string[], isPlaced = true, logged: string[] = [], files = docs(), isShown = isPlaced, agents: { id: string; type: string; status: string }[] = []) => {
   mock.clock(on)
   on('fs.list', (_$, e) => {
     const names = Object.keys(files).filter(p => endsAt(e.path, p.slice(0, p.lastIndexOf('/'))))
@@ -39,7 +39,7 @@ const world = (on: Parameters<typeof mock.clock>[0], opened: string[], isPlaced 
     if (file === undefined) throw new Error('ENOENT')
     return { value: files[file]! }
   })
-  on('agent.list', () => ({ value: [] }))
+  on('agent.list', () => ({ value: agents as never }))
   on('skill.prompt', (_$, e) => ({ text: e.text }))
   on('ui.open', (_$, e) => {
     opened.push(e.id)
@@ -167,4 +167,14 @@ test('/pod-flow reset forgets the session agents, so their rounds and tokens lea
   const { text } = await run($, 'text')
   expect(text).not.toContain('review')
   expect(text).not.toContain('tokens')
+})
+
+test('a sprint-planner spawned during the run shows as drafting under its sprint', async ($, on) => {
+  const files = { 'docs/plans/demo.md': PLAN.replace('| one | First | active |', '| one | First | done |\n| two | Second | planned |') }
+  world(on, [], true, [], files, true, [{ id: 'p1', type: 'pod:sprint-planner', status: 'running' }])
+  on('session.surfaces', () => ({ value: ['terminal' as const] }))
+  on('agent.spawn', () => ({ agentId: 'p1', model: 'claude-opus-5-5' }))
+  await run($, 'preview')
+  await $.agent.spawn({ subagentType: 'pod:sprint-planner', description: 'Draft next sprint', prompt: 'plan slug: demo' } as never)
+  expect((await run($, 'text')).text).toBe('sprint 2/2 · 1 running\n├─ ✓ 1 sprint done\n└─ ● two\n   └─ ● drafting 0s')
 })

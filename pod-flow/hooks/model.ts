@@ -352,6 +352,8 @@ export function snapshot(lines: TreeLine[]): string {
         if (l.kind === 'wave') {
           closeWave()
           wave = l
+        } else if (l.kind === 'agent') {
+          children.push(`${GLYPH.running} ${[l.text, l.note].filter(Boolean).join(' ')}`)
         } else if ((l.kind === 'slice' || l.kind === 'round') && l.status === 'running') {
           busy.push([l.text, l.note].filter(Boolean).join(' '))
         } else if (l.kind === 'slice' && l.status === 'blocked') {
@@ -370,7 +372,7 @@ export function snapshot(lines: TreeLine[]): string {
       const rounds = end < 0 ? after : after.slice(0, end)
       const live = rounds.find(r => r.status === 'running')
       row(1, `${glyph} review · ${live ? [live.text, live.note].filter(Boolean).join(' ') : `${rounds.length} ${rounds.length === 1 ? 'round' : 'rounds'}`}`)
-    } else if (line.kind === 'agent') {
+    } else if (line.kind === 'agent' && line.depth === 1) {
       row(1, `${glyph} ${[line.text, line.note].filter(Boolean).join(' · ')}`)
     } else if (line.kind === 'halt') {
       row(1, `${glyph} ${line.text}  ${line.note ?? ''}`.trimEnd())
@@ -498,6 +500,7 @@ export type TreeInput = {
 }
 
 const ENDED = new Set(['completed', 'failed', 'killed'])
+const PLANNER = /(^|:)sprint-planner$/
 
 export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, lastSeen = {}, queue = [], tokens = {} }: TreeInput): TreeLine[] {
   const spent = tokenTotals(spawns, tokens, sprints, plan.slug)
@@ -530,6 +533,9 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
   const liveSlices = new Set(agentOfSlice.keys())
   const ageOf = (a: LiveAgent | undefined) =>
     a ? ageNote(dispatchOf(a)?.startedAt, lastSeen[a.id], now) : undefined
+  // Autopilot hands the planner only the plan slug: it drafts the first sprint not done that has no doc yet.
+  const planners = running.filter(a => PLANNER.test(dispatchOf(a)?.type ?? a.type))
+  const drafted = planners.length > 0 ? plan.sprints.find(s => s.status !== 'done' && !sprints.some(d => d.slug === s.slug))?.slug : undefined
   const isPlanDone =
     plan.status === 'archived' ||
     (plan.sprints.length > 0 && plan.sprints.every(s => s.status === 'done') && running.length === 0)
@@ -547,7 +553,7 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
       kind: 'sprint',
       text: sprint.slug,
       // The plan's cell can lag at `planned`: a sprint doc not yet archived means the sprint has started.
-      status: sprint.status === 'done' ? 'done' : sprint.status === 'active' || (doc && !doc.isArchived) ? 'running' : 'waiting',
+      status: sprint.status === 'done' ? 'done' : sprint.status === 'active' || (doc && !doc.isArchived) || sprint.slug === drafted ? 'running' : 'waiting',
       note: [tokenNote(spent.sprints.get(sprint.slug)), sprint.goal].filter(Boolean).join(' · '),
       sprint: sprint.slug,
       detail: doc
@@ -555,6 +561,9 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
         : undefined,
       blockedCount: blockedCount || undefined,
     })
+    if (sprint.slug === drafted) {
+      for (const a of planners) lines.push({ depth: 2, kind: 'agent', text: 'drafting', status: 'running', note: ageOf(a), sprint: sprint.slug })
+    }
     for (const wave of waves) {
       const rows = doc!.rows.filter(r => r.wave === wave)
       const doneCount = rows.filter(isDone).length
@@ -606,7 +615,7 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
   // Agents that match no slice or round (the planner, the reporter).
   for (const agent of running) {
     const d = dispatchOf(agent)
-    if (roundIds.has(agent.id) || sliceOf(d, codes)) continue
+    if (roundIds.has(agent.id) || sliceOf(d, codes) || (drafted && planners.includes(agent))) continue
     lines.push({
       depth: 1,
       kind: 'agent',
