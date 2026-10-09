@@ -504,6 +504,17 @@ test('parseDispatch reads a reviewer plan slug and round, and ignores words that
   expect(parseDispatch('run it in background: true').round).toBeUndefined()
 })
 
+test('parseDispatch reads fields with the colon inside the bold, as autopilot writes them', () => {
+  // From a real autopilot run: the closing ** sits between the colon and the value.
+  const engineer = `Build slice D1 of sprint living-day.
+
+- **sprint slug:** living-day
+- **slice code:** D1
+- **branch name:** living-day-D1 (local branch already in the worktree; not yet on origin)`
+  expect(parseDispatch(engineer)).toMatchObject({ sprint: 'living-day', slice: 'D1', branch: 'living-day-D1' })
+  expect(parseDispatch('- **plan slug:** `skyscraper-view`\n- **round:** 2')).toMatchObject({ plan: 'skyscraper-view', round: 2 })
+})
+
 test('review and fix rounds sit under a review node in order, and stay after they finish', () => {
   const lines = buildTree({
     plan: parsePlan(PLAN, 'long-runs'),

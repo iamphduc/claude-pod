@@ -179,8 +179,9 @@ export function concernsFor(entries: QueueEntry[], sprint: string, row: Row): Qu
 
 /** What an engineer's dispatch prompt says about where it works. */
 export function parseDispatch(prompt: string): Pick<Dispatch, 'sprint' | 'slice' | 'branch' | 'plan' | 'round'> {
+  // Pod writes its fields as markdown, `- **slice code:** D1`: the closing `**` sits between the colon and the value.
   const field = (name: string) =>
-    new RegExp(`\\b${name}\\W{0,4}[:=]\\s*\`?([\\w.-]+)`, 'i').exec(prompt)?.[1]
+    new RegExp(`\\b${name}\\W{0,4}[:=][\\s*_\`]*([\\w.-]+)`, 'i').exec(prompt)?.[1]
   const round = Number(field('round'))
   return {
     sprint: field('sprint slug'),
