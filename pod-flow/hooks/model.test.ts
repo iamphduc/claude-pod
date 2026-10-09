@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 
-import { ageNote, buildTree, snapshot, formatTokens, tokenTotals, turnTokens, concernText, fit, parseQueue, formatAge, prState, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, milestones, prefixes, summarize, tableRows, visibleLines } from './model'
+import { ageNote, buildTree, mainCheckout, snapshot, formatTokens, tokenTotals, turnTokens, concernText, fit, parseQueue, formatAge, prState, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, milestones, prefixes, summarize, tableRows, visibleLines } from './model'
 
 const PLAN = `# Plan: Long runs
 
@@ -502,6 +502,12 @@ test('concerns sit under their slice, and do not add to the blocked count', () =
 test('parseDispatch reads a reviewer plan slug and round, and ignores words that only end in round', () => {
   expect(parseDispatch('**plan slug**: `long-runs`\n**round**: 2')).toMatchObject({ plan: 'long-runs', round: 2 })
   expect(parseDispatch('run it in background: true').round).toBeUndefined()
+})
+
+test('mainCheckout gives the repo above a worktree, and leaves any other path alone', () => {
+  expect(mainCheckout('E:\\Projects\\sky\\.claude\\worktrees\\living-day-w3')).toBe('E:\\Projects\\sky')
+  expect(mainCheckout('/e/Projects/sky/.claude/worktrees/living-day-w3/src')).toBe('/e/Projects/sky')
+  expect(mainCheckout('E:\\Projects\\sky')).toBe('E:\\Projects\\sky')
 })
 
 test('parseDispatch reads fields with the colon inside the bold, as autopilot writes them', () => {

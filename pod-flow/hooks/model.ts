@@ -177,6 +177,9 @@ export function concernsFor(entries: QueueEntry[], sprint: string, row: Row): Qu
     .slice(-MAX_CONCERNS)
 }
 
+/** The repo a path sits in: a worktree under `.claude/worktrees/` gives the checkout above it. */
+export const mainCheckout = (dir: string) => dir.replace(/[\\/]\.claude[\\/]worktrees[\\/].*$/, '')
+
 /** What an engineer's dispatch prompt says about where it works. */
 export function parseDispatch(prompt: string): Pick<Dispatch, 'sprint' | 'slice' | 'branch' | 'plan' | 'round'> {
   // Pod writes its fields as markdown, `- **slice code:** D1`: the closing `**` sits between the colon and the value.
