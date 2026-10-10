@@ -89,6 +89,17 @@ test('latestHalt skips a pending orchestrator note that names no gate', () => {
   expect(latestHalt('- `[2026-10-06 · PENDING · orchestrator → human]` plan board-feel complete — final PR #55 **Resolution:** pending')?.type).toBe('PENDING')
 })
 
+test('latestHalt keeps to the plan shown, by its plan or its sprint', () => {
+  const plan = { slug: 'next', title: 'Next', status: 'active', sprints: [{ slug: 'ui', goal: '', status: 'active' }] }
+  const old = '- `[2026-10-06 · PENDING · orchestrator → human · plan: board-feel]` plan board-feel complete — final PR #55 **Resolution:** pending'
+  const oldSprint = '- `[2026-10-06 · BLOCKED · orchestrator → human · sprint: rules]` Gate 6: low confidence **Resolution:** pending'
+  expect(latestHalt(old, plan)).toBeUndefined()
+  expect(latestHalt(oldSprint, plan)).toBeUndefined()
+  expect(latestHalt(`${old}\n- \`[2026-10-07 · BLOCKED · orchestrator → human · sprint: ui]\` Gate 4: wave check failed **Resolution:** pending`, plan)?.body).toBe('Gate 4: wave check failed')
+  // An entry that names neither is kept, as before.
+  expect(latestHalt('- `[2026-10-07 · BLOCKED · orchestrator → human]` Gate 3: PR blocked **Resolution:** pending', plan)?.type).toBe('BLOCKED')
+})
+
 test('buildTree maps plan, sprints, waves and slices, and marks a live engineer', () => {
   const lines = buildTree({
     plan: parsePlan(PLAN, 'long-runs'),
