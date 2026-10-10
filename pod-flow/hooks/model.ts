@@ -301,10 +301,18 @@ export function summarize(lines: TreeLine[]): string {
   return parts.join(' · ')
 }
 
+/** The shortest cut plan name worth showing in the header; narrower, it is left out. */
+const MIN_NAME = 8
+
 /** The line over the tree: the plan's name, where the run is, and the plan's tokens. It is the tree's root. */
-export function header(lines: TreeLine[]): string {
+export function header(lines: TreeLine[], width = Infinity): string {
   const plan = lines.find(l => l.kind === 'plan')
-  return [plan?.text, summarize(lines), plan?.note].filter(Boolean).join(' · ')
+  const rest = [summarize(lines), plan?.note].filter(Boolean).join(' · ')
+  const full = [plan?.text, rest].filter(Boolean).join(' · ')
+  if (full.length <= width || !plan || !rest) return full
+  // The name gives way first: where the run is and what needs you are the point of the line.
+  const room = width - rest.length - ' · '.length
+  return room >= MIN_NAME ? `${plan.text.slice(0, room - 1)}… · ${rest}` : rest
 }
 
 /** The symbol for each status, shared by the tree and the transcript lines. */

@@ -296,3 +296,11 @@ test("a new plan's tree leaves out the last plan's hand-back", async ($, on) => 
   expect(text).not.toContain('waiting')
   expect(text).not.toContain('PR #7')
 })
+
+test('a narrow pane keeps what needs you in the header, over the plan name', async ($, on) => {
+  const files = { ...handBack(12), 'docs/plans/demo.md': PLAN.replace('# Plan: Demo', '# Plan: A rather long plan name') }
+  world(on, [], true, [], files)
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 42 } as never })
+  expect(await pane.find({ type: 'Text', text: /^sprint 1\/1 · wave 1\/1 · waiting on you$/ })).toBeDefined()
+})
