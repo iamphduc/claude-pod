@@ -240,3 +240,32 @@ test('a narrow pane shows the whole hand-back label, waiting', async ($, on) => 
   const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 42 } as never })
   expect(await pane.find({ type: 'Text', text: /◐ waiting {2}plan demo/ })).toBeDefined()
 })
+
+const handBack = (pull: number) => ({
+  ...docs(),
+  'docs/handoff-queue.md': `- \`[2026-10-09 · PENDING · orchestrator → human · plan: demo]\` plan demo complete — final PR https://github.com/me/demo/pull/${pull}, review pass **Resolution:** pending`,
+})
+
+test('a hand-back whose PR has merged shows it merged, with nothing left to do', async ($, on) => {
+  const asked: string[][] = []
+  world(on, [], true, [], handBack(9))
+  on('process.run', (_$, e) => {
+    asked.push([...e.argv])
+    return { value: { exitCode: 0, stdout: 'MERGED\n', stderr: '' } as never }
+  })
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  const text = (await run($, 'text')).text
+  expect(asked[0]).toEqual(['gh', 'pr', 'view', '9', '--json', 'state', '--jq', '.state'])
+  expect(text).toContain('✓ PR #9 merged')
+  expect(text).not.toContain('merge PR #9')
+  expect(text).not.toContain('waiting')
+})
+
+test('a hand-back stays waiting when gh cannot tell', async ($, on) => {
+  world(on, [], true, [], handBack(10))
+  on('process.run', () => ({ value: { exitCode: 1, stdout: '', stderr: 'gh: not logged in' } as never }))
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  const text = (await run($, 'text')).text
+  expect(text).toContain('waiting')
+  expect(text).toContain('merge PR #10')
+})
