@@ -114,7 +114,7 @@ test('buildTree maps plan, sprints, waves and slices, and marks a live engineer'
   expect(text).toContain('3 slice B1 running')
   expect(text).toContain('3 slice B2 waiting')
   expect(lines.find(l => l.kind === 'wave' && l.text === 'wave 2')?.status).toBe('running')
-  expect(lines.find(l => l.kind === 'wave' && l.text === 'wave 1')?.note).toBe('2/2 done')
+  expect(lines.find(l => l.kind === 'wave' && l.text === 'wave 1')?.note).toBeUndefined()
 })
 
 test('buildTree lists a running agent that matches no slice', () => {
@@ -263,16 +263,16 @@ const waveNote = (pr: string, status = 'pushed') => {
 }
 
 test('a wave with an open PR says so', () => {
-  expect(waveNote('https://github.com/me/app/pull/12')).toMatchObject({ status: 'running', note: 'PR #12 open · 0/2 done' })
+  expect(waveNote('https://github.com/me/app/pull/12')).toMatchObject({ status: 'running', note: 'PR #12 open · 0/2' })
 })
 
 test('an open PR wins even when every slice is marked done', () => {
-  expect(waveNote('https://github.com/me/app/pull/12', 'done')).toMatchObject({ status: 'running', note: 'PR #12 open · 2/2 done' })
+  expect(waveNote('https://github.com/me/app/pull/12', 'done')).toMatchObject({ status: 'running', note: 'PR #12 open · 2/2' })
 })
 
 test('a merged wave is done, and a skipped one is blocked', () => {
-  expect(waveNote('merged', 'done')).toMatchObject({ status: 'done', note: '2/2 done' })
-  expect(waveNote('skipped — verification failed')).toMatchObject({ status: 'blocked', note: 'skipped · 0/2 done' })
+  expect(waveNote('merged', 'done')).toMatchObject({ status: 'done', note: undefined })
+  expect(waveNote('skipped — verification failed')).toMatchObject({ status: 'blocked', note: 'skipped · 0/2' })
 })
 
 test('fit keeps the note and shortens the name when the row is too long', () => {
@@ -351,7 +351,7 @@ test("a board with a different layout still shows merged waves as done with no s
     live: [],
   })
   const waves = lines.filter(l => l.kind === 'wave')
-  expect(waves.map(w => `${w.text} ${w.status} ${w.note}`)).toEqual(['wave 1 done 1/1 done', 'wave 2 done 2/2 done'])
+  expect(waves.map(w => `${w.text} ${w.status} ${w.note}`)).toEqual(['wave 1 done undefined', 'wave 2 done undefined'])
   const slices = lines.filter(l => l.kind === 'slice')
   expect(slices.every(l => l.status === 'done' && l.note === undefined)).toBe(true)
 })
@@ -359,7 +359,7 @@ test("a board with a different layout still shows merged waves as done with no s
 test('an open PR in that layout shows on its wave', () => {
   const open = CHESS_BOARD.replaceAll('| #4 merged | done |', '| https://github.com/me/chess/pull/4 | pushed |').replaceAll('| #5 merged | done |', '| https://github.com/me/chess/pull/4 | pushed |')
   const lines = buildTree({ plan: parsePlan(CHESS_PLAN, 'pure-engine'), sprints: [parseSprint(open, false)!], spawns: {}, live: [] })
-  expect(lines.find(l => l.kind === 'wave' && l.text === 'wave 2')).toMatchObject({ status: 'running', note: 'PR #4 open · 0/2 done' })
+  expect(lines.find(l => l.kind === 'wave' && l.text === 'wave 2')).toMatchObject({ status: 'running', note: 'PR #4 open · 0/2' })
 })
 
 const PR4 = 'https://github.com/me/chess/pull/4'
@@ -367,7 +367,7 @@ const PR4 = 'https://github.com/me/chess/pull/4'
 test('a done slice with a PR link is merged once the sprint is archived', () => {
   const board = CHESS_BOARD.replaceAll('| #4 merged |', `| ${PR4} |`).replaceAll('| #5 merged |', `| ${PR4} |`)
   const lines = buildTree({ plan: parsePlan(CHESS_PLAN, 'pure-engine'), sprints: [parseSprint(board, true)!], spawns: {}, live: [] })
-  expect(lines.find(l => l.kind === 'wave' && l.text === 'wave 2')).toMatchObject({ status: 'done', note: '2/2 done' })
+  expect(lines.find(l => l.kind === 'wave' && l.text === 'wave 2')).toMatchObject({ status: 'done', note: undefined })
 })
 
 test('a done slice with a PR link is merged once a later wave has started', () => {
@@ -580,7 +580,7 @@ test('a blocked status wins over a merged PR cell, so the wave does not count it
   const doc = parseSprint(SPRINT.replace('| merged | done | high |', '| merged | blocked | high |'), true)!
   const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [doc], spawns: {}, live: [] })
   expect(lines.find(l => l.text.startsWith('A1'))?.status).toBe('blocked')
-  expect(lines.find(l => l.kind === 'wave' && l.text === 'wave 1')?.note).toBe('1/2 done')
+  expect(lines.find(l => l.kind === 'wave' && l.text === 'wave 1')?.note).toBe('1/2')
 })
 
 test('a sprint counts its blocked slices for its folded row', () => {
@@ -616,7 +616,7 @@ test('tokens roll up to the sprint, the review and the plan, not the wave', () =
 
   const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [ui], spawns, live: [], tokens })
   expect(lines[0]?.note).toBe('266k tokens')
-  expect(lines.find(l => l.kind === 'wave' && l.text === 'wave 1')?.note).toBe('2/2 done')
+  expect(lines.find(l => l.kind === 'wave' && l.text === 'wave 1')?.note).toBeUndefined()
   expect(lines.find(l => l.kind === 'sprint' && l.text === 'ui')?.note).toBe('175k tokens · Build the screens')
   expect(lines.find(l => l.kind === 'review')?.note).toBe('90k tokens')
   expect(lines.find(l => l.kind === 'sprint' && l.text === 'core')?.note).toBe('Build the core')

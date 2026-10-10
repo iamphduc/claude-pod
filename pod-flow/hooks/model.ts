@@ -593,12 +593,14 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
       const isSettled = doc!.isArchived || later.some(r => r.status !== 'pending' || liveSlices.has(r.slice))
       const state = waveStatus(rows, liveSlices, isSettled)
       const fixes = rounds.filter(r => r.round!.sprint === sprint.slug && r.round!.wave === wave).map(r => roundLine(r, 3, sprint.slug))
+      const status = fixes.some(l => l.status === 'running') ? 'running' : state.status
       lines.push({
         depth: 2,
         kind: 'wave',
         text: `wave ${wave}`,
-        status: fixes.some(l => l.status === 'running') ? 'running' : state.status,
-        note: [state.tag, `${doneCount}/${rows.length} done`].filter(Boolean).join(' · '),
+        status,
+        // A finished wave's ✓ and its slices below already say it all: the count shows only while it is unfinished.
+        note: [state.tag, status === 'done' ? '' : `${doneCount}/${rows.length}`].filter(Boolean).join(' · ') || undefined,
         sprint: sprint.slug,
       })
       for (const row of rows) {
