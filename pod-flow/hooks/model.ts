@@ -591,8 +591,8 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
       depth: 1,
       kind: 'sprint',
       text: sprint.slug,
-      // The plan's cell can lag at `planned`: a sprint doc not yet archived means the sprint has started.
-      status: sprint.status === 'done' ? 'done' : sprint.status === 'active' || (doc && !doc.isArchived) || sprint.slug === drafted ? 'running' : 'waiting',
+      // The plan's cell can lag: a sprint doc not yet archived means the sprint has started, and pod archives it only once it is done.
+      status: sprint.status === 'done' || doc?.isArchived ? 'done' : sprint.status === 'active' || doc || sprint.slug === drafted ? 'running' : 'waiting',
       note: [tokenNote(spent.sprints.get(sprint.slug)), sprint.goal].filter(Boolean).join(' · '),
       sprint: sprint.slug,
       detail: doc

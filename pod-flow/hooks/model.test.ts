@@ -213,6 +213,12 @@ test('formatAge writes seconds, minutes and hours', () => {
   expect([45_000, 180_000, 3_900_000].map(formatAge)).toEqual(['45s', '3m', '1h05m'])
 })
 
+test('an archived sprint doc is done, though the plan cell still says active', () => {
+  const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [parseSprint(SPRINT, true)!], spawns: {}, live: [] })
+  expect(lines.find(l => l.kind === 'sprint' && l.text === 'ui')?.status).toBe('done')
+  expect(summarize(lines)).toBe('sprint 3/3')
+})
+
 test('ageNote adds a quiet flag after two silent minutes', () => {
   expect(ageNote(0, 170_000, 180_000)).toBe('3m')
   expect(ageNote(0, 30_000, 180_000)).toBe('3m · quiet 2m')
