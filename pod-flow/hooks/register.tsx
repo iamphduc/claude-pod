@@ -15,6 +15,8 @@ const expanded = atom({ plugin: 'pod-flow', key: 'expanded' } as const, [] as st
 const spawns = atom({ plugin: 'pod-flow', key: 'spawns' } as const, {} as Record<string, Dispatch>)
 const tokens = atom({ plugin: 'pod-flow', key: 'tokens' } as const, {} as Record<string, number>)
 const planShown = atom({ plugin: 'pod-flow', key: 'planShown' } as const, '')
+const NO_PLAN = 'No plan in docs/plans yet.'
+const emptyNote = atom({ plugin: 'pod-flow', key: 'emptyNote' } as const, NO_PLAN)
 
 const COLOR: Record<string, string | undefined> = {
   running: 'yellow',
@@ -69,18 +71,27 @@ async function listNames($: Dollar, dir: string): Promise<{ name: string; mtimeM
   }
 }
 
-/** The newest plan not archived; else the one this run showed, which the run's close-out archived. */
-async function planToShow($: Dollar, docs: string): Promise<PlanDoc | undefined> {
+/**
+ * The newest plan not archived; else the one this run showed, which the run's close-out archived.
+ * With none to show, why: the pane says that in place of a tree.
+ */
+async function planToShow($: Dollar, docs: string): Promise<PlanDoc | string> {
   const files = (await listNames($, `${docs}/plans`)).sort((a, b) => b.mtimeMs - a.mtimeMs)
+  if (files.length === 0) return NO_PLAN
   const shown = await read($, planShown)
   let finished: PlanDoc | undefined
+  let hasEmpty = false
   for (const file of files) {
     const plan = parsePlan(await readText($, `${docs}/plans/${file.name}`), file.name.replace(/\.md$/, ''))
-    if (plan.sprints.length === 0) continue
+    if (plan.sprints.length === 0) {
+      hasEmpty = true
+      continue
+    }
     if (plan.status !== 'archived') return plan
     if (plan.slug === shown) finished = plan
   }
-  return finished
+  // A plan still being written is newer news than an archived one.
+  return finished ?? (hasEmpty ? 'Plan has no sprints yet.' : 'Plan finished. Waiting for the next run.')
 }
 
 async function sprintDocs($: Dollar, dir: string, isArchived: boolean): Promise<SprintDoc[]> {
@@ -123,8 +134,9 @@ async function buildLines($: Dollar) {
   const root = mainCheckout(await $.session.root())
   const docs = `${root}/docs`
   const plan = await planToShow($, docs)
-  if (!plan) {
+  if (typeof plan === 'string') {
     await update($, lines, () => [])
+    if (plan !== (await read($, emptyNote))) await update($, emptyNote, () => plan)
     return
   }
   if (plan.slug !== (await read($, planShown))) await update($, planShown, () => plan.slug)
@@ -233,7 +245,7 @@ export const register: Register = on => {
       return { text: 'No /pod:autopilot or /pod:ship run in this session yet. Use /pod-flow preview to try it.' }
     }
     await startRefreshing($)
-    const text = snapshot(await read($, lines)) || 'Waiting for the plan and sprint docs.'
+    const text = snapshot(await read($, lines)) || (await read($, emptyNote))
     if (arg === 'text') return { text }
     // Where no pane can draw (-p, a narrow terminal, a surface without panes), the run comes back as a few lines.
     if ((await $.session.surfaces()).length === 0) return { text }
@@ -246,6 +258,7 @@ export const register: Register = on => {
     const { Box, Text, Button } = $.ui.resolve(e)
     const all = await read($, lines)
     const open = await read($, expanded)
+    const note = await read($, emptyNote)
     const width = Math.max(20, e.props.bodyColumns - 2)
     const summary = header(all, width)
     // The plan is the header, the tree's root: its rows start at the sprints.
@@ -293,7 +306,7 @@ export const register: Register = on => {
     return (
       <Box flexDirection="column">
         {summary && <Text wrap="truncate-end" bold>{summary}</Text>}
-        {rows.length === 0 && <Text dimColor>Waiting for the plan and sprint docs.</Text>}
+        {rows.length === 0 && <Text dimColor>{note}</Text>}
         {rows.slice(0, shown).map((row, i) => (isGap(i) ? <Box marginTop={1}>{draw(row, i)}</Box> : draw(row, i)))}
         {rows.length > shown && <Text dimColor>… {rows.length - shown} more lines</Text>}
       </Box>
