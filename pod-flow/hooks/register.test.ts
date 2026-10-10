@@ -278,3 +278,12 @@ test('the pane puts the plan in its header, and the tree starts at the sprints',
   expect(await pane.find({ type: 'Text', text: /● Demo/ })).toBeUndefined()
   expect(await pane.find({ type: 'Text', text: /^● one/ })).toBeDefined()
 })
+
+test('a blank line sets each tree apart, the first from the header too', async ($, on) => {
+  world(on, [], true, [], handBack(11))
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 80 } as never })
+  // Two trees, sprint one and the hand-back: a gap over each.
+  const gaps = JSON.stringify(await pane.drawn()).match(/"marginTop":1/g) ?? []
+  expect(gaps).toHaveLength(2)
+})
