@@ -36,6 +36,8 @@ declare module 'claude-code' {
       tokens: Record<string, number>
       /** The plan slug this run showed, kept so the tree stays once the plan is archived. */
       planShown: string
+      /** Why there is no tree, shown in its place. */
+      emptyNote: string
     }
   }
 }

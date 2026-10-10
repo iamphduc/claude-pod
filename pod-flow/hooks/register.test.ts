@@ -220,7 +220,7 @@ test('an archived plan this session never showed stays hidden', async ($, on) =>
   world(on, [], true, [], files)
   on('session.surfaces', () => ({ value: ['terminal' as const] }))
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
-  expect((await run($, 'text')).text).toBe('Waiting for the plan and sprint docs.')
+  expect((await run($, 'text')).text).toBe('Plan finished. Waiting for the next run.')
 })
 
 test('starting a new run clears the tree of the plan the last run finished', async ($, on) => {
@@ -230,7 +230,7 @@ test('starting a new run clears the tree of the plan the last run finished', asy
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
   close(files)
   await $.skill.prompt({ skill: 'pod:ship', text: 'next idea' })
-  expect((await run($, 'text')).text).toBe('Waiting for the plan and sprint docs.')
+  expect((await run($, 'text')).text).toBe('Plan finished. Waiting for the next run.')
 })
 
 test('a narrow pane shows the whole hand-back label, waiting', async ($, on) => {
@@ -303,4 +303,17 @@ test('a narrow pane keeps what needs you in the header, over the plan name', asy
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
   const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 42 } as never })
   expect(await pane.find({ type: 'Text', text: /^sprint 1\/1 · wave 1\/1 · waiting on you$/ })).toBeDefined()
+})
+
+test('with no tree, the pane and the text say why', async ($, on) => {
+  const files: Record<string, string> = {}
+  world(on, [], true, [], files)
+  on('session.surfaces', () => ({ value: ['terminal' as const] }))
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  expect((await run($, 'text')).text).toBe('No plan in docs/plans yet.')
+  // A plan still being written has no sprint table yet.
+  files['docs/plans/demo.md'] = '# Plan: Demo\n\n_Generated: 2026-10-10 · Status: active_\n'
+  expect((await run($, 'text')).text).toBe('Plan has no sprints yet.')
+  const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 80 } as never })
+  expect(await pane.find({ type: 'Text', text: 'Plan has no sprints yet.' })).toBeDefined()
 })
