@@ -134,7 +134,7 @@ async function buildLines($: Dollar) {
   ].filter(s => s.plan === '' || s.plan === plan.slug)
   const live = (await $.agent.list()).map((a: { id: string; type: string; status: string }) => ({ id: a.id, type: a.type, status: a.status }))
   const queueText = await readText($, `${docs}/handoff-queue.md`)
-  const halt = latestHalt(queueText)
+  const halt = latestHalt(queueText, plan)
   const pull = halt && pullOf(halt.body)
   if (pull) void checkPull($, Number(pull[1]), root)
   const queue = parseQueue(queueText)

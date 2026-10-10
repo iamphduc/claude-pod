@@ -287,3 +287,12 @@ test('a blank line sets each tree apart, the first from the header too', async (
   const gaps = JSON.stringify(await pane.drawn()).match(/"marginTop":1/g) ?? []
   expect(gaps).toHaveLength(2)
 })
+
+test("a new plan's tree leaves out the last plan's hand-back", async ($, on) => {
+  const files = { ...docs(), 'docs/handoff-queue.md': handBack(7)['docs/handoff-queue.md']!.replace('plan: demo', 'plan: older').replace('plan demo', 'plan older') }
+  world(on, [], true, [], files)
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  const text = (await run($, 'text')).text
+  expect(text).not.toContain('waiting')
+  expect(text).not.toContain('PR #7')
+})
