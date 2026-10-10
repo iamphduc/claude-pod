@@ -246,12 +246,12 @@ export const register: Register = on => {
     const { Box, Text, Button } = $.ui.resolve(e)
     const all = await read($, lines)
     const open = await read($, expanded)
-    const summary = header(all)
+    const width = Math.max(20, e.props.bodyColumns - 2)
+    const summary = header(all, width)
     // The plan is the header, the tree's root: its rows start at the sprints.
     const rows = visibleLines(all, open).filter(l => l.kind !== 'plan')
     const stems = prefixes(rows)
     const room = Math.max(1, (e.viewport?.rows ?? 30) - 5)
-    const width = Math.max(20, e.props.bodyColumns - 2)
     // A blank line before each tree sets it apart from the header and the tree above. It takes a row of the room too.
     const isGap = (i: number) => rows[i]!.depth <= 1 && !rows[i]!.isContinued
     let shown = 0

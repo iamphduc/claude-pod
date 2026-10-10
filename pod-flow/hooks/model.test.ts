@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 
-import { ageNote, buildTree, mainCheckout, snapshot, formatTokens, tokenTotals, turnTokens, concernText, fit, parseQueue, formatAge, prState, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, milestones, prefixes, summarize, tableRows, visibleLines } from './model'
+import { ageNote, buildTree, header, mainCheckout, snapshot, formatTokens, tokenTotals, turnTokens, concernText, fit, parseQueue, formatAge, prState, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, milestones, prefixes, summarize, tableRows, visibleLines } from './model'
 import type { TreeLine } from '../types'
 
 const PLAN = `# Plan: Long runs
@@ -159,6 +159,17 @@ test('prefixes draw branches and close them under the last sibling, each sprint 
   const at = (depth: number, text: string): TreeLine => ({ depth, kind: 'slice', text, status: 'done' })
   const lines = [at(1, 'core'), at(2, 'wave 1'), at(2, 'wave 2'), at(3, 'A1'), at(1, 'ui'), at(2, 'wave 1')]
   expect(prefixes(lines)).toEqual(['', '├─ ', '└─ ', '   └─ ', '', '└─ '])
+})
+
+test('a narrow header shortens the plan name first, then leaves it out', () => {
+  const lines: TreeLine[] = [
+    { depth: 0, kind: 'plan', text: 'Skyscraper View', status: 'done', note: '3.0M tokens' },
+    { depth: 1, kind: 'sprint', text: 'city-scene', status: 'done' },
+    { depth: 1, kind: 'halt', text: 'waiting', status: 'pushed' },
+  ]
+  expect(header(lines)).toBe('Skyscraper View · all sprints done · waiting on you · 3.0M tokens')
+  expect(header(lines, 60)).toBe('Skyscrape… · all sprints done · waiting on you · 3.0M tokens')
+  expect(header(lines, 50)).toBe('all sprints done · waiting on you · 3.0M tokens')
 })
 
 test('summarize reports sprint, wave, running and blocked counts', () => {
