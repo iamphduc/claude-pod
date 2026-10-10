@@ -138,21 +138,21 @@ test('/pod-flow prints a short snapshot when the pane cannot be placed', async (
   world(on, [], false)
   on('session.surfaces', () => ({ value: ['terminal' as const] }))
   const { text } = await run($, 'preview')
-  expect(text).toBe('sprint 1/1 · wave 1/1\n└─ ● one\n(no pane: terminal is 100 columns, below 144)')
+  expect(text).toBe('Demo · sprint 1/1 · wave 1/1\n● one\n(no pane: terminal is 100 columns, below 144)')
 })
 
 test('/pod-flow opens the pane when it fits, and /pod-flow text always prints', async ($, on) => {
   world(on, [])
   on('session.surfaces', () => ({ value: ['terminal' as const] }))
   expect((await run($, 'preview')).text).toBe('pod flow preview opened.')
-  expect((await run($, 'text')).text).toBe('sprint 1/1 · wave 1/1\n└─ ● one')
+  expect((await run($, 'text')).text).toBe('Demo · sprint 1/1 · wave 1/1\n● one')
 })
 
 test('/pod-flow prints the snapshot where nothing draws, as under -p', async ($, on) => {
   const opened: string[] = []
   world(on, opened)
   on('session.surfaces', () => ({ value: [] }))
-  expect((await run($, 'preview')).text).toBe('sprint 1/1 · wave 1/1\n└─ ● one')
+  expect((await run($, 'preview')).text).toBe('Demo · sprint 1/1 · wave 1/1\n● one')
   expect(opened).toEqual([])
 })
 
@@ -179,7 +179,7 @@ test('a sprint-planner spawned during the run shows as drafting under its sprint
   on('agent.spawn', () => ({ agentId: 'p1', model: 'claude-opus-5-5' }))
   await run($, 'preview')
   await $.agent.spawn({ subagentType: 'pod:sprint-planner', description: 'Draft next sprint', prompt: 'plan slug: demo' } as never)
-  expect((await run($, 'text')).text).toBe('sprint 2/2 · 1 running\n├─ ✓ 1 sprint done\n└─ ● two\n   └─ ● drafting 0s')
+  expect((await run($, 'text')).text).toBe('Demo · sprint 2/2 · 1 running\n✓ 1 sprint done\n● two\n└─ ● drafting 0s')
 })
 
 test('an agent links to its slice by the markdown fields alone, whatever its description says', async ($, on) => {
@@ -188,14 +188,14 @@ test('an agent links to its slice by the markdown fields alone, whatever its des
   on('agent.spawn', () => ({ agentId: 'e1', model: 'claude-opus-5-5' }))
   await run($, 'preview')
   await $.agent.spawn({ subagentType: 'pod:engineer', description: 'background helper', prompt: '- **sprint slug:** one\n- **slice code:** A1' } as never)
-  expect((await run($, 'text')).text).toBe('sprint 1/1 · wave 1/1 · 1 running\n└─ ● one\n   └─ ● wave 1 · A1 First slice 0s')
+  expect((await run($, 'text')).text).toBe('Demo · sprint 1/1 · wave 1/1 · 1 running\n● one\n└─ ● wave 1 · A1 First slice 0s')
 })
 
 test('a session working in a worktree still reads the main checkout docs', async ($, on) => {
   world(on, [], true, [], docs(), true, [], 'E:\\proj\\.claude\\worktrees\\one-w1')
   on('session.surfaces', () => ({ value: ['terminal' as const] }))
   await run($, 'preview')
-  expect((await run($, 'text')).text).toBe('sprint 1/1 · wave 1/1\n└─ ● one')
+  expect((await run($, 'text')).text).toBe('Demo · sprint 1/1 · wave 1/1\n● one')
 })
 
 const close = (files: Record<string, string>) => {
@@ -211,7 +211,7 @@ test('the tree stays once the run archives its plan', async ($, on) => {
   on('session.surfaces', () => ({ value: ['terminal' as const] }))
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
   close(files)
-  expect((await run($, 'text')).text).toBe('all sprints done\n└─ ✓ 1 sprint done')
+  expect((await run($, 'text')).text).toBe('Demo · all sprints done\n✓ 1 sprint done')
 })
 
 test('an archived plan this session never showed stays hidden', async ($, on) => {
@@ -268,6 +268,24 @@ test('a hand-back stays waiting when gh cannot tell', async ($, on) => {
   const text = (await run($, 'text')).text
   expect(text).toContain('waiting')
   expect(text).toContain('merge PR #10')
+})
+
+test('the pane puts the plan in its header, and the tree starts at the sprints', async ($, on) => {
+  world(on, [])
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 80 } as never })
+  expect(await pane.find({ type: 'Text', text: /^Demo · sprint 1\/1 · wave 1\/1$/ })).toBeDefined()
+  expect(await pane.find({ type: 'Text', text: /● Demo/ })).toBeUndefined()
+  expect(await pane.find({ type: 'Text', text: /^● one/ })).toBeDefined()
+})
+
+test('a blank line sets each tree apart, the first from the header too', async ($, on) => {
+  world(on, [], true, [], handBack(11))
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 80 } as never })
+  // Two trees, sprint one and the hand-back: a gap over each.
+  const gaps = JSON.stringify(await pane.drawn()).match(/"marginTop":1/g) ?? []
+  expect(gaps).toHaveLength(2)
 })
 
 test("a new plan's tree leaves out the last plan's hand-back", async ($, on) => {

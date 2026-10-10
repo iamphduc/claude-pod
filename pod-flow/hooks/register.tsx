@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Dispatch, TreeLine } from '../types'
-import { buildTree, fit, GLYPH, latestHalt, mainCheckout, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, pullOf, snapshot, summarize, turnTokens, visibleLines } from './model'
+import { buildTree, fit, GLYPH, header, latestHalt, mainCheckout, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, pullOf, snapshot, turnTokens, visibleLines } from './model'
 import type { PlanDoc, SprintDoc } from './model'
 
 const PANE = 'pod-flow'
@@ -246,46 +246,56 @@ export const register: Register = on => {
     const { Box, Text, Button } = $.ui.resolve(e)
     const all = await read($, lines)
     const open = await read($, expanded)
-    const summary = summarize(all)
-    const rows = visibleLines(all, open)
+    const summary = header(all)
+    // The plan is the header, the tree's root: its rows start at the sprints.
+    const rows = visibleLines(all, open).filter(l => l.kind !== 'plan')
     const stems = prefixes(rows)
     const room = Math.max(1, (e.viewport?.rows ?? 30) - 5)
     const width = Math.max(20, e.props.bodyColumns - 2)
+    // A blank line before each tree sets it apart from the header and the tree above. It takes a row of the room too.
+    const isGap = (i: number) => rows[i]!.depth <= 1 && !rows[i]!.isContinued
+    let shown = 0
+    for (let used = 0; shown < rows.length; shown++) {
+      used += isGap(shown) ? 2 : 1
+      if (used > room) break
+    }
+
+    const draw = (row: TreeLine, i: number) => {
+      const glyph = row.isContinued ? ' ' : row.kind === 'concern' ? '⚠' : row.kind === 'hint' ? '➜' : (GLYPH[row.status] ?? '·')
+      const isFoldable = row.kind === 'sprint' && row.status === 'done' && row.detail !== undefined
+      if (isFoldable) {
+        const isOpen = open.includes(row.sprint ?? '')
+        const toggle = () =>
+          update($, expanded, list =>
+            list.includes(row.sprint ?? '') ? list.filter(s => s !== row.sprint) : [...list, row.sprint ?? ''],
+          )
+        // Only a finished sprint folds, so the fold arrow stands in for its ✓.
+        const name = `${stems[i]}${isOpen ? '▾' : '▸'} ${row.text}`
+        if (!isOpen && row.blockedCount) {
+          // A Button takes no color: the red count is its own Text beside it, so a folded ✗ still shows.
+          return (
+            <Box flexDirection="row">
+              <Button plain dimColor label={name} onPress={toggle} />
+              <Text wrap="truncate-end" color="red">{`  ${row.detail} · ${row.blockedCount} blocked`}</Text>
+            </Box>
+          )
+        }
+        return <Button plain dimColor label={fit(name, isOpen ? row.note : row.detail, width)} onPress={toggle} />
+      }
+      return (
+        // The resume hint is what you do next: cyan, as a hand-back is, never dim.
+        <Text wrap="truncate-end" color={row.kind === 'hint' ? 'cyan' : COLOR[row.status]} dimColor={row.kind !== 'hint' && row.status === 'waiting'}>
+          {fit(`${stems[i]}${glyph} ${row.text}`, row.note, width)}
+        </Text>
+      )
+    }
 
     return (
       <Box flexDirection="column">
         {summary && <Text wrap="truncate-end" bold>{summary}</Text>}
         {rows.length === 0 && <Text dimColor>Waiting for the plan and sprint docs.</Text>}
-        {rows.slice(0, room).map((row, i) => {
-          const glyph = row.isContinued ? ' ' : row.kind === 'concern' ? '⚠' : row.kind === 'hint' ? '➜' : (GLYPH[row.status] ?? '·')
-          const isFoldable = row.kind === 'sprint' && row.status === 'done' && row.detail !== undefined
-          if (isFoldable) {
-            const isOpen = open.includes(row.sprint ?? '')
-            const toggle = () =>
-              update($, expanded, list =>
-                list.includes(row.sprint ?? '') ? list.filter(s => s !== row.sprint) : [...list, row.sprint ?? ''],
-              )
-            // Only a finished sprint folds, so the fold arrow stands in for its ✓.
-            const name = `${stems[i]}${isOpen ? '▾' : '▸'} ${row.text}`
-            if (!isOpen && row.blockedCount) {
-              // A Button takes no color: the red count is its own Text beside it, so a folded ✗ still shows.
-              return (
-                <Box flexDirection="row">
-                  <Button plain dimColor label={name} onPress={toggle} />
-                  <Text wrap="truncate-end" color="red">{`  ${row.detail} · ${row.blockedCount} blocked`}</Text>
-                </Box>
-              )
-            }
-            return <Button plain dimColor label={fit(name, isOpen ? row.note : row.detail, width)} onPress={toggle} />
-          }
-          return (
-            // The resume hint is what you do next: cyan, as a hand-back is, never dim.
-            <Text wrap="truncate-end" color={row.kind === 'hint' ? 'cyan' : COLOR[row.status]} dimColor={row.kind !== 'hint' && row.status === 'waiting'}>
-              {fit(`${stems[i]}${glyph} ${row.text}`, row.note, width)}
-            </Text>
-          )
-        })}
-        {rows.length > room && <Text dimColor>… {rows.length - room} more lines</Text>}
+        {rows.slice(0, shown).map((row, i) => (isGap(i) ? <Box marginTop={1}>{draw(row, i)}</Box> : draw(row, i)))}
+        {rows.length > shown && <Text dimColor>… {rows.length - shown} more lines</Text>}
       </Box>
     )
   })

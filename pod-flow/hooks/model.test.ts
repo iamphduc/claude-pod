@@ -1,6 +1,7 @@
 import { expect, test } from 'claude-code/testing'
 
 import { ageNote, buildTree, mainCheckout, snapshot, formatTokens, tokenTotals, turnTokens, concernText, fit, parseQueue, formatAge, prState, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, milestones, prefixes, summarize, tableRows, visibleLines } from './model'
+import type { TreeLine } from '../types'
 
 const PLAN = `# Plan: Long runs
 
@@ -154,17 +155,10 @@ test('buildTree marks the slice live when the prompt gave no slice code', () => 
   expect(lines.some(l => l.kind === 'agent')).toBe(false)
 })
 
-test('prefixes draw branches and close them under the last sibling', () => {
-  const lines = buildTree({
-    plan: parsePlan(PLAN, 'long-runs'),
-    sprints: [parseSprint(SPRINT, false)!],
-    spawns: {},
-    live: [],
-  })
-  const stems = prefixes(lines)
-  expect(stems[0]).toBe('')
-  expect(stems[1]).toBe('├─ ')
-  expect(stems.at(-1)).toBe('└─ ')
+test('prefixes draw branches and close them under the last sibling, each sprint a tree of its own', () => {
+  const at = (depth: number, text: string): TreeLine => ({ depth, kind: 'slice', text, status: 'done' })
+  const lines = [at(1, 'core'), at(2, 'wave 1'), at(2, 'wave 2'), at(3, 'A1'), at(1, 'ui'), at(2, 'wave 1')]
+  expect(prefixes(lines)).toEqual(['', '├─ ', '└─ ', '   └─ ', '', '└─ '])
 })
 
 test('summarize reports sprint, wave, running and blocked counts', () => {
@@ -390,7 +384,7 @@ test('a running sprint-planner sits under the sprint it drafts, not loose at the
   expect(lines[at]).toMatchObject({ status: 'running' })
   expect(lines[at + 1]).toMatchObject({ depth: 2, kind: 'agent', text: 'drafting', status: 'running' })
   expect(lines.filter(l => l.kind === 'agent')).toHaveLength(1)
-  expect(snapshot(lines)).toBe(`sprint 3/3 · 1 running\n├─ ✓ 2 sprints done\n└─ ● polish\n   └─ ● drafting ${lines[at + 1]!.note}`)
+  expect(snapshot(lines)).toBe(`Long runs · sprint 3/3 · 1 running\n✓ 2 sprints done\n● polish\n└─ ● drafting ${lines[at + 1]!.note}`)
 })
 
 test('a plan header that ends on its status reads it without the closing underscore', () => {
@@ -453,7 +447,7 @@ test('a halt gets a resume hint on lines of its own, and a hand-back gets none',
     { depth: 2, kind: 'hint', text: 'then /pod:autopilot to resume', isContinued: true },
   ])
   // One branch for the hint; its second line hangs under it.
-  expect(prefixes(blocked).slice(-3)).toEqual(['└─ ', '   └─ ', '      '])
+  expect(prefixes(blocked).slice(-3)).toEqual(['', '└─ ', '   '])
   const pending = buildTree({ ...input, halt: 'Gate 5: --max-waves reached', haltType: 'PENDING' })
   expect(pending.at(-1)).toMatchObject({ kind: 'hint', text: '/pod:autopilot to resume' })
   const handBack = buildTree({ ...input, halt: 'plan long-runs complete — final PR #20', haltType: 'PENDING' })
@@ -667,20 +661,20 @@ test('snapshot is a little tree: finished sprints as a count, then only what run
     halt: 'Gate 4: wave check failed',
   })
   expect(snapshot(lines).split('\n')).toEqual([
-    'sprint 2/3 · wave 2/2 · 1 running · 1 blocked · 140k tokens',
-    '├─ ✓ 1 sprint done',
-    '├─ ✓ core',
-    '│  └─ ✗ wave 1 · A1 blocked',
-    '├─ ● ui',
-    '│  └─ ● wave 2 · B1 Search box 4m',
-    '├─ ○ polish',
-    '└─ ✓ review · 1 round',
+    'Long runs · sprint 2/3 · wave 2/2 · 1 running · 1 blocked · 140k tokens',
+    '✓ 1 sprint done',
+    '✓ core',
+    '└─ ✗ wave 1 · A1 blocked',
+    '● ui',
+    '└─ ● wave 2 · B1 Search box 4m',
+    '○ polish',
+    '✓ review · 1 round',
   ])
 })
 
 test('snapshot ends with the halt and what to do', () => {
   const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [], spawns: {}, live: [], halt: 'Gate 4: wave check failed', haltType: 'BLOCKED' })
-  expect(snapshot(lines).split('\n').slice(-2)).toEqual(['└─ ✗ halted  Gate 4: wave check failed', '   └─ ➜ fix it first, then /pod:autopilot to resume'])
+  expect(snapshot(lines).split('\n').slice(-2)).toEqual(['✗ halted  Gate 4: wave check failed', '└─ ➜ fix it first, then /pod:autopilot to resume'])
 })
 
 test('an agent waiting on its own background work still runs its slice and holds back a halt', () => {
