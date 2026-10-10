@@ -113,12 +113,20 @@ const GATE = /\bgate\s*\d|blocked-concern|plan-review-fail|auto-merge-fail|inter
  * The newest still-pending halt the orchestrator wrote, and its queue type: an entry that names a gate,
  * or the plan-complete hand-back. Its other pending notes (a "someday" idea) don't stop the run.
  */
-export function latestHalt(queue: string): { body: string; type: string } | undefined {
+export function latestHalt(queue: string, plan?: PlanDoc): { body: string; type: string } | undefined {
   const halt = parseQueue(queue)
     .filter(e => e.isPending && /^orchestrator\b/i.test(e.route) && (GATE.test(e.body) || HAND_BACK.test(e.body)))
+    .filter(e => !plan || isForPlan(e, plan))
     .at(-1)
   return halt && { body: halt.body, type: halt.type }
 }
+
+/**
+ * Whether an entry belongs to this plan, by its `plan:` or else its `sprint:`. A finished plan's hand-back stays
+ * pending in the queue, so without this the next plan's tree shows it. An entry naming neither is kept.
+ */
+const isForPlan = (entry: QueueEntry, plan: PlanDoc) =>
+  entry.plan ? entry.plan === plan.slug : entry.sprint ? plan.sprints.some(s => s.slug === entry.sprint) : true
 
 /** What to do after a halt: a BLOCKED gate needs a fix first, a PENDING one only a resume (skills/autopilot/policy.md). */
 export const resumeHint = (type: string | undefined): string[] =>
@@ -127,6 +135,7 @@ export const resumeHint = (type: string | undefined): string[] =>
 export type QueueEntry = {
   type: string
   route: string
+  plan?: string
   sprint?: string
   slice?: string
   body: string
@@ -145,6 +154,7 @@ export function parseQueue(queue: string): QueueEntry[] {
       {
         type: (head[1] ?? '').toUpperCase(),
         route: head[2] ?? '',
+        plan: field('plan'),
         sprint: field('sprint'),
         slice: field('slice'),
         body: rest.replace(/\*\*Resolution:\*\*.*$/i, '').trim(),

@@ -269,3 +269,12 @@ test('a hand-back stays waiting when gh cannot tell', async ($, on) => {
   expect(text).toContain('waiting')
   expect(text).toContain('merge PR #10')
 })
+
+test("a new plan's tree leaves out the last plan's hand-back", async ($, on) => {
+  const files = { ...docs(), 'docs/handoff-queue.md': handBack(7)['docs/handoff-queue.md']!.replace('plan: demo', 'plan: older').replace('plan demo', 'plan older') }
+  world(on, [], true, [], files)
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  const text = (await run($, 'text')).text
+  expect(text).not.toContain('waiting')
+  expect(text).not.toContain('PR #7')
+})
