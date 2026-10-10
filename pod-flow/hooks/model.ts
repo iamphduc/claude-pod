@@ -322,7 +322,9 @@ export function milestones(lines: TreeLine[]): Map<string, string> {
       const after = lines.slice(i + 1)
       const end = after.findIndex(l => l.kind !== 'hint')
       const hint = (end < 0 ? after : after.slice(0, end)).map(l => l.text).join(', ')
-      found.set(`halt ${line.note}`, [`${GLYPH[line.status]} ${line.text.toUpperCase()}`, hint, line.note].filter(Boolean).join(' · '))
+      // A merged hand-back needs nothing from the person, so it isn't in capitals.
+      const text = line.status === 'done' ? line.text : line.text.toUpperCase()
+      found.set(`halt ${line.note ?? line.text}`, [`${GLYPH[line.status]} ${text}`, hint, line.note].filter(Boolean).join(' · '))
     }
   }
   return found
@@ -502,12 +504,17 @@ export type TreeInput = {
   lastSeen?: Record<string, number>
   /** Tokens per agent id, summed over its turns. */
   tokens?: Record<string, number>
+  /** Pull request numbers known to be merged: the queue keeps a hand-back pending after its PR merges. */
+  merged?: number[]
 }
+
+/** The pull request a halt or hand-back links to, by its number. */
+export const pullOf = (text: string) => /https?:\/\/[^\s,;)]+?\/pull\/(\d+)/.exec(text)
 
 const ENDED = new Set(['completed', 'failed', 'killed'])
 const PLANNER = /(^|:)sprint-planner$/
 
-export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, lastSeen = {}, queue = [], tokens = {} }: TreeInput): TreeLine[] {
+export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, lastSeen = {}, queue = [], tokens = {}, merged = [] }: TreeInput): TreeLine[] {
   const spent = tokenTotals(spawns, tokens, sprints, plan.slug)
   // Live until it ends: an agent `waiting` on its own background work, `pending` or `idle` is still at it.
   const running = live.filter(a => !ENDED.has(a.status))
@@ -635,7 +642,12 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
     // A finished plan's final PR is a hand-back for you to merge, not a failure.
     const isHandBack = HAND_BACK.test(haltText)
     // A pull request URL reads as its short number.
-    const pull = /https?:\/\/[^\s,;)]+?\/pull\/(\d+)/.exec(haltText)
+    const pull = pullOf(haltText)
+    if (isHandBack && pull && merged.includes(Number(pull[1]))) {
+      // Nothing left for you: the hand-back's PR is in.
+      lines.push({ depth: 1, kind: 'halt', text: `PR #${pull[1]} merged`, status: 'done' })
+      return lines
+    }
     lines.push({
       depth: 1,
       kind: 'halt',

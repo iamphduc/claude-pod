@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Dispatch, TreeLine } from '../types'
-import { buildTree, fit, GLYPH, latestHalt, mainCheckout, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, snapshot, summarize, turnTokens, visibleLines } from './model'
+import { buildTree, fit, GLYPH, latestHalt, mainCheckout, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, pullOf, snapshot, summarize, turnTokens, visibleLines } from './model'
 import type { PlanDoc, SprintDoc } from './model'
 
 const PANE = 'pod-flow'
@@ -25,9 +25,32 @@ const COLOR: Record<string, string | undefined> = {
 
 type Dollar = EngineInterface
 
+const PULL_CHECK_MS = 30_000
+
 let isTimerOn = false
 let told: Set<string> | undefined
 const lastSeen: Record<string, number> = {}
+const merged = new Set<number>()
+const pullCheckedAt: Record<number, number> = {}
+
+/**
+ * Asks GitHub whether the hand-back's PR has merged, at most once per PULL_CHECK_MS, off the refresh path.
+ * No `gh`, no login or no network leaves the row as it is.
+ */
+async function checkPull($: Dollar, number: number, cwd: string) {
+  const now = await $.clock.now()
+  if (merged.has(number) || now - (pullCheckedAt[number] ?? -Infinity) < PULL_CHECK_MS) return
+  pullCheckedAt[number] = now
+  try {
+    const { exitCode, stdout } = await $.process.run(['gh', 'pr', 'view', String(number), '--json', 'state', '--jq', '.state'], { cwd, timeoutMs: 10_000 })
+    if (exitCode === 0 && stdout.trim() === 'MERGED') {
+      merged.add(number)
+      void refresh($)
+    }
+  } catch {
+    // The row stays as it is.
+  }
+}
 
 async function readText($: Dollar, path: string): Promise<string> {
   try {
@@ -97,7 +120,8 @@ async function refresh($: Dollar) {
 
 async function buildLines($: Dollar) {
   // The main checkout's docs, even while the run works in one of its worktrees, whose copy of the board is old.
-  const docs = `${mainCheckout(await $.session.root())}/docs`
+  const root = mainCheckout(await $.session.root())
+  const docs = `${root}/docs`
   const plan = await planToShow($, docs)
   if (!plan) {
     await update($, lines, () => [])
@@ -111,11 +135,13 @@ async function buildLines($: Dollar) {
   const live = (await $.agent.list()).map((a: { id: string; type: string; status: string }) => ({ id: a.id, type: a.type, status: a.status }))
   const queueText = await readText($, `${docs}/handoff-queue.md`)
   const halt = latestHalt(queueText)
+  const pull = halt && pullOf(halt.body)
+  if (pull) void checkPull($, Number(pull[1]), root)
   const queue = parseQueue(queueText)
   const known = await read($, spawns)
   const spent = await read($, tokens)
   const now = await $.clock.now()
-  await update($, lines, () => buildTree({ plan, sprints, spawns: known, live, halt: halt?.body, haltType: halt?.type, now, lastSeen, queue, tokens: spent }))
+  await update($, lines, () => buildTree({ plan, sprints, spawns: known, live, halt: halt?.body, haltType: halt?.type, now, lastSeen, queue, tokens: spent, merged: [...merged] }))
 }
 
 /** Keeps the tree fresh: a timer, started once per load of this module. */
@@ -193,6 +219,8 @@ export const register: Register = on => {
       await update($, expanded, () => [])
       await update($, planShown, () => '')
       for (const id of Object.keys(lastSeen)) delete lastSeen[id]
+      merged.clear()
+      for (const n of Object.keys(pullCheckedAt)) delete pullCheckedAt[Number(n)]
       // The next tree sets a fresh baseline, so nothing already there is told again.
       told = undefined
       if (await read($, isActive)) await refresh($)
