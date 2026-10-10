@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Dispatch, TreeLine } from '../types'
-import { buildTree, fit, GLYPH, latestHalt, mainCheckout, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, pullOf, snapshot, summarize, turnTokens, visibleLines } from './model'
+import { buildTree, fit, GLYPH, header, latestHalt, mainCheckout, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, pullOf, snapshot, turnTokens, visibleLines } from './model'
 import type { PlanDoc, SprintDoc } from './model'
 
 const PANE = 'pod-flow'
@@ -246,8 +246,9 @@ export const register: Register = on => {
     const { Box, Text, Button } = $.ui.resolve(e)
     const all = await read($, lines)
     const open = await read($, expanded)
-    const summary = summarize(all)
-    const rows = visibleLines(all, open)
+    const summary = header(all)
+    // The plan is the header, the tree's root: its rows start at the sprints.
+    const rows = visibleLines(all, open).filter(l => l.kind !== 'plan')
     const stems = prefixes(rows)
     const room = Math.max(1, (e.viewport?.rows ?? 30) - 5)
     const width = Math.max(20, e.props.bodyColumns - 2)

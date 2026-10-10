@@ -291,6 +291,12 @@ export function summarize(lines: TreeLine[]): string {
   return parts.join(' · ')
 }
 
+/** The line over the tree: the plan's name, where the run is, and the plan's tokens. It is the tree's root. */
+export function header(lines: TreeLine[]): string {
+  const plan = lines.find(l => l.kind === 'plan')
+  return [plan?.text, summarize(lines), plan?.note].filter(Boolean).join(' · ')
+}
+
 /** The symbol for each status, shared by the tree and the transcript lines. */
 export const GLYPH: Record<string, string> = { running: '●', pushed: '◐', done: '✓', blocked: '✗', waiting: '○' }
 
@@ -337,7 +343,7 @@ export function milestones(lines: TreeLine[]): Map<string, string> {
 export function snapshot(lines: TreeLine[]): string {
   const rows: TreeLine[] = []
   const row = (depth: number, text: string) => rows.push({ depth, kind: 'plan', text, status: '' })
-  const summary = [summarize(lines), lines.find(l => l.kind === 'plan')?.note].filter(Boolean).join(' · ')
+  const summary = header(lines)
   if (summary) row(0, summary)
   const sprints = lines.filter(l => l.kind === 'sprint')
   const done = sprints.filter(l => l.status === 'done').length
@@ -418,19 +424,22 @@ export function fit(head: string, note: string | undefined, width: number): stri
   return `${shortHead}  ${note.slice(0, noteRoom - 1)}…`
 }
 
-/** The branch drawing (`├─ `, `└─ `, `│  `) in front of each line. */
+/**
+ * The branch drawing (`├─ `, `└─ `, `│  `) in front of each line. The plan is the header, so each of its rows
+ * (a sprint, the review, a halt) is a tree of its own, with no branch to a root.
+ */
 export function prefixes(lines: TreeLine[]): string[] {
   const hasLater: boolean[] = []
   const stems: string[] = []
   return lines.map((line, i) => {
-    if (line.depth === 0) return ''
+    if (line.depth <= 1) return (stems[i] = '')
     // A continued row keeps the row above's stem, with its branch turned into a plain rail.
     if (line.isContinued) return (stems[i] = (stems[i - 1] ?? '').replace('└─ ', '   ').replace('├─ ', '│  '))
     const after = lines.slice(i + 1).find(l => l.depth <= line.depth && !l.isContinued)
     const isLast = after?.depth !== line.depth
     hasLater[line.depth] = !isLast
     let stem = ''
-    for (let d = 1; d < line.depth; d++) stem += hasLater[d] ? '│  ' : '   '
+    for (let d = 2; d < line.depth; d++) stem += hasLater[d] ? '│  ' : '   '
     return (stems[i] = `${stem}${isLast ? '└─ ' : '├─ '}`)
   })
 }
