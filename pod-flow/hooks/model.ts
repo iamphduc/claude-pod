@@ -419,11 +419,23 @@ export function snapshot(lines: TreeLine[]): string {
 
 /** A finished sprint with a board folds to its own line unless the person opened it. */
 export function visibleLines(lines: TreeLine[], expanded: string[]): TreeLine[] {
-  const folded = new Set(
-    lines.filter(l => l.kind === 'sprint' && l.status === 'done' && l.detail && !expanded.includes(l.sprint ?? '')).map(l => l.sprint),
-  )
-  return lines.filter(l => l.kind === 'sprint' || !folded.has(l.sprint))
+  const shown: TreeLine[] = []
+  // A folded row hides what is under it: the rows after it, down to the next at its depth or above.
+  let foldedAt = Infinity
+  for (const line of lines) {
+    if (line.depth > foldedAt) continue
+    foldedAt = Infinity
+    shown.push(line)
+    if (isFoldable(line) && !expanded.includes(foldKey(line))) foldedAt = line.depth
+  }
+  return shown
 }
+
+/** A finished sprint with a board folds, and so does a finished wave in a sprint still running. */
+export const isFoldable = (line: TreeLine) => (line.kind === 'sprint' || line.kind === 'wave') && line.status === 'done' && line.detail !== undefined
+
+/** What `expanded` keeps for an opened row: the sprint's slug, or the sprint and wave. */
+export const foldKey = (line: TreeLine) => (line.kind === 'wave' ? `${line.sprint}/${line.text}` : (line.sprint ?? ''))
 
 const MIN_HEAD = 16
 
@@ -587,12 +599,13 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
     const waves = [...new Set((doc?.rows ?? []).map(r => r.wave))].sort((a, b) => a - b)
     const slices = doc?.rows.length ?? 0
     const blockedCount = (doc?.rows ?? []).filter(r => r.status === 'blocked').length
+    // The plan's cell can lag: a sprint doc not yet archived means the sprint has started, and pod archives it only once it is done.
+    const sprintStatus = sprint.status === 'done' || doc?.isArchived ? 'done' : sprint.status === 'active' || doc || sprint.slug === drafted ? 'running' : 'waiting'
     lines.push({
       depth: 1,
       kind: 'sprint',
       text: sprint.slug,
-      // The plan's cell can lag: a sprint doc not yet archived means the sprint has started, and pod archives it only once it is done.
-      status: sprint.status === 'done' || doc?.isArchived ? 'done' : sprint.status === 'active' || doc || sprint.slug === drafted ? 'running' : 'waiting',
+      status: sprintStatus,
       note: [tokenNote(spent.sprints.get(sprint.slug)), sprint.goal].filter(Boolean).join(' · '),
       sprint: sprint.slug,
       detail: doc
@@ -611,6 +624,9 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
       const state = waveStatus(rows, liveSlices, isSettled)
       const fixes = rounds.filter(r => r.round!.sprint === sprint.slug && r.round!.wave === wave).map(r => roundLine(r, 3, sprint.slug))
       const status = fixes.some(l => l.status === 'running') ? 'running' : state.status
+      // In a sprint still running, a finished wave folds to one row, so the wave at work stays in view.
+      // One with a queue entry stays open: the entry is still for you to read.
+      const isFoldable = status === 'done' && sprintStatus !== 'done' && !rows.some(r => concernsFor(queue, sprint.slug, r).length > 0)
       lines.push({
         depth: 2,
         kind: 'wave',
@@ -619,6 +635,7 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
         // A finished wave's ✓ and its slices below already say it all: the count shows only while it is unfinished.
         note: [state.tag, status === 'done' ? '' : `${doneCount}/${rows.length}`].filter(Boolean).join(' · ') || undefined,
         sprint: sprint.slug,
+        detail: isFoldable ? `${rows.length} ${rows.length === 1 ? 'slice' : 'slices'}` : undefined,
       })
       for (const row of rows) {
         const isLive = liveSlices.has(row.slice)

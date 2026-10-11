@@ -317,3 +317,13 @@ test('with no tree, the pane and the text say why', async ($, on) => {
   const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 80 } as never })
   expect(await pane.find({ type: 'Text', text: 'Plan has no sprints yet.' })).toBeDefined()
 })
+
+test('a finished wave in a running sprint draws folded, as a button', async ($, on) => {
+  const files = { ...docs(), 'docs/sprints/one.md': `${SPRINT}| 2 | A2 | Second slice | one-A2 | — | pending | — | A1 |\n`.replace('| one-A1 | — | pending | — |', '| one-A1 | merged | done | high |') }
+  world(on, [], true, [], files)
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 80 } as never })
+  expect(await pane.find({ type: 'Button', text: /^├─ ▸ wave 1 {2}1 slice$/ })).toBeDefined()
+  expect(await pane.find({ type: 'Text', text: /A1 First slice/ })).toBeUndefined()
+  expect(await pane.find({ type: 'Text', text: /A2 Second slice/ })).toBeDefined()
+})

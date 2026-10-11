@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Dispatch, TreeLine } from '../types'
-import { buildTree, fit, GLYPH, header, latestHalt, mainCheckout, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, pullOf, snapshot, turnTokens, visibleLines } from './model'
+import { buildTree, fit, foldKey, GLYPH, header, isFoldable, latestHalt, mainCheckout, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, pullOf, snapshot, turnTokens, visibleLines } from './model'
 import type { PlanDoc, SprintDoc } from './model'
 
 const PANE = 'pod-flow'
@@ -275,14 +275,11 @@ export const register: Register = on => {
 
     const draw = (row: TreeLine, i: number) => {
       const glyph = row.isContinued ? ' ' : row.kind === 'concern' ? '⚠' : row.kind === 'hint' ? '➜' : (GLYPH[row.status] ?? '·')
-      const isFoldable = row.kind === 'sprint' && row.status === 'done' && row.detail !== undefined
-      if (isFoldable) {
-        const isOpen = open.includes(row.sprint ?? '')
-        const toggle = () =>
-          update($, expanded, list =>
-            list.includes(row.sprint ?? '') ? list.filter(s => s !== row.sprint) : [...list, row.sprint ?? ''],
-          )
-        // Only a finished sprint folds, so the fold arrow stands in for its ✓.
+      if (isFoldable(row)) {
+        const key = foldKey(row)
+        const isOpen = open.includes(key)
+        const toggle = () => update($, expanded, list => (list.includes(key) ? list.filter(s => s !== key) : [...list, key]))
+        // Only a finished sprint or wave folds, so the fold arrow stands in for its ✓.
         const name = `${stems[i]}${isOpen ? '▾' : '▸'} ${row.text}`
         if (!isOpen && row.blockedCount) {
           // A Button takes no color: the red count is its own Text beside it, so a folded ✗ still shows.
