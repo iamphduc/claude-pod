@@ -251,11 +251,23 @@ test('visibleLines folds a finished sprint with a board, and opens it on request
   expect(opened.filter(l => l.kind === 'slice')).toHaveLength(4)
 })
 
-test('visibleLines never folds a sprint that is running or has no board', () => {
+test('visibleLines never folds a sprint that is running or has no board, but folds its finished waves', () => {
   const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [parseSprint(SPRINT, false)!], spawns: {}, live: [] })
   const shown = visibleLines(lines, [])
-  expect(shown.filter(l => l.kind === 'slice')).toHaveLength(4)
   expect(shown.some(l => l.kind === 'sprint' && l.text === 'core')).toBe(true)
+  // Wave 1 is done: one row in place of its two slices. Wave 2 is at work and stays open.
+  expect(shown.find(l => l.kind === 'wave' && l.text === 'wave 1')).toMatchObject({ status: 'done', detail: '2 slices' })
+  expect(shown.filter(l => l.kind === 'slice').map(l => l.text.split(' ')[0])).toEqual(['B1', 'B2'])
+  expect(visibleLines(lines, ['ui/wave 1']).filter(l => l.kind === 'slice')).toHaveLength(4)
+})
+
+test('a finished wave stays open when its sprint is done, or when it has a queue entry', () => {
+  const done = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [parseSprint(SPRINT, true)!], spawns: {}, live: [] })
+  // An opened finished sprint shows all of it: its waves don't fold again.
+  expect(done.filter(l => l.kind === 'wave').every(l => l.detail === undefined)).toBe(true)
+  const queue = parseQueue('- `[2026-10-02 · BLOCKED · engineer → human · sprint: ui · slice: A1]` the list API needs a key **Resolution:** pending')
+  const noted = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [parseSprint(SPRINT, false)!], spawns: {}, live: [], queue })
+  expect(noted.find(l => l.kind === 'wave' && l.text === 'wave 1')?.detail).toBeUndefined()
 })
 
 test('prState reads the board PR cell', () => {
