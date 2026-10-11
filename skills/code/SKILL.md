@@ -44,7 +44,7 @@ A bootstrap wave (`B1` alone) writes the smoke recipe and is checked with it; it
 
 ## Preflight
 
-Before the first wave: the merge-target is on `origin`, and the `## Smoke recipe` is filled in (unless wave 1 is a lone `B1`, which writes it — check again before wave 2). No `origin` or no merge-target there → point to `/pod:init`. On Windows, set `git config core.longpaths true`, or worktree removal fails. Then create and push `<plan-slug>`, check it out in the parent repo, and commit any uncommitted pod setup (`docs/`, `.github/workflows/pod-ci.yml`) to it and push — never to the merge-target.
+Before the first wave: the merge-target is on `origin`, and the `## Smoke recipe` is filled in (unless wave 1 is a lone `B1`, which writes it — check again before wave 2). No `origin` or no merge-target there → point to `/pod:init`. On Windows, set `git config core.longpaths true`, or worktree removal fails. Then create and push `<plan-slug>`, check it out in the parent repo, and commit any uncommitted pod setup (`docs/`, `.github/workflows/pod-ci.yml`) to it and push — never to the merge-target. In that commit, resolve each pending `plan <slug> complete — final PR <url>` queue entry whose PR has merged: `**Resolution:** <date> — final PR merged`.
 
 ## Sprint complete
 
