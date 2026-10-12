@@ -9,7 +9,7 @@ A PR merges only if **all** hold:
 - **CI passed, if there is CI:** when the brief's `## CI` isn't `none`, at least one check ran and every required check passes — zero checks means CI didn't run, not a pass. No CI → the wave check is the gate.
 - **GitHub says it's clean:** `mergeable: MERGEABLE`, `mergeStateStatus: CLEAN`, no `CHANGES_REQUESTED` review, no unresolved review thread. Branch protection that requires a human approval keeps it `BLOCKED` → gate 3.
 - **No low confidence:** any slice in the wave reported `Confidence: low` → withhold and halt (gate 6).
-- **No one-way door:** a wave with a slice marked one-way → withhold and halt (gate 6); the human merges it.
+- **No one-way door:** a wave with a slice marked one-way → withhold and halt (gate 6); the human merges it. The final plan PR too, when any wave carried a one-way slice or the plan adds a migration: merging it to the merge-target can deploy them.
 - **Final plan PR only:** the reviewer's `pass`, on the first review or after the one fix pass. Still `fix` → gate 2.
 
 Merge with a merge commit, not squash: `gh pr merge --merge`, without `--delete-branch` — teardown deletes the branches. Then mark the wave `merged`/`done`. Any merge failure → gate 3.
@@ -33,6 +33,8 @@ No CI (`## CI` is `none`) isn't a halt: say once, at the start, that merges rest
 | 5 | safety-bound | A safety bound is hit | `PENDING` |
 | 6 | escalation-valve | A mergeable PR withheld for a risk signal (`Confidence: low`, or a one-way door) | `PENDING` |
 | 7 | plan-complete | No `planned` sprint row left | `PENDING` |
+
+**Gate 1's one exception:** a `BLOCKED` whose only fix is a test fixture or doc that no other slice in the wave owns. Add the file to that engineer's files owned, resume the same engineer, and say so in your next message to the human.
 
 **Every gate halts:** append a one-line queue entry from `orchestrator` naming the gate and the artifact, send a `PushNotification`, and end the turn. `BLOCKED` must be resolved before resuming; `PENDING` only needs acknowledging. A queue entry that only needs the human's decision is **not** a halt — notify and keep going on the value in use. `/pod:code`'s **Plan complete** step 5 writes its entry whatever the verdict (`review <pass | still failing>`); that is gate 7's entry, so don't write a second. A gate 2 halt adds its own.
 

@@ -29,7 +29,7 @@ Args: the plan slug (none → ask, listing plans not `Status: archived`) and `--
 
 ## The wave loop
 
-For each sprint row, run its sprint doc wave by wave (no doc → point to `/pod:sprint`; never write it yourself). At the start of each sprint after the first, merge any new `origin/<merge-target>` commits into the plan branch (`Sync <merge-target> into <plan-slug>`) and verify; a conflict halts.
+For each sprint row, run its sprint doc wave by wave (no doc → point to `/pod:sprint`; never write it yourself). At the start of each sprint, set its plan row to `active` (it goes `done` at **Sprint complete**); after the first sprint, also merge any new `origin/<merge-target>` commits into the plan branch (`Sync <merge-target> into <plan-slug>`) and verify; a conflict halts.
 
 **Each wave:** confirm the last wave PR merged and tear it down; read the queue for answers; check the slices own disjoint files; dispatch; merge the slices into the wave head (no squash); check it; open the wave PR; hand back. On resume, re-dispatch only `blocked` and `pending` slices, in their existing worktrees.
 
@@ -44,7 +44,7 @@ A bootstrap wave (`B1` alone) writes the smoke recipe and is checked with it; it
 
 ## Preflight
 
-Before the first wave: the merge-target is on `origin`, and the `## Smoke recipe` is filled in (unless wave 1 is a lone `B1`, which writes it — check again before wave 2). No `origin` or no merge-target there → point to `/pod:init`. On Windows, set `git config core.longpaths true`, or worktree removal fails. Then create and push `<plan-slug>`, check it out in the parent repo, and commit any uncommitted pod setup (`docs/`, `.github/workflows/pod-ci.yml`) to it and push — never to the merge-target. In that commit, resolve each pending `plan <slug> complete — final PR <url>` queue entry whose PR has merged: `**Resolution:** <date> — final PR merged`.
+Before the first wave: the merge-target is on `origin`, and the `## Smoke recipe` is filled in (unless wave 1 is a lone `B1`, which writes it — check again before wave 2). No `origin` or no merge-target there → point to `/pod:init`. On Windows, set `git config core.longpaths true`, or worktree removal fails. Then create and push `<plan-slug>`, check it out in the parent repo, and commit any uncommitted pod setup (`docs/`, `.github/workflows/pod-ci.yml`) to it and push — never to the merge-target. In that commit, resolve each pending `plan <slug> complete — final PR <url>` queue entry whose PR has merged: `**Resolution:** <date> — final PR merged`. Then move every resolved entry from earlier plans to the end of `docs/handoff-queue-archive.md`, so the queue holds only this plan's entries and what is still pending.
 
 ## Sprint complete
 
@@ -56,7 +56,7 @@ Append a `## Sprint summary` to the sprint doc — the next sprint-planner and `
 - **Slice log:** one line per slice — `<slice-code>: <model, or sonnet→opus> · <Confidence> · test-first <yes | partly — why | n/a> · runtime <what was driven> · <N> NOTEs · time lost <none | what>` — plus each wave fix and stall
 - **Agent context at hand-back:** <sum of each agent's reported `subagent_tokens`> — *each agent's final context size, not tokens billed*; say so wherever it's quoted
 
-Then archive the sprint doc to `docs/sprints/archive/`, mark its plan row `done`, prune the queue per its own rule, and commit and push `docs/`. A `planned` row left → end: `Sprint <sprint-slug> complete. Reply 'continue' to start the next sprint.` None → **Plan complete**.
+Then archive the sprint doc to `docs/sprints/archive/`, mark its plan row `done`, and commit and push `docs/`. A `planned` row left → end: `Sprint <sprint-slug> complete. Reply 'continue' to start the next sprint.` None → **Plan complete**.
 
 ## Plan complete
 
