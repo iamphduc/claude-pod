@@ -25,7 +25,13 @@ You need Claude Code, `git`, and the GitHub CLI (`gh`), logged in.
 /plugin install pod-flow@pod
 ```
 
-The tree opens beside the transcript when you start `/pod:autopilot` or `/pod:ship`. To open it again, run `/pod-flow`. pod-flow only reads your `docs/` files and the session's agent list. It needs a Claude Code build with function hooks, which are in early access.
+The tree opens beside the transcript when you start `/pod:autopilot` or `/pod:ship`. To open it again, run `/pod-flow`. Other commands:
+
+- `/pod-flow preview`: open the tree on this project's docs without a run.
+- `/pod-flow text`: print the tree as a few lines, for a narrow terminal.
+- `/pod-flow reset`: forget this session's agents, token counts, and folds.
+
+pod-flow only reads your `docs/` files and the session's agent list, and asks `gh` whether the final PR has merged. It needs a Claude Code build with function hooks, which are in early access.
 
 **2. Ship an idea** (from the repo root, new or existing):
 
