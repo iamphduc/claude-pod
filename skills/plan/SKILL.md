@@ -25,7 +25,7 @@ Know what's already decided: `docs/codebase-structure.md`, `docs/decisions.md` (
 
 ## Interview
 
-Cover goal and success, scope in and out, stack and constraints, trade-offs, and risks. Don't ask what's already settled, and look facts up yourself instead of asking.
+Cover goal and success, scope in and out, what existing behavior or look changes (even slightly), stack and constraints, trade-offs, and risks. Don't ask what's already settled, and look facts up yourself instead of asking.
 
 - **The `grilling` skill installed** → use it, in its own format. Not installed → interview with `AskUserQuestion`, one decision per question, your recommended option first; tell the human once that `npx skills add mattpocock/skills` (pick `grilling`) gives the fuller version. Never invoke `grill-me` — it's a human-only launcher. The human already ran `/grill-me` → ask only what it left open.
 - **Fast path:** in the first round, offer to ask everything or only what has no safe default. On the fast path still ask whatever changes what gets built or how it looks, and list every default you took in Key decisions, marked `(default)`.
