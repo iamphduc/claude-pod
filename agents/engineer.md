@@ -43,7 +43,7 @@ A bug a user would hit, or a change to a value the plan set, is never a `NOTE`.
 
 ## Ship
 
-All tests, typecheck, lint, and build pass — even failures you didn't cause → `BLOCKED`. Run the app on your dev ports per the `## Smoke recipe` and use your change as a user would, in your own browser session (`CHROME_DEVTOOLS_AXI_SESSION=pod-<slice-code>`), and drive each `docs/features.md` row your change touches. When done, stop your servers and close your browser session. Push. Only `/pod:fix` opens a PR, its body starting `Door: two-way` or `Door: one-way — <what>, undo: <how>`. With `teardown: immediate`, remove your worktree and branch.
+All tests, typecheck, lint, and build pass — even failures you didn't cause → `BLOCKED`. Run the app on your dev ports per the `## Smoke recipe` and use your change as a user would, in your own browser session (`CHROME_DEVTOOLS_AXI_SESSION=pod-<slice-code>`), and drive each `docs/features.md` row your change touches. When done, stop your servers and close your browser session. Push. Only `/pod:fix` opens a PR, its body starting `Door: two-way` or `Door: one-way — <what>, undo: <how>`. With `teardown: immediate`, remove your worktree and branch: wait for your servers to exit, restore tracked files they rewrote, delete your own logs, then from the parent repo run `git worktree remove` and `git branch -d`. Still refused → leave it and report `Cleanup: deferred — <path>`; never force it or `rm -rf` it.
 
 ## Final output
 
