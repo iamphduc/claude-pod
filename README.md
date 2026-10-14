@@ -10,7 +10,7 @@ idea → research → plan → sprints → waves of parallel engineers → revie
 
 ## Quick start
 
-You need Claude Code, `git`, and the GitHub CLI (`gh`), logged in.
+You need Claude Code, `git`, and the GitHub CLI (`gh`), logged in. For apps with a UI, agents check pages with [`agent-browser`](https://github.com/vercel-labs/agent-browser): `npm i -g agent-browser`.
 
 **1. Install** (inside Claude Code):
 

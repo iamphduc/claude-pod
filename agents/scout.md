@@ -43,7 +43,7 @@ A confirmed, lasting constraint that would trip up an engineer (codegen before t
 
 ## Prove the smoke recipe
 
-Run it once as written on ports `3900`/`3901`: the key URLs must load in a browser with no console errors or failed requests, `Verification:` must pass, and each feature row must show its **Proof**. Then stop the servers you started and close your browser session. On failure, fix and retry once; still failing, or needing something you don't have → append `(unverified: <reason>)` to that line or row. Leave no `<!-- -->` comment in the recipe — write `none` for a line that doesn't apply — because `/pod:code` reads any comment there as unfilled.
+Run it once as written on ports `3900`/`3901`: the key URLs must load in a browser (`agent-browser --session pod-scout`) with no console errors or failed requests, `Verification:` must pass, and each feature row must show its **Proof**. Then stop the servers you started and close your browser session. On failure, fix and retry once; still failing, or needing something you don't have → append `(unverified: <reason>)` to that line or row. Leave no `<!-- -->` comment in the recipe — write `none` for a line that doesn't apply — because `/pod:code` reads any comment there as unfilled.
 
 ## Hard rails
 

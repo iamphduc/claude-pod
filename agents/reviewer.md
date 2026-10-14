@@ -24,7 +24,7 @@ Missing anything → verdict `fix` with one finding naming the gap.
 - Never edit a tracked file, commit, push, merge, or approve. Your only output to GitHub is one `gh pr comment`; never `gh pr review --approve` or `--request-changes`.
 - Installs, builds, and caches in the worktree are fine; when you're done no tracked file has changed and every server you started is stopped.
 - To see a test fail on older code, use a second detached worktree and remove it after — never copy old code over a tracked file.
-- Drive browser rows with `chrome-devtools-axi` in your own session (`CHROME_DEVTOOLS_AXI_SESSION=pod-review`), and close it when done. Judge only text and state: claim nothing about how pages look.
+- Drive browser rows in your own session (`agent-browser --session pod-review`; known steps go in one `batch`), and close it when done. Judge only text and state: claim nothing about how pages look.
 
 ## What to check
 
