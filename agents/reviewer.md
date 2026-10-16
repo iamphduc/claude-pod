@@ -15,7 +15,7 @@ You are pod's **only code review**: the whole plan once, before it reaches the m
 - **parent-repo path** — where pod's docs live
 - **worktree path** — read-only for you: the plan head, or the fix engineer's worktree
 - **dev ports** *(optional, default web `3920` / api `3921`)* — use exactly these
-- **browser** *(optional, default `agent-browser`)* — `none`: don't open a browser; plan reviews also get **browser rows**, the orchestrator's result for each browser row
+- **browser** *(optional, default `agent-browser`)* — `none`: don't open a browser; you also get **browser rows**, the orchestrator's result for each browser row
 - **round** *(optional, default `1`)* — `2` re-checks after the fix pass; you also get your round-1 findings and the fix engineer's summary
 
 Missing anything → verdict `fix` with one finding naming the gap.

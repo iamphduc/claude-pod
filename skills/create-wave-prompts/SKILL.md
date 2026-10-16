@@ -9,7 +9,7 @@ Args: the sprint slug (none → the only active sprint doc; several → list the
 
 ## Checks — warn at the top, don't halt
 
-`origin` exists; the merge-target and the plan branch `<plan-slug>` (the sprint doc's `From plan:`) are on origin — plan branch missing → show how to create it off the merge-target; the wave's `Files owned` don't overlap (name any overlap).
+`origin` exists; the merge-target and the plan branch `<plan-slug>` (the sprint doc's `From plan:`) are on origin — plan branch missing → show how to create it off the merge-target; the wave's `Files owned` don't overlap (name any overlap); the browser per `/pod:code`'s **Preflight** (`${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md`) — reuse a recorded choice; ask only if none.
 
 ## The current wave
 
@@ -38,6 +38,7 @@ Git and GitHub are the record here, not the board, because the human runs the wa
    - files owned:      <paths>
    - success criteria: <criteria>
    - teardown:         defer
+   - browser:          <agent-browser | none>
    ```
 
-   Print ports as numbers: *i* is the slice's row on the status board (row 1 → `3010`/`3011`), so no two sessions share a port and `3000`/`3001` stay free for checking the wave head.
+   Print ports as numbers: *i* is the slice's row on the status board (row 1 → `3010`/`3011`), so no two sessions share a port and `3000`/`3001` stay free for checking the wave head. `devtools-mcp` → print `none`: hand-run sessions must not share the MCP browser; check the wave's pages yourself.
