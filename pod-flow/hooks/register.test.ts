@@ -26,6 +26,9 @@ const docs = (): Record<string, string> => ({
 // The engine hands fs hooks an absolute path (on Windows, with backslashes): match on its end.
 const endsAt = (path: string, rel: string) => path.replaceAll('\\', '/').endsWith(`/${rel}`)
 
+// A test flips this to make the engine's agent list fail.
+let isListBroken = false
+
 const world = (on: Parameters<typeof mock.clock>[0], opened: string[], isPlaced = true, logged: string[] = [], files = docs(), isShown = isPlaced, agents: { id: string; type: string; status: string }[] = [], root = 'E:\\proj') => {
   mock.clock(on)
   on('session.root', () => ({ value: root }))
@@ -42,7 +45,10 @@ const world = (on: Parameters<typeof mock.clock>[0], opened: string[], isPlaced 
     if (file === undefined) throw new Error('ENOENT')
     return { value: files[file]! }
   })
-  on('agent.list', () => ({ value: agents as never }))
+  on('agent.list', () => {
+    if (isListBroken) throw new Error('gone')
+    return { value: agents as never }
+  })
   on('skill.prompt', (_$, e) => ({ text: e.text }))
   on('ui.open', (_$, e) => {
     opened.push(e.id)
@@ -326,4 +332,17 @@ test('a finished wave in a running sprint draws folded, as a button', async ($, 
   expect(await pane.find({ type: 'Button', text: /^├─ ▸ wave 1 {2}1 slice$/ })).toBeDefined()
   expect(await pane.find({ type: 'Text', text: /A1 First slice/ })).toBeUndefined()
   expect(await pane.find({ type: 'Text', text: /A2 Second slice/ })).toBeDefined()
+})
+
+test('a failing engine call during refresh leaves the tree as it was', async ($, on) => {
+  isListBroken = false
+  world(on, [])
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  isListBroken = true
+  try {
+    const { text } = await run($, 'text')
+    expect(text).toContain('one')
+  } finally {
+    isListBroken = false
+  }
 })
