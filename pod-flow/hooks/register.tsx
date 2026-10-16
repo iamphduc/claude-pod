@@ -30,6 +30,7 @@ type Dollar = EngineInterface
 const PULL_CHECK_MS = 30_000
 
 let isTimerOn = false
+let refreshing: Promise<void> = Promise.resolve()
 let told: Set<string> | undefined
 const lastSeen: Record<string, number> = {}
 const merged = new Set<number>()
@@ -124,9 +125,19 @@ async function logMilestones($: Dollar) {
   }
 }
 
-async function refresh($: Dollar) {
-  await buildLines($)
-  await logMilestones($)
+/** One refresh at a time, so a slow one never draws over a newer tree; a failed engine call keeps the last tree. */
+async function refresh($: Dollar): Promise<void> {
+  // Each call waits for the one before it and then runs on its own `$`: a hook's `$` is only good while that hook runs.
+  const run = refreshing.then(async () => {
+    try {
+      await buildLines($)
+      await logMilestones($)
+    } catch {
+      // The tree stays as it was; the next tick tries again.
+    }
+  })
+  refreshing = run
+  await run
 }
 
 async function buildLines($: Dollar) {

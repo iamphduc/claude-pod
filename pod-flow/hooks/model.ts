@@ -200,7 +200,7 @@ export function parseDispatch(prompt: string): Pick<Dispatch, 'sprint' | 'slice'
   return {
     sprint: field('sprint slug'),
     slice: field('slice code'),
-    branch: field('branch(?: name)?'),
+    branch: field('(?<!merge-target |plan |wave head )branch(?: name)?'),
     plan: field('plan slug'),
     round: Number.isInteger(round) && round > 0 ? round : undefined,
   }
@@ -227,6 +227,12 @@ export function sliceOf(d: Dispatch | undefined, codes: string[]): string | unde
   const words = `${d.description} ${d.branch ?? ''}`.toLowerCase().split(/[\s,;:()[\]"'`-]+/)
   return codes.find(code => words.includes(code.toLowerCase()))
 }
+
+/** The sprint an agent's slice belongs to: the one its dispatch names, else the first board with that code. */
+function sprintOfSlice(d: Dispatch | undefined, slice: string, sprints: SprintDoc[]): string | undefined {
+  return (sprints.find(s => s.slug === d?.sprint && s.rows.some(r => r.slice === slice)) ?? sprints.find(s => s.rows.some(r => r.slice === slice)))?.slug
+}
+const sliceKey = (sprint: string, slice: string) => `${sprint}/${slice}`
 
 const SLICE_STATUS: Record<string, string> = {
   pending: 'waiting',
@@ -255,7 +261,7 @@ export const isDone = (row: Row) =>
  * A link on a finished slice is its wave's PR. It is merged once the wave is settled (the sprint is
  * archived, or a later wave has started); before that the PR may still be open.
  */
-const waveStatus = (rows: Row[], liveSlices: Set<string>, isSettled: boolean): { status: string; tag?: string } => {
+const waveStatus = (rows: Row[], sprint: string, liveSlices: Set<string>, isSettled: boolean): { status: string; tag?: string } => {
   const prs = rows.map(r => {
     if (r.status === 'merged' || prState(r.pr).state === 'merged') return { state: 'merged' as const }
     if (r.status === 'done' && isSettled) return { state: 'merged' as const }
@@ -266,7 +272,7 @@ const waveStatus = (rows: Row[], liveSlices: Set<string>, isSettled: boolean): {
   if (open) return { status: 'running', tag: open.number ? `PR #${open.number} open` : 'PR open' }
   if (rows.every(isDone)) return { status: 'done' }
   if (rows.some(r => r.status === 'blocked')) return { status: 'blocked' }
-  if (rows.some(r => liveSlices.has(r.slice) || r.status === 'pushed')) return { status: 'running' }
+  if (rows.some(r => liveSlices.has(sliceKey(sprint, r.slice)) || r.status === 'pushed')) return { status: 'running' }
   return { status: 'waiting' }
 }
 
@@ -515,7 +521,7 @@ export function tokenTotals(spawns: Record<string, Dispatch>, tokens: Record<str
       continue
     }
     const slice = round ? undefined : sliceOf(d, codes)
-    const sprint = round?.sprint ?? (slice && (sprints.find(s => s.slug === d.sprint && s.rows.some(r => r.slice === slice)) ?? sprints.find(s => s.rows.some(r => r.slice === slice)))?.slug)
+    const sprint = round?.sprint ?? (slice && sprintOfSlice(d, slice, sprints))
     if (sprint) totals.sprints.set(sprint, (totals.sprints.get(sprint) ?? 0) + n)
   }
   return totals
@@ -579,7 +585,8 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
   for (const a of running) {
     if (roundIds.has(a.id)) continue
     const slice = sliceOf(dispatchOf(a), codes)
-    if (slice) agentOfSlice.set(slice, a)
+    const sprint = slice && sprintOfSlice(dispatchOf(a), slice, sprints)
+    if (slice && sprint) agentOfSlice.set(sliceKey(sprint, slice), a)
   }
   const liveSlices = new Set(agentOfSlice.keys())
   const ageOf = (a: LiveAgent | undefined) =>
@@ -620,8 +627,8 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
       const rows = doc!.rows.filter(r => r.wave === wave)
       const doneCount = rows.filter(isDone).length
       const later = doc!.rows.filter(r => r.wave > wave)
-      const isSettled = doc!.isArchived || later.some(r => r.status !== 'pending' || liveSlices.has(r.slice))
-      const state = waveStatus(rows, liveSlices, isSettled)
+      const isSettled = doc!.isArchived || later.some(r => r.status !== 'pending' || liveSlices.has(sliceKey(sprint.slug, r.slice)))
+      const state = waveStatus(rows, sprint.slug, liveSlices, isSettled)
       const fixes = rounds.filter(r => r.round!.sprint === sprint.slug && r.round!.wave === wave).map(r => roundLine(r, 3, sprint.slug))
       const status = fixes.some(l => l.status === 'running') ? 'running' : state.status
       // In a sprint still running, a finished wave folds to one row, so the wave at work stays in view.
@@ -638,13 +645,13 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
         detail: isFoldable ? `${rows.length} ${rows.length === 1 ? 'slice' : 'slices'}` : undefined,
       })
       for (const row of rows) {
-        const isLive = liveSlices.has(row.slice)
+        const isLive = liveSlices.has(sliceKey(sprint.slug, row.slice))
         lines.push({
           depth: 3,
           kind: 'slice',
           text: `${row.slice} ${row.title}`,
           status: isLive ? 'running' : (SLICE_STATUS[row.status] ?? row.status),
-          note: isLive ? ageOf(agentOfSlice.get(row.slice)) : row.confidence === '—' ? undefined : row.confidence,
+          note: isLive ? ageOf(agentOfSlice.get(sliceKey(sprint.slug, row.slice))) : row.confidence === '—' ? undefined : row.confidence,
           sprint: sprint.slug,
         })
         for (const entry of concernsFor(queue, sprint.slug, row)) {
@@ -686,7 +693,8 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
   const haltText = halt?.replace(/^[\s—-]+|[\s—-]+$/g, '')
   if (haltText && running.length === 0) {
     // A finished plan's final PR is a hand-back for you to merge, not a failure.
-    const isHandBack = HAND_BACK.test(haltText)
+    // A BLOCKED entry, or a final review still failing, is never yours to merge: it halts, even when it names the final PR.
+    const isHandBack = haltType !== 'BLOCKED' && !/still failing/i.test(haltText) && HAND_BACK.test(haltText)
     // A pull request URL reads as its short number.
     const pull = pullOf(haltText)
     if (isHandBack && pull && merged.includes(Number(pull[1]))) {
