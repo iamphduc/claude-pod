@@ -766,4 +766,9 @@ test('the same slice code in two sprints runs only in the sprint its agent works
   expect(sliceIn('ui')).toMatchObject({ status: 'running' })
   expect(sliceIn('core')?.status).not.toBe('running')
 })
-
+
+test('parseDispatch reads the branch name, not the merge-target branch', () => {
+  expect(parseDispatch('- **merge-target branch:** main\n- **branch name:** ui-A1').branch).toBe('ui-A1')
+  expect(parseDispatch('merge-target: long-runs\nbranch: ui-A1').branch).toBe('ui-A1')
+  expect(parseDispatch('plan branch: long-runs\n- branch: long-runs-fix').branch).toBe('long-runs-fix')
+})

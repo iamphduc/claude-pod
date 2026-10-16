@@ -200,7 +200,7 @@ export function parseDispatch(prompt: string): Pick<Dispatch, 'sprint' | 'slice'
   return {
     sprint: field('sprint slug'),
     slice: field('slice code'),
-    branch: field('branch(?: name)?'),
+    branch: field('(?<!merge-target |plan |wave head )branch(?: name)?'),
     plan: field('plan slug'),
     round: Number.isInteger(round) && round > 0 ? round : undefined,
   }
