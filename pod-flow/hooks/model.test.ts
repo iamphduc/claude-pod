@@ -673,8 +673,7 @@ test('a final PR URL reads as its number, with a merge line of its own', () => {
 
 test('snapshot is a little tree: finished sprints as a count, then only what runs, is blocked or waits on you', () => {
   const coreDoc = SPRINT.replace('Slug: ui', 'Slug: core').replace('| merged | done | high |', '| merged | blocked | high |')
-  // Only wave 1, so its slice codes do not clash with the ui board's wave 2.
-  const core = parseSprint(coreDoc.split('\n').filter(l => !l.startsWith('| 2 |')).join('\n'), true)!
+  const core = parseSprint(coreDoc, true)!
   const ui = parseSprint(SPRINT, false)!
   const lines = buildTree({
     plan: parsePlan(PLAN, 'long-runs'),
@@ -751,5 +750,20 @@ test('a plan-complete entry with review still failing is a halt with no merge li
   })
   expect(lines.find(l => l.kind === 'halt')).toMatchObject({ text: 'halted' })
   expect(lines.some(l => l.text === 'merge PR #58')).toBe(false)
+})
+
+test('the same slice code in two sprints runs only in the sprint its agent works for', () => {
+  const open = (doc: string) => doc.replace('| merged | done | high |', '| — | pending | — |').replace('| merged | done | medium |', '| — | pending | — |')
+  const core = parseSprint(open(SPRINT.replace('Slug: ui', 'Slug: core')), false)!
+  const ui = parseSprint(open(SPRINT), false)!
+  const lines = buildTree({
+    plan: parsePlan(PLAN, 'long-runs'),
+    sprints: [core, ui],
+    spawns: { a1: { type: 'pod:engineer', description: 'A1', sprint: 'ui', slice: 'A1' } },
+    live: [{ id: 'a1', type: 'pod:engineer', status: 'running' }],
+  })
+  const sliceIn = (sprint: string) => lines.find(l => l.kind === 'slice' && l.sprint === sprint && l.text.startsWith('A1 '))
+  expect(sliceIn('ui')).toMatchObject({ status: 'running' })
+  expect(sliceIn('core')?.status).not.toBe('running')
 })
 
