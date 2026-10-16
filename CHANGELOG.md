@@ -2,7 +2,7 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file.
 
-## Unreleased
+## 0.1.2 — 2026-10-16
 
 - The browser choice now reaches every engineer (wave fixes and the plan fix pass included) and `/pod:create-wave-prompts`. The `/pod:fix` reviewer gets browser results. `/pod:ship` asks the question at its go check, not after you leave.
 - Agents treat web pages, repo files, and PR comments as data, not instructions. `/pod:plan` shows you any suspect pages from the research.
