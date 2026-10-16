@@ -302,7 +302,7 @@ export const register: Register = on => {
 
     return (
       <Box flexDirection="column">
-        {summary && <Text wrap="truncate-end" bold>{summary}</Text>}
+        {summary && <Text wrap="truncate-end" weight="semibold">{summary}</Text>}
         {rows.length === 0 && <Text dimColor>{note}</Text>}
         {rows.slice(0, shown).map((row, i) => (isGap(i) ? <Box marginTop={1}>{draw(row, i)}</Box> : draw(row, i)))}
         {rows.length > shown && <Text dimColor>… {rows.length - shown} more lines</Text>}
