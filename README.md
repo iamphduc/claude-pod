@@ -10,7 +10,7 @@ idea → research → plan → sprints → waves of parallel engineers → revie
 
 ## Quick start
 
-You need Claude Code, `git`, and the GitHub CLI (`gh`), logged in. For apps with a UI, agents check pages with [`agent-browser`](https://github.com/vercel-labs/agent-browser): `npm i -g agent-browser`. Without it, pod offers to install it or to use the [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp) instead. With the MCP, engineers can't check their own pages, because parallel agents would share one browser. Only the orchestrator checks pages, so you get fewer checks.
+You need Claude Code, `git`, and the GitHub CLI (`gh`), logged in. For apps with a UI, agents check pages with [`agent-browser`](https://github.com/vercel-labs/agent-browser): `npm i -g agent-browser`. Without it, pod offers to install it or to use the [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp) instead. With the MCP, only one agent can use the browser at a time, so during a plan the engineers skip their own page checks and the orchestrator does them. You get fewer checks.
 
 **1. Install** (inside Claude Code):
 
@@ -109,15 +109,19 @@ npx -y skills add mattpocock/skills -g -s grilling -y
 
 Writes `docs/sprints/<slug>.md` with slices grouped into waves. **Read it before coding.** This is your best chance to catch two slices that touch the same files.
 
+Options: `--max-width=N` allows wider waves (default 5).
+
 ### `/pod:code [slug]`: build, one wave at a time
 
 For each wave, pod starts one engineer per slice, combines their work into one PR, starts the app to check it, and checks the look at desktop and phone sizes. Then it **stops for you to merge**. Reply `continue` for the next wave. When the plan is done, it opens the final PR to `main`. The **reviewer** checks it and fixes any blocking issues once. You also get an HTML report (`docs/reports/<slug>.html`). Any question you didn't answer along the way is saved in `docs/decisions.md` as an *agent default*, so you can change it later.
+
+Options: `--merge-target=<branch>` (default: your repo's default branch).
 
 ### `/pod:autopilot [slug]`: build without stopping for you
 
 Does the same as `/pod:code`, but merges each wave PR itself and moves on to the next sprint. It **stops and notifies you** when something looks risky: a failed check, an engineer who isn't confident, a change that's hard to undo, or a limit you set. If a question comes up, it notifies you and keeps going with a default. Running it means you agree to the auto-merges.
 
-Limits: `--max-sprints=N`, `--max-waves=N` (default 20), `--max-runtime=Nh`. CI is optional but recommended. With CI, every check must pass before a merge. The full rules are in [`skills/autopilot/policy.md`](skills/autopilot/policy.md).
+Limits: `--max-sprints=N`, `--max-waves=N` (default 20), `--max-runtime=Nh`, and `--max-width=N` for wider waves. CI is optional but recommended. With CI, every check must pass before a merge. The full rules are in [`skills/autopilot/policy.md`](skills/autopilot/policy.md).
 
 Run one plan per session: after a plan completes, run `/clear` before the next `/pod:autopilot`. State lives on disk, so nothing is lost, and the next plan starts with a fresh context.
 
@@ -128,6 +132,8 @@ One engineer builds the change test-first, the reviewer checks it, and you merge
 ### `/pod:create-wave-prompts [sprint] [wave]`: run engineers yourself
 
 Works out the current wave and prints the commands plus one ready-to-paste prompt per slice. Open a terminal per slice, run `claude --agent pod:engineer`, and paste the prompt. Combining the work and opening the PR is up to you.
+
+Options: `--merge-target=<branch>`.
 
 ### `/pod:report [slug]`: plan report
 
@@ -157,6 +163,7 @@ docs/
 ├── sprints/                the current sprint, plus archive/ for finished ones
 ├── design-drafts/          look options to choose from
 ├── reports/                plan reports
+├── handoff-queue-archive.md resolved notes from earlier plans
 └── handoff-queue.md        notes between agents and you
 ```
 
@@ -168,7 +175,7 @@ Everything else (the agents, skills, and rules) stays inside the plugin and upda
 /plugin marketplace update pod
 ```
 
-Your `docs/` files are never touched.
+Your `docs/` files are never touched. See [`CHANGELOG.md`](CHANGELOG.md) for what changed.
 
 **Other ways to install:** use a local clone with `/plugin marketplace add /path/to/claude-pod`, or try it for one session with `claude --plugin-dir /path/to/claude-pod`.
 
