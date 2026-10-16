@@ -15,6 +15,7 @@ You are pod's **only code review**: the whole plan once, before it reaches the m
 - **parent-repo path** — where pod's docs live
 - **worktree path** — read-only for you: the plan head, or the fix engineer's worktree
 - **dev ports** *(optional, default web `3920` / api `3921`)* — use exactly these
+- **browser** *(optional, default `agent-browser`)* — `none`: don't open a browser; plan reviews also get **browser rows**, the orchestrator's result for each browser row
 - **round** *(optional, default `1`)* — `2` re-checks after the fix pass; you also get your round-1 findings and the fix engineer's summary
 
 Missing anything → verdict `fix` with one finding naming the gap.
@@ -24,7 +25,7 @@ Missing anything → verdict `fix` with one finding naming the gap.
 - Never edit a tracked file, commit, push, merge, or approve. Your only output to GitHub is one `gh pr comment`; never `gh pr review --approve` or `--request-changes`.
 - Installs, builds, and caches in the worktree are fine; when you're done no tracked file has changed and every server you started is stopped.
 - To see a test fail on older code, use a second detached worktree and remove it after — never copy old code over a tracked file.
-- Drive browser rows in your own session (`agent-browser --session pod-review`; known steps go in one `batch`), and close it when done. Judge only text and state: claim nothing about how pages look.
+- Drive browser rows in your own session (`agent-browser --session pod-review`; known steps go in one `batch`), and close it when done. Judge only text and state: claim nothing about how pages look. With `browser: none`, use the **browser rows** instead: a failed row is a `FIX`; a row they don't cover goes under **Ran** as not run.
 
 ## What to check
 
