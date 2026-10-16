@@ -178,7 +178,7 @@ export const register: Register = on => {
     await $.command.register({
       name: 'pod-flow',
       description: 'Show the pod run tree (during /pod:autopilot or /pod:ship)',
-      argumentHint: '[text|reset]',
+      argumentHint: '[preview|text|reset]',
     })
     // A reload runs this again with the run's state kept: pick the refresh back up.
     if (await read($, isActive)) await startRefreshing($)
