@@ -1,62 +1,75 @@
 ---
 name: code
-description: Use when the user types /code or asks to execute a sprint via the wave loop — dispatch engineers per wave, hand back each wave's PR to merge, then review, final-merge the plan branch, and archive.
+description: Use when the user types /pod:code or asks to execute a sprint via the wave loop — dispatch engineers per wave, hand back each wave's PR to merge, archive each sprint, then open the final plan PR, have the reviewer check it, and hand it back.
 ---
 
-Work in thinking mode. Run this wave loop in the main loop; dispatch engineers and the reviewer via `Agent`.
+You are the orchestrator. Each wave's engineers build in parallel; you combine their work into one wave PR on the plan branch and hand it to the human to merge. At plan end, one reviewed PR takes the plan to the merge-target. Never merge a wave or the final PR yourself (`/pod:autopilot` changes that under its own policy).
 
-Parse from args: the plan slug (if any) and `--merge-target=<branch>` (default: origin's default branch via `git symbolic-ref refs/remotes/origin/HEAD`, else `main`). If no plan is given, list `docs/plans/*.md` (excluding `Status: archived`) and ask which to run.
+Args: the plan slug (none → ask, listing plans not `Status: archived`) and `--merge-target=<branch>` (default: origin's default branch). State lives on disk — the plan, `docs/sprints/<sprint-slug>.md` (status board), `docs/handoff-queue.md` — so re-read it on every resume and after every compaction.
 
-State on disk, re-read every resume: `docs/sprints/<sprint-slug>.md` (status board), `docs/handoff-queue.md` (concerns), `docs/plans/<plan-slug>.md` (master plan).
+## Guardrails
 
-## Conventions
+- **One plan branch, one final PR.** `<plan-slug>` is cut off `origin/<merge-target>` once; everything else branches off it, and only the final PR reaches the merge-target.
+- **The parent repo only holds docs.** It stays on `<plan-slug>` and only takes `docs/` commits (plus pod's CI workflow at preflight) and pulls. Build, merge, review, and fix in worktrees under `<parent-repo>/.claude/worktrees/`; run teardown from the parent repo.
+- **Disjoint files.** Two slices in a wave owning the same path → halt `BLOCKED` before dispatch. A slice that touched files outside its own → `NOTE` (`PENDING` if another slice owns them).
+- **Nothing broken moves forward.** A merge conflict, a failed smoke recipe, or a slice's `BLOCKED` → halt `BLOCKED`.
+- **No known bug reaches the merge-target.** A reproduced bug is fixed before the final merge, or the final PR stays `Review still failing` — never a decision, a default, or a someday item.
+- **No force.** No `--force` (`git worktree remove --force` included), `-D`, force-push, or recursive delete of a worktree or repo. A safe command refuses → find out why; leave a failed teardown and name it.
+- **Clean up when you stop.** Before ending any turn (except after `try`), stop your servers, free the ports, and close your browser session.
+- **The paper trail rides the plan branch.** Commit `docs/` to `<plan-slug>` at each sprint's end and at plan end, before the final merge.
 
-- **Plan integration branch:** cut `<plan-slug>` off `origin/<merge-target>` once at plan start (Preflight), push it. Slice branches, wave heads, and the reviewer branch cut off it; their PRs target it. `<merge-target>` (default `main`) only sees the plan via **one** final PR at Plan complete.
-- **Dispatch:** one `Agent` call per slice in one message, **no `isolation`**; pass each its context per `docs/engineer-protocol.md` with **merge-target `<plan-slug>`**, `teardown: defer`, and its **dev ports** — web `3000 + 10i`, api `3001 + 10i`, where *i* is the slice's 1-based row in the sprint doc's status board (not its position in this dispatch batch, so a re-dispatched slice keeps its ports). Offset 0 (`3000`/`3001`) is yours for wave-head verification; slice worktrees are still up under `teardown: defer`. Engineers push their branch and don't open PRs — you integrate the wave and open its one PR.
-- **Integrate a wave:** `git fetch origin`; per slice, `git diff --name-only origin/<plan-slug>...<branch>` against its declared `Files owned` — anything outside → `PENDING` from `orchestrator` naming the stray paths; cut wave head `<sprint-slug>-w<N>` off `origin/<plan-slug>`; merge each pushed slice branch into it **non-squash** (disjoint → clean; a conflict → halt `BLOCKED` from `orchestrator`); verify the combined wave on the head per the `## Smoke recipe` (failure → halt `BLOCKED`); push it, `gh pr create --base <plan-slug>` one PR titled `Wave <N>`.
-- **Hand back for merge:** end the turn with the wave's one PR as `- <label>: <PR URL>` under a one-line header plus a "reply `continue`" line. Don't poll, auto-merge, or proceed.
-- **Confirm-on-resume:** `gh pr view <URL> --json mergedAt,state` the wave's PR; unmerged → re-end. Once merged: sync the plan branch (`git checkout <plan-slug> && git pull origin <plan-slug>`), set its PR/Status cells to `merged`/`done`, tear down the wave — each slice's worktree (`git worktree remove` → `git branch -d` → `git push origin --delete <branch>`) and the wave head (local + remote). No `--force`/`-D`; on failure leave it and note it.
-- **Reset a worktree:** `git reset --hard origin/<plan-slug> && git clean -fd`, then re-run skipping pre-create.
-- **Gate-worktree resume** (reviewer): if the branch exists, find its PR — open → re-end the turn pointing at it; merged → confirm-on-resume, then skip ahead; none → reset the worktree and re-run.
+## Contracts
 
-## Preflight (once, before the first wave; skip on resume mid-sprint)
+- **Dispatch:** all of a wave's `pod:engineer` calls in one message, no `isolation`, with the engineer's **Required dispatch context**: merge-target `<plan-slug>`, `teardown: defer`, dev ports `3000 + 10i` / `3001 + 10i` (*i* = the slice's status-board row), and any `NOTE for <slice-code>:` from earlier slices. Ports `3000`/`3001` are yours, `3010`/`3011` a fix engineer's, `3020`/`3021` the reviewer's.
+- **Model:** each slice's engineer runs on its **Model:** (none → `opus`), passed as the `Agent` call's `model`; wave fixes and the plan fix pass run on `opus`. A `sonnet` slice that reports `BLOCKED` or `Confidence: low` is re-dispatched once on `opus` in its worktree before you act on it; the new report replaces the first.
+- **Names:** worktrees at `<parent-repo>/.claude/worktrees/<branch>`. Slice branches come from the sprint doc; wave head `<sprint-slug>-w<N>`, wave fix `<sprint-slug>-w<N>-fix`, sync `<plan-slug>-sync`, review `<plan-slug>-review`, plan fix `<plan-slug>-fix`.
+- **Wave PR:** from the wave head to `<plan-slug>`, titled as a conventional commit for what the wave adds, ending `(wave <N>/<waves in the sprint>)` — e.g. `feat(reports): record who edited a published report (wave 1/2)`. The body opens with `Door: two-way`, or `Door: one-way — <what>, undo: <how>` per one-way slice, then each slice with its `NOTE`s, stray paths, any wave fix, and the Look check line.
+- **Look check line:** `Look check: <each width you actually reached> ✓ · close-ups: <what> · colors: <match, or the off-Look values> · <defects, or none>`, or why it was skipped.
+- **Hand back for merge:** the PR link, its CI status (`passing`, `failing: <names>`, `pending`, or `no CI checks — nothing but the agents checked this`), and "reply `continue`", then end the turn. A one-way door comes first.
 
-Before pre-creating worktrees, halt naming the first check that fails:
+## The wave loop
 
-- `origin` remote exists (`git remote get-url origin`).
-- The merge-target is on origin (`git ls-remote --heads origin <merge-target>` returns a ref).
-- Every non-slice prerequisite (new dependencies, the plan/sprint docs) is committed and pushed to the merge-target.
-- `docs/codebase-structure.md`'s `## Smoke recipe` is filled in — no `<!-- … -->` placeholders left. Unfilled, every engineer caps Confidence at `medium` and ships unverified, and gate 6 doesn't catch it.
+For each sprint row, run its sprint doc wave by wave (no doc → point to `/pod:sprint`; never write it yourself). At the start of each sprint, set its plan row to `active` (it goes `done` at **Sprint complete**); after the first sprint, also merge any new `origin/<merge-target>` commits into the plan branch (`Sync <merge-target> into <plan-slug>`) and verify; a conflict halts.
 
-Then **create the plan integration branch** (skip if `git ls-remote --heads origin <plan-slug>` exists — resuming): `git fetch origin && git branch <plan-slug> origin/<merge-target> && git push -u origin <plan-slug>`.
+**Each wave:** confirm the last wave PR merged and tear it down; read the queue for answers; check the slices own disjoint files; dispatch; merge the slices into the wave head (no squash); check it; open the wave PR; hand back. On resume, re-dispatch only `blocked` and `pending` slices, in their existing worktrees.
 
-## The loop
+- **Check the combined wave as a user would** — in your own browser session (`agent-browser --session pod-orch`) — run the `## Smoke recipe`, drive every `docs/features.md` row the wave touched, and add or update the rows (in the parent repo) for the features it added or changed; and if users see any change, run the **Look check**: every touched page at desktop and 375 px (emulate it), against the plan's `## Look`. A width you didn't reach is not ✓.
+- **Wave fix — once per wave, before its PR.** A defect a user would notice, proven by a measurement on the wave head, is fixed now by one engineer on the wave-fix branch with **review findings** = the defects and files owned = where they live. Still there → `PENDING`. Style and hardening aren't triggers.
+- **Concerns:** every engineer `BLOCKED`, `PENDING`, and `SOLVED` goes to the queue. Re-judge each with *if nobody ever reads it, does anything go wrong?* — a `PENDING` that fails is a `NOTE`; a `NOTE` that passes becomes your `PENDING`. A `NOTE` that changes what users see, or leaves out part of the plan's Scope, is a `PENDING` for the human; the wave still merges. A tool or machine limit the next engineer will hit goes into `docs/known-issues/` before the next wave.
+- **Status board:** keep it current per the **Field rules** in `${CLAUDE_PLUGIN_ROOT}/agents/sprint-planner.md`.
+- **Tell the human:** `PushNotification` when you halt and once per queue entry that needs their decision. Don't wait on a decision — keep going on the value in use. A look decision comes with a self-contained design draft in `docs/design-drafts/`, showing as-built next to each option.
+- **Watch for stalls.** Background agents can hang silently. Time each batch with a background `sleep 900`; when it fires, check each unfinished agent's transcript (`~/.claude/projects/<project>/<session>/subagents/agent-<agentId>.jsonl`, not the `Agent` result's `output_file`) for activity in the last 15 minutes. None → stop it and re-dispatch once; twice → halt `BLOCKED`. Run your own long commands (servers, tests, CI waits, browser calls) in the background or with a time limit, with their output in a log file; read back the result and any failures, not the whole log.
 
-For each sprint row, read `docs/sprints/<sprint-slug>.md` (re-read on resume to find the next wave); if missing → halt and tell the human to run `/sprint`, never draft it yourself.
+A bootstrap wave (`B1` alone) writes the smoke recipe and is checked with it; its `medium` Confidence is expected.
 
-### Per wave (run in order)
+## Preflight
 
-**Resume a halted wave:** re-dispatch each `blocked` slice fresh — reset its worktree if it exists (per convention) else recreate it (step 2); dispatch (step 3) with any still-`pending` slice. Skip `pushed`, `merged`, and `done`.
+Before the first wave: the merge-target is on `origin`, and the `## Smoke recipe` is filled in (unless wave 1 is a lone `B1`, which writes it — check again before wave 2). No `origin` or no merge-target there → point to `/pod:init`. On Windows, set `git config core.longpaths true`, or worktree removal fails. Then create and push `<plan-slug>`, check it out in the parent repo, and commit any uncommitted pod setup (`docs/`, `.github/workflows/pod-ci.yml`) to it and push — never to the merge-target. In that commit, resolve each pending `plan <slug> complete — final PR <url>` queue entry whose PR has merged: `**Resolution:** <date> — final PR merged`. Then move every resolved entry from earlier plans to the end of `docs/handoff-queue-archive.md`, so the queue holds only this plan's entries and what is still pending.
 
-1. **Sync** (skip on the first wave of the first sprint): confirm-on-resume the prior wave's PR.
-2. **Check disjointness, then pre-create worktrees.** Intersect the wave's `Files owned` sets pairwise; any overlap → halt `BLOCKED` from `orchestrator` naming the two slices and the shared path, before dispatching anything. Then per slice, `git worktree add <parent-repo>/.claude/worktrees/<sprint-slug>-<slice-code>/ -b <branch-name> origin/<plan-slug>` — branch names from the sprint doc's Branch column.
-3. **Dispatch** per the Dispatch convention, subagent_type `waves-engineer` for every slice.
-4. **Translate concerns:** append each engineer's `Concerns` lines (`[TYPE] body`) to `docs/handoff-queue.md` per its template (`from: engineer`).
-5. **Update the status board:** set each slice's Status to `pushed` (or `blocked`) per `docs/templates/sprint.md`; the PR cell is filled in step 6.
-6. **Integrate & open the wave PR.** Halt instead if any slice reported a `BLOCKED` concern, naming the trigger and its queue entry; when >50% of the wave ended `blocked`, first append a wave-summary `BLOCKED` entry from `orchestrator` and point the halt at that rather than at one slice. Otherwise integrate per convention and set the wave's slices' PR cell to its URL.
-7. **Hand back for merge** per convention (header `Wave <N> of sprint <sprint-slug> awaiting merge` → reply `continue` to proceed).
+## Sprint complete
 
-### Sprint complete (all waves `done`)
+Append a `## Sprint summary` to the sprint doc — the next sprint-planner and `pod:reporter` read it:
 
-Go straight to the reviewer — no post-merge smoke gate.
+- **Synced with merge-target:** <up to date | synced N commits>
+- **Slices shipped:** <slice-code list>
+- **Queue entries:** resolved <N>, deferred <M> — link the deferred ones
+- **Slice log:** one line per slice — `<slice-code>: <model, or sonnet→opus> · <Confidence> · test-first <yes | partly — why | n/a> · runtime <what was driven> · <N> NOTEs · time lost <none | what>` — plus each wave fix and stall
+- **Agent context at hand-back:** <sum of each agent's reported `subagent_tokens`> — *each agent's final context size, not tokens billed*; say so wherever it's quoted
 
-**Reviewer.** Dispatch the reviewer (subagent_type `waves-reviewer`) over the sprint's diff; resume via gate-worktree on `<sprint-slug>-review` (merged → skip to archive).
-- **Dispatch:** pre-create `.claude/worktrees/<sprint-slug>-review/` off `origin/<plan-slug>`, then dispatch per convention with `slice code` = `review`, `branch` = `<sprint-slug>-review`, the sprint slug, and the sprint's merged slice branches (none merged → nothing to review, skip to archive).
-- **Triage & ship:** translate `PENDING`/`SOLVED` concerns, routing a `SEVERE:` `PENDING` to the hand-back, else into the Archive gate's end-of-turn message. `PR: clean` → skip to archive, else open a PR (`--base <plan-slug>`) and hand back per convention (`Sprint <sprint-slug> review awaiting merge`).
+Then archive the sprint doc to `docs/sprints/archive/`, mark its plan row `done`, and commit and push `docs/`. A `planned` row left → end: `Sprint <sprint-slug> complete. Reply 'continue' to start the next sprint.` None → **Plan complete**.
 
-**Archive & advance.** Append the Sprint summary (per `docs/templates/sprint.md`), flip the doc `Status:` to `archived`, and `mv` it to `docs/sprints/archive/`.
-- **Update the plan & advance:** set the sprint's row in `docs/plans/<plan-slug>.md` to `done` (reshape later rows only if unresolved `PENDING`s require it — never rewrite history). Tear down the reviewer's worktree and `<sprint-slug>-review` (local + remote), prune `docs/handoff-queue.md` per its own rule, then commit `docs/` to `<plan-slug>` and push — the sprint's whole paper trail, uncommitted until now, and the final plan PR is what carries it to `<merge-target>`. If a `planned` sprint row remains → end the turn: `Sprint <sprint-slug> complete. Reply 'continue' to start the next sprint.` If none remains → go to **Plan complete**.
+## Plan complete
 
-### Plan complete (no `planned` sprint rows left)
+Code is reviewed once, here, on the whole plan (why: `${CLAUDE_PLUGIN_ROOT}/docs/design.md`).
 
-The whole plan sits on `<plan-slug>`; merge it to the desired branch in **one** PR: `gh pr create --base <merge-target> --head <plan-slug>`, titled for the plan; hand back (`Plan <plan-slug> complete — final merge awaiting`). On resume once merged: sync `<merge-target>`, tear down `<plan-slug>` (local + remote). End: `Plan <plan-slug> merged to <merge-target>. Done.`
+1. **Open the final PR** `<plan-slug>` → `<merge-target>`.
+2. **Review:** dispatch `pod:reviewer` on a review worktree at `origin/<plan-slug>`, with the PR URL, plan slug, merge-target, parent-repo path, and ports. Its `PENDING`s go to the queue for the human. `pass` → step 4; `fix` → step 3.
+3. **Fix pass — once:** one engineer on the plan-fix branch with **review findings** = the `FIX` lines as written (don't limit how to fix them) and files owned = the files they name. Merge its `Review fixes` PR yourself, move the review worktree to the new head, then re-dispatch the reviewer with `round: 2`, its round-1 findings, and the engineer's summary. Engineer `BLOCKED` → step 4, review still failing.
+4. **Sort the queue** — each open `PENDING` is **Obsolete** (resolve it), **Needs your decision** (only the human can choose: a Look value, including colors or fonts it doesn't list; a rule the spec left open; a product choice; never a reproduced bug), or **Fix next** · **Before hosting** · **Someday**. For a decision, record the value in use in `docs/decisions.md` as `## <date> — <title> (agent default — override anytime)` and resolve the entry with a link to it.
+5. **Close out the paper trail, before the merge:** dispatch `pod:reporter` in the background with its **Required dispatch context** to write the report, set the plan to `Status: archived`, add one queue entry `orchestrator` → `human`: `plan <plan-slug> complete — final PR <url>, review <pass | still failing>, <N> open entries sorted in the hand-back` (autopilot's gate-7 entry), and once the report exists, commit and push `docs/` (`docs: close out plan <plan-slug>`).
+6. **Leave nothing behind:** no worktree of this plan left, parent repo clean. Name anything you couldn't clear.
+7. **Hand back** (`Plan <plan-slug> complete — final merge awaiting`): the PR URL, the review verdict with any `FIX` findings, the sorted list (**Needs your decision** first, with each default and how to change it), the report path, loose ends, and **Try it**: `Reply 'try' to start the app (<start command>, <URL>); 'stop' when you're done.`
+
+**Try it:** `try` → start the app from the parent repo on `3000`/`3001` and reply with the URL and any login; `stop` → stop it.
+
+**On resume:** final PR not yet reviewed → step 2; reviewed → point at it; merged → pull `<merge-target>`, delete `<plan-slug>` locally and on origin, re-run step 6, and end `Plan <plan-slug> merged to <merge-target>. Done.` with the **Try it** line.

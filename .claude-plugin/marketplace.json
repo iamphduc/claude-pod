@@ -1,0 +1,19 @@
+{
+  "name": "pod",
+  "description": "The pod plugin: parallel Claude engineers shipping a plan in waves.",
+  "owner": {
+    "name": "Duc Pham"
+  },
+  "plugins": [
+    {
+      "name": "pod",
+      "source": "./",
+      "description": "Ship a plan in waves of parallel Claude engineers."
+    },
+    {
+      "name": "pod-flow",
+      "source": "./pod-flow",
+      "description": "Live tree of a pod run (plan, sprints, waves, engineers) beside the transcript while /pod:autopilot or /pod:ship runs."
+    }
+  ]
+}

@@ -1,22 +1,13 @@
 ---
 name: autopilot
-description: Use when the user types /autopilot or asks to run the workflow autonomously across a plan. Also the resume command after a halt.
+description: Use when the user types /pod:autopilot or asks to run the workflow autonomously across a plan. Also the resume command after a halt.
 ---
 
-**Run the `/code` wave loop** (`.claude/skills/code/SKILL.md`) with the deltas below, under `docs/autonomous-policy.md` — read it every turn. Beyond `/code`, also dispatch the `waves-sprint-planner` and notify on halt. Args: optional plan slug plus the policy's `--max-*` bounds.
+Run the whole plan without the human: the `/pod:code` wave loop (`${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md`), except that you merge what clears the bar in `${CLAUDE_PLUGIN_ROOT}/skills/autopilot/policy.md` and halt on everything else. Read the policy every turn. Args: optional plan slug and the policy's `--max-*` bounds. Run the policy's **Preflight** before `/pod:code`'s own.
 
-## Teardown
+## What changes from `/pod:code`
 
-Dispatch engineers with `teardown: immediate` — they remove their own worktrees after pushing; you integrate from origin refs. After each wave PR merges, delete the pushed slice branches and wave head (`git push origin --delete <branch>`). At **Plan complete**, delete `<plan-slug>`.
-
-## Auto-merge
-
-Don't hand back any PR — wave PR, reviewer PR, or final plan PR. Apply the policy's auto-merge criteria + escalation valve: merge if clean; a failed criterion or risk-flagged PR halts.
-
-## Between sprints
-
-Don't end with "reply continue" — run one sprint per turn:
-
-1. `--max-sprints` reached → halt at the safety-bound gate (policy gate 5).
-2. No `planned` row left → run **Plan complete**: open the final `<plan-slug>` → `<merge-target>` PR, auto-merge it, tear down `<plan-slug>`, then halt at gate 7 + notify.
-3. Else dispatch the `waves-sprint-planner` and proceed straight into the new sprint's wave loop — no sprint-draft halt.
+- **You merge instead of handing back** — every wave PR and the final plan PR, under the policy's auto-merge criteria. Anything that fails them halts at its gate.
+- **Teardown:** dispatch engineers with `teardown: immediate` and combine from their pushed branches on origin. After each wave PR merges, remove the wave-head worktree and delete the slice branches and the wave head on origin. Delete `<plan-slug>` after the final merge.
+- **Between sprints, don't stop:** no "reply continue". `--max-sprints` reached → gate 5. A `planned` row left → dispatch `pod:sprint-planner` with the plan slug and any answers the human gave that it needs, then go straight into the new sprint's waves (no halt to review the draft). None left → **Plan complete**.
+- **Plan complete:** run `/pod:code`'s **Plan complete** steps 1–6 (review, the one fix pass, sort the queue, close out, leave nothing behind) whatever the verdict, in place of its step 7 hand-back. The close-out commit re-runs CI — wait for the checks on the new head. Review still `fix` → halt at gate 2 instead of merging. `pass` → merge the final PR, check out and pull `<merge-target>` in the parent repo, delete `<plan-slug>`, then halt at gate 7 with the sorted list, the report's path, `Loose ends:`, and the **Try it** line.
