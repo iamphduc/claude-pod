@@ -78,7 +78,7 @@ A plan's final PR is easily thousands of lines. The fix, used by GitHub itself, 
 
 `pod:reviewer` never edits, pushes, merges, or approves. It does run things: the only files it leaves behind are build output and caches in its own worktree.
 
-1. **Read the ground truth** from the main repo: the plan (goals, scope, **Verification** section), every archived sprint doc for the plan (each slice's success criteria), the codebase brief, known issues, and decisions. Then **run the checks**: the smoke recipe's `Verification:` command, every scripted check it lists, and every `docs/features.md` row (browser rows in its own browser session, judging text and state, not looks). A failing check is a blocking finding.
+1. **Read the ground truth** from the main repo: the plan (goals, scope, **Verification** section), every archived sprint doc for the plan (each slice's success criteria), the codebase brief, known issues, and decisions. Then **run the checks**: the smoke recipe's `Verification:` command, every scripted check it lists, and every `docs/features.md` row (browser rows in its own browser session, or from the orchestrator's results when it holds the only browser (see Browser checks), judging text and state, not looks). A failing check is a blocking finding.
 2. **Per-wave pass.** For each first-parent commit on the plan branch (skipping docs-only commits), review `git diff <commit>^1 <commit>`:
    - **Honest tests** — each criterion's test exists, would fail if the behavior broke, and isn't weaker than the criterion.
    - **Beyond the tests** — branches, error paths, and inputs no test covers; code special-cased to pass.
@@ -237,9 +237,9 @@ The fourth run built a shared-expenses app — 27 slices, twice the third — on
 
 `/pod:plan` used to decide scope and stack without knowing whether the idea already existed or how others built it. `pod:researcher` looks outward first, and `/pod:plan` reads its report before the interview.
 
-- **One agent, a fixed budget.** Anthropic's research system gives a comparison-sized question one agent and 10–15 tool calls, and saves parallel subagents — about 15× the tokens — for broad questions; it added effort limits after agents ran "50 subagents for simple queries" ([Anthropic](https://www.anthropic.com/engineering/multi-agent-research-system)). So: about 12 searches and 10 page reads (`--deep`: 30 and 25), stopping early when nothing new turns up.
+- **As many researchers as the idea is broad.** Anthropic's research system gives a comparison-sized question one agent and 10–15 tool calls, and saves parallel subagents — about 15× the tokens — for broad questions; it added effort limits after agents ran "50 subagents for simple queries" ([Anthropic](https://www.anthropic.com/engineering/multi-agent-research-system)). So a narrow idea gets one researcher with today's budget (12 searches and 10 page reads; `--deep` 30 and 25), and a broad one up to 3 (`--deep` 5), each on a fixed angle with its own floor of about 6 searches (`--deep` 8). Each part has enough budget to follow a lead, and the total grows only with breadth. Parallel parts are faster, and separate angles bring back ideas one framing would miss. A last researcher run merges them with no new searches; the parts reach it as text through the skill, since a researcher can't read files.
 - **Every claim rests on a page it read.** Anthropic checks citations in a separate pass; the researcher checks its own before finishing. WebFetch returns a small model's summary, not the page ([Claude Code tools reference](https://code.claude.com/docs/en/tools-reference)), so a page "not mentioning" something is never evidence.
-- **Pages are data.** Injected instructions get dangerous when an agent has private data, untrusted content, and a way to send data out ([Simon Willison — the lethal trifecta](https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/), [OWASP LLM01](https://genai.owasp.org/llmrisk/llm01-prompt-injection/)). The researcher has no Bash, reads no local files beyond its report and brief, and never puts local content into a search or URL.
+- **Pages are data.** Injected instructions get dangerous when an agent has private data, untrusted content, and a way to send data out ([Simon Willison — the lethal trifecta](https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/), [OWASP LLM01](https://genai.owasp.org/llmrisk/llm01-prompt-injection/)). The researcher has no Bash, has no `Read` tool — the skill passes it the brief and any old report as text, and never puts local content into a search or URL.
 - **Brainstorm after the evidence.** The report ends with ideas to consider and questions for the plan, brainstormed only once the search is done so they grow from what exists. Ideas are labelled as ideas, never as facts, and `/pod:plan` starts its interview from those questions.
 - **Clarify only when vague.** Deep-research tools ask scoping questions up front ([OpenAI — deep research](https://developers.openai.com/api/docs/guides/deep-research), [open_deep_research](https://github.com/langchain-ai/open_deep_research)); the skill asks up to three, in your session, since a background agent can't ask.
 
@@ -247,6 +247,18 @@ The fourth run built a shared-expenses app — 27 slices, twice the third — on
 
 - **Human attention goes where a change can't be undone.** Bezos splits decisions into one-way doors (careful, slow) and two-way doors (fast), and warns that treating two-way doors like one-way ones causes slowness ([rcmlabs](https://rcmlabs.io/blog/one-way-door-two-way-door-type-1-type-2-decisions/)). So the sprint-planner marks slices that destroy or migrate data, send to real people, move money, change auth, break a public API, or touch secrets or production. Autopilot leaves those waves to you; everything else goes ahead. Real agent disasters came from too much access, not misjudged changes ([Zenity](https://zenity.io/blog/current-events/ai-agent-database-deletion-pocketos)), so engineers never touch real users, money, or production.
 - **Tests go through the public interface.** Tests that only call a module's public entry points survive a refactor of its insides — Beck's "structure-insensitive" property ([Test Desiderata](https://testdesiderata.com/)). Agents over-mock (36% of agent commits add mocks, against 26% for people, [arXiv 2602.00409](https://arxiv.org/abs/2602.00409)), so tests fake only what the app doesn't control. No folder layout is required: no evidence was found that a spec/src split helps agents.
+
+## Browser checks
+
+Agents check pages with `agent-browser`. Each agent gets its own named session (`--session pod-<name>`), so two agents never share a browser. "What the third run changed" explains why: two engineers once shared one browser and logged each other out.
+
+pod switched to `agent-browser` from chrome-devtools-axi (commit 5e0954b). Each axi session spent about 5.5 s fetching `chrome-devtools-mcp@latest`, and each call spent about 1 s in npx. `agent-browser` starts in about 1.2 s and batches known steps into one call.
+
+- **Browser calls have a time limit.** Engineers give each browser call 2 minutes. Three calls once hung for about 3 hours each.
+- **Without `agent-browser`, pod asks once.** You can install it, use the Chrome DevTools MCP, or stop. pod saves the answer as `## <date> — browser: <choice>` in `docs/decisions.md`. `/pod:ship` asks at its go check, before the run is unattended.
+- **With the MCP, only the orchestrator opens the browser.** An MCP server is one browser shared by the whole session. Engineers and the reviewer get `browser: none`. The orchestrator drives the page checks at each wave check and hands the results to the reviewer as browser rows.
+- **A `/pod:fix` engineer uses the MCP itself.** It works alone, so nothing else shares the browser.
+- **The cost is fewer checks.** Engineers can't check their own pages, so UI slices top out at `medium` Confidence.
 
 ## Choices we made on purpose
 
