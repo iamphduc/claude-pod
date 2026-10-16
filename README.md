@@ -93,7 +93,7 @@ Options: `--no-research` skips research, `--deep` researches more, and `--max-*`
 
 ### `/pod:research <idea> [--deep]`: look before you build
 
-The **researcher** agent searches the web: what already exists, where it falls short, and how people build it. Every claim links to its source. It ends with ideas and questions for your plan. The report is saved to `docs/research/<slug>.md`. This works in any folder, even before `/pod:init`.
+The **researcher** agent searches the web: what already exists, where it falls short, and how people build it. A narrow idea gets one researcher. A broad one gets up to 3 (`--deep`: up to 5), each looking at a different angle, working at the same time, and one more run combines their findings. Every claim links to its source. It ends with ideas and questions for your plan. The report is saved to `docs/research/<slug>.md`. This works in any folder, even before `/pod:init`.
 
 ### `/pod:plan`: decide what to build
 
