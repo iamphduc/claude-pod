@@ -190,6 +190,19 @@ Why:
 - Anthropic, [Prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices): newer models follow short instructions *with a reason* better than long lists of ALWAYS/NEVER rules.
 - ETH Zurich, "Evaluating AGENTS.md" ([summary](https://developer.upsun.com/posts/ai/agents-md-less-is-more)): instruction files for coding agents gave little or negative gain while adding over 20% cost.
 
+## Checking a change
+
+Run these from the repo root before you open a PR. CI runs the first two on every PR.
+
+```
+claude plugin validate . && claude plugin validate ./pod-flow
+cd pod-flow && claude plugin test .
+```
+
+To typecheck pod-flow, load it in a session once so Claude Code writes its types (`claude --plugin-dir ./pod-flow`), then run `npx tsc --noEmit -p .` from `pod-flow/`.
+
+The rule files in `agents/` and `skills/` have no tests. To try a rule change, run pod on a scratch repo with `claude --plugin-dir /path/to/claude-pod`.
+
 ## Credits
 
 Several of pod's checks come from **pstack**, a Cursor plugin by Lauren Tan. Flavio Copes explains it in [A deep dive into pstack](https://flaviocopes.com/pstack). pod borrows these ideas, adapted to its own flow:
