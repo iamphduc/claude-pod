@@ -725,3 +725,31 @@ test('an agent waiting on its own background work still runs its slice and holds
   })
   expect(ended.find(l => l.text.startsWith('B1'))?.status).toBe('waiting')
 })
+
+test('a BLOCKED gate-2 halt naming the final PR is a halt, not a hand-back', () => {
+  const lines = buildTree({
+    plan: parsePlan(PLAN, 'long-runs'),
+    sprints: [],
+    spawns: {},
+    live: [],
+    halt: 'Gate 2 plan-review-fail: final PR https://github.com/me/app/pull/58 still has FIX findings',
+    haltType: 'BLOCKED',
+  })
+  expect(lines.find(l => l.kind === 'halt')).toMatchObject({ text: 'halted', status: 'blocked' })
+  expect(lines.some(l => l.kind === 'hint' && l.text === 'fix it first')).toBe(true)
+  expect(lines.some(l => l.text === 'merge PR #58')).toBe(false)
+})
+
+test('a plan-complete entry with review still failing is a halt with no merge line', () => {
+  const lines = buildTree({
+    plan: parsePlan(PLAN, 'long-runs'),
+    sprints: [],
+    spawns: {},
+    live: [],
+    halt: 'plan long-runs complete — final PR https://github.com/me/app/pull/58, review still failing, 2 open entries sorted in the hand-back',
+    haltType: 'PENDING',
+  })
+  expect(lines.find(l => l.kind === 'halt')).toMatchObject({ text: 'halted' })
+  expect(lines.some(l => l.text === 'merge PR #58')).toBe(false)
+})
+

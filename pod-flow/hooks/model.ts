@@ -686,7 +686,8 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
   const haltText = halt?.replace(/^[\s—-]+|[\s—-]+$/g, '')
   if (haltText && running.length === 0) {
     // A finished plan's final PR is a hand-back for you to merge, not a failure.
-    const isHandBack = HAND_BACK.test(haltText)
+    // A BLOCKED entry, or a final review still failing, is never yours to merge: it halts, even when it names the final PR.
+    const isHandBack = haltType !== 'BLOCKED' && !/still failing/i.test(haltText) && HAND_BACK.test(haltText)
     // A pull request URL reads as its short number.
     const pull = pullOf(haltText)
     if (isHandBack && pull && merged.includes(Number(pull[1]))) {
