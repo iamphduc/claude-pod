@@ -171,9 +171,17 @@ Everything else (the agents, skills, and rules) stays inside the plugin and upda
 
 ## Update
 
+Refresh the catalog, then update the plugins you installed:
+
 ```
 /plugin marketplace update pod
+claude plugin update pod@pod
+claude plugin update pod-flow@pod
 ```
+
+The first line runs inside Claude Code. The other two run in your terminal; skip `pod-flow@pod` if you didn't install it. Run `/reload-plugins` or restart Claude Code to load the new version.
+
+To get updates without asking, turn on **Enable auto-update** for the `pod` marketplace under `/plugin` → **Marketplaces**. It's off by default for marketplaces outside Anthropic's.
 
 Your `docs/` files are never touched. See [`CHANGELOG.md`](CHANGELOG.md) for what changed.
 
