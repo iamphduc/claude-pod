@@ -29,11 +29,15 @@ const endsAt = (path: string, rel: string) => path.replaceAll('\\', '/').endsWit
 // A test flips this to make the engine's agent list fail.
 let isListBroken = false
 
-const world = (on: Parameters<typeof mock.clock>[0], opened: string[], isPlaced = true, logged: string[] = [], files = docs(), isShown = isPlaced, agents: { id: string; type: string; status: string }[] = [], root = 'E:\\proj') => {
+// A root that is absolute on every platform; Windows adds its drive letter, so matching drops it.
+const ROOT = '/proj'
+const fromRoot = (path: string) => path.replaceAll('\\', '/').replace(/^[A-Za-z]:/, '')
+
+const world = (on: Parameters<typeof mock.clock>[0], opened: string[], isPlaced = true, logged: string[] = [], files = docs(), isShown = isPlaced, agents: { id: string; type: string; status: string }[] = [], root = ROOT) => {
   mock.clock(on)
   on('session.root', () => ({ value: root }))
-  // Docs live only in the main checkout, E:\proj: a worktree's copy is old, so here it has none.
-  const isOutsideDocs = (path: string) => !path.replaceAll('\\', '/').startsWith('E:/proj/docs')
+  // Docs live only in the main checkout, /proj: a worktree's copy is old, so here it has none.
+  const isOutsideDocs = (path: string) => !fromRoot(path).startsWith(`${ROOT}/docs`)
   on('fs.list', (_$, e) => {
     const names = isOutsideDocs(e.path) ? [] : Object.keys(files).filter(p => endsAt(e.path, p.slice(0, p.lastIndexOf('/'))))
     return {
@@ -198,7 +202,7 @@ test('an agent links to its slice by the markdown fields alone, whatever its des
 })
 
 test('a session working in a worktree still reads the main checkout docs', async ($, on) => {
-  world(on, [], true, [], docs(), true, [], 'E:\\proj\\.claude\\worktrees\\one-w1')
+  world(on, [], true, [], docs(), true, [], `${ROOT}/.claude/worktrees/one-w1`)
   on('session.surfaces', () => ({ value: ['terminal' as const] }))
   await run($, 'preview')
   expect((await run($, 'text')).text).toBe('Demo · sprint 1/1 · wave 1/1\n● one')
