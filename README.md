@@ -19,7 +19,7 @@ You need Claude Code, `git`, and the GitHub CLI (`gh`), logged in. For apps with
 /plugin install pod@pod
 ```
 
-*Optional:* to watch a run as a tree (plan, sprints, waves, engineers), also install pod-flow:
+*Optional, experimental:* to watch a run as a tree (plan, sprints, waves, engineers), also install pod-flow:
 
 ```
 /plugin install pod-flow@pod
@@ -31,7 +31,7 @@ The tree opens beside the transcript when you start `/pod:autopilot` or `/pod:sh
 - `/pod-flow text`: print the tree as a few lines, for a narrow terminal.
 - `/pod-flow reset`: forget this session's agents, token counts, and folds.
 
-pod-flow only reads your `docs/` files and the session's agent list, and asks `gh` whether the final PR has merged. It needs a Claude Code build with function hooks, which are in early access.
+pod-flow only reads your `docs/` files and the session's agent list, and asks `gh` whether the final PR has merged. It needs a Claude Code build with function hooks, which are in early access, so expect rough edges.
 
 **2. Ship an idea** (from the repo root, new or existing):
 
@@ -200,3 +200,7 @@ Several of pod's checks come from **pstack**, a Cursor plugin by Lauren Tan. Fla
 - **Contract friction:** engineers report a design that keeps fighting back instead of working around it (from `/architect`).
 
 Ideas still under consideration are in [`docs/ideas/`](docs/ideas/).
+
+## License
+
+[MIT](LICENSE)
