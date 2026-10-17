@@ -7,6 +7,7 @@ Get a web research report on an idea before deciding what to build, written by `
 
 Args: the idea (none → ask for it) and `--deep`.
 
+- **Parked ideas:** the idea touches one in `docs/ideas/` → bring it back per **Bringing ideas back** in `${CLAUDE_PLUGIN_ROOT}/skills/idea/SKILL.md`; yes → paste it into the brief.
 - **Brief:** too vague to search well (who it's for, what platform, what counts as done) → ask up to 3 questions in one message first; the agent can't ask.
 - **File:** `<slug>` is short kebab-case. The report already exists → ask whether to update it or use a new slug. Update → move it to `<slug>.prev.md` (the researcher can't overwrite a file it never read); once the new report exists, delete the `.prev.md`; none → move it back.
 - **Split:** a new report → pick N by how many separate questions the idea raises (users, platforms, approaches): `standard` 1–3, `--deep` 3–5. Tell the human N and why in one line; don't wait. N = 1 → one researcher, `focus: all`. N > 1 → the first N angles in the researcher's **focus** order, each its own part. An update is always one researcher, `focus: all`.
