@@ -1,5 +1,7 @@
 # Handoff Queue
 
+_Shared: agents leave notes here for you and for each other. You answer the ones addressed to `human`._
+
 **The human is the ultimate arbiter** — `BLOCKED` entries halt the orchestrator until acknowledged. **One line per entry.**
 
 Format: `` - `[YYYY-MM-DD · TYPE · from → to · plan: <slug> · sprint: <slug> · slice: <code>]` <body> **Resolution:** pending `` (or `**Resolution:** <YYYY-MM-DD> — <what changed> [optional link to docs/decisions.md#anchor]`).

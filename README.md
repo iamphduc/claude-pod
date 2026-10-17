@@ -159,18 +159,25 @@ Saves the idea to `docs/ideas/<slug>.md`, with why it waits and what would make 
 
 ```
 docs/
-├── codebase-structure.md   guide to your code (scout writes it, you keep it up to date)
-├── decisions.md            your architectural decisions
-├── features.md             how to prove each feature works (scout starts it, each wave adds rows)
-├── known-issues/           gotchas, one file each (e.g. "tests need Docker")
+│  For you: you read these and decide
+├── ideas/                  ideas saved for later (/pod:idea)
 ├── research/               web research reports
-├── plans/                  plans
-├── sprints/                the current sprint, plus archive/ for finished ones
 ├── design-drafts/          look options to choose from
 ├── reports/                plan reports
-├── ideas/                  ideas saved for later (/pod:idea)
-└── handoff-queue.md        notes between agents and you; resolved ones move to their plan's doc
+│
+│  Shared: you and the agents both read and write these
+├── plans/                  plans; each keeps its resolved notes in a ## Queue log
+├── decisions.md            your decisions, which agents must follow
+├── handoff-queue.md        open notes between agents and you
+│
+│  For agents: agents keep these; skim them, fix what's wrong
+├── codebase-structure.md   guide to your code (scout writes it, you keep it up to date)
+├── features.md             how to prove each feature works (scout starts it, each wave adds rows)
+├── known-issues/           gotchas, one file each (e.g. "tests need Docker")
+└── sprints/                the current sprint, plus archive/ for finished ones
 ```
+
+Read each sprint doc before `/pod:code` starts it, even though agents keep it. That's your best chance to catch two slices that touch the same files.
 
 Everything else (the agents, skills, and rules) stays inside the plugin and updates with it.
 
