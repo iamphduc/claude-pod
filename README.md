@@ -31,7 +31,7 @@ The tree opens beside the transcript when you start `/pod:autopilot` or `/pod:sh
 - `/pod-flow text`: print the tree as a few lines, for a narrow terminal.
 - `/pod-flow reset`: forget this session's agents, token counts, and folds.
 
-pod-flow only reads your `docs/` files and the session's agent list, and asks `gh` whether the final PR has merged. It needs a Claude Code build with function hooks, which are in early access, so expect rough edges.
+pod-flow only reads your `pod-docs/` files (or `docs/`, before you upgrade) and the session's agent list, and asks `gh` whether the final PR has merged. It needs a Claude Code build with function hooks, which are in early access, so expect rough edges.
 
 **2. Ship an idea** (from the repo root, new or existing):
 
@@ -52,13 +52,14 @@ That's it. pod researches the idea, interviews you, writes the plan, sets pod up
 | Make one small change, outside any plan | `/pod:fix <task>` |
 | Run each engineer myself in my own terminals | `/pod:create-wave-prompts` |
 | Get a report on a finished plan | `/pod:report` |
+| Save an idea for later | `/pod:idea <idea>` |
 
 ## How it works
 
 A few words pod uses:
 
-- **Plan**: what you're building and why, in up to 4 sprints. Saved in `docs/plans/`.
-- **Sprint**: one step of the plan, split into slices. Saved in `docs/sprints/`.
+- **Plan**: what you're building and why, in up to 4 sprints. Saved in `pod-docs/plans/`.
+- **Sprint**: one step of the plan, split into slices. Saved in `pod-docs/sprints/`.
 - **Slice**: a piece of work small enough for one engineer. Each slice owns its own files.
 - **Wave**: a group of slices that don't touch the same files, so they can be built at the same time.
 - **Plan branch**: a branch that collects every wave. It merges into `main` once, at the end.
@@ -77,13 +78,13 @@ A few words pod uses:
 then: one final PR (plan branch → main), reviewed, then merged
 ```
 
-Engineers work **test-first**: they write a test for each goal, watch it fail, then make it pass. They also check UI work in a real browser. The code is reviewed once, on the final PR. [`docs/design.md`](docs/design.md) explains why.
+Engineers work **test-first**: they write a test for each goal, watch it fail, then make it pass. They also check UI work in a real browser. The code is reviewed once, on the final PR. [`pod-docs/design.md`](pod-docs/design.md) explains why.
 
 ## The commands
 
 ### `/pod:init`: set up a project
 
-Creates pod's files in `docs/` and never overwrites one that already exists. The **scout** agent reads your codebase and writes a short guide to it (`docs/codebase-structure.md`), including a **smoke recipe**: the steps to start the app and check it works. It also starts `docs/features.md`: for each main feature, how to drive it and what proves it works. Each wave adds rows for what it builds, and the reviewer re-runs them at the end of each plan. Read what the scout wrote and fill in anything it left open. It can also add a basic CI workflow if you don't have one.
+Creates pod's files in `pod-docs/` and never overwrites one that already exists. Run it again after an update to bring an older project's files up to date. The **scout** agent reads your codebase and writes a short guide to it (`pod-docs/codebase-structure.md`), including a **smoke recipe**: the steps to start the app and check it works. It also starts `pod-docs/features.md`: for each main feature, how to drive it and what proves it works. Each wave adds rows for what it builds, and the reviewer re-runs them at the end of each plan. Read what the scout wrote and fill in anything it left open. It can also add a basic CI workflow if you don't have one.
 
 ### `/pod:ship <idea>`: everything in one go
 
@@ -93,11 +94,11 @@ Options: `--no-research` skips research, `--deep` researches more, and `--max-*`
 
 ### `/pod:research <idea> [--deep]`: look before you build
 
-The **researcher** agent searches the web: what already exists, where it falls short, and how people build it. A narrow idea gets one researcher. A broad one gets up to 3 (`--deep`: up to 5), each looking at a different angle, working at the same time, and one more run combines their findings. Every claim links to its source. It ends with ideas and questions for your plan. The report is saved to `docs/research/<slug>.md`. This works in any folder, even before `/pod:init`.
+The **researcher** agent searches the web: what already exists, where it falls short, and how people build it. A narrow idea gets one researcher. A broad one gets up to 3 (`--deep`: up to 5), each looking at a different angle, working at the same time, and one more run combines their findings. Every claim links to its source. It ends with ideas and questions for your plan. The report is saved to `pod-docs/research/<slug>.md`. This works in any folder, even before `/pod:init`.
 
 ### `/pod:plan`: decide what to build
 
-pod interviews you about goals, scope, stack, and risks. Choose the **fast path** to accept its suggested answer wherever there's a safe default. If your project has a UI, you pick a **look** from three options shown in an HTML page (`docs/design-drafts/look-directions.html`). The plan is saved to `docs/plans/<slug>.md`.
+pod interviews you about goals, scope, stack, and risks. Choose the **fast path** to accept its suggested answer wherever there's a safe default. If your project has a UI, you pick a **look** from three options shown in an HTML page (`pod-docs/design-drafts/look-directions.html`). The plan is saved to `pod-docs/plans/<slug>.md`.
 
 *Tip:* install the `grilling` skill for a deeper interview:
 
@@ -107,13 +108,13 @@ npx -y skills add mattpocock/skills -g -s grilling -y
 
 ### `/pod:sprint [slug]`: split the next step into work
 
-Writes `docs/sprints/<slug>.md` with slices grouped into waves. **Read it before coding.** This is your best chance to catch two slices that touch the same files.
+Writes `pod-docs/sprints/<slug>.md` with slices grouped into waves. **Read it before coding.** This is your best chance to catch two slices that touch the same files.
 
 Options: `--max-width=N` allows wider waves (default 5).
 
 ### `/pod:code [slug]`: build, one wave at a time
 
-For each wave, pod starts one engineer per slice, combines their work into one PR, starts the app to check it, and checks the look at desktop and phone sizes. Then it **stops for you to merge**. Reply `continue` for the next wave. When the plan is done, it opens the final PR to `main`. The **reviewer** checks it and fixes any blocking issues once. You also get an HTML report (`docs/reports/<slug>.html`). Any question you didn't answer along the way is saved in `docs/decisions.md` as an *agent default*, so you can change it later.
+For each wave, pod starts one engineer per slice, combines their work into one PR, starts the app to check it, and checks the look at desktop and phone sizes. Then it **stops for you to merge**. Reply `continue` for the next wave. When the plan is done, it opens the final PR to `main`. The **reviewer** checks it and fixes any blocking issues once. You also get an HTML report (`pod-docs/reports/<slug>.html`). Any question you didn't answer along the way is saved in `pod-docs/decisions.md` as an *agent default*, so you can change it later.
 
 Options: `--merge-target=<branch>` (default: your repo's default branch).
 
@@ -139,6 +140,10 @@ Options: `--merge-target=<branch>`.
 
 Writes an HTML report of a plan: key features, decisions, data structures, and how the agents worked together.
 
+### `/pod:idea [idea]`: save an idea for later
+
+Saves the idea to `pod-docs/ideas/<slug>.md`, with why it waits and what would make it worth building. Run it with no idea to list what's saved. When you later start `/pod:research`, `/pod:plan`, `/pod:ship`, or `/pod:fix` on something a saved idea touches, pod shows it and asks whether to build on it. At the end of `/pod:plan`, pod also offers to save what you left out of scope.
+
 ## The agents
 
 | Agent | What it does |
@@ -152,20 +157,29 @@ Writes an HTML report of a plan: key features, decisions, data structures, and h
 
 ## What pod keeps in your repo
 
+pod keeps its files in `pod-docs/`, apart from your own `docs/`. `pod-docs/README.md` has this overview and a `pod docs: 2` line that tells pod which layout the folder uses.
+
 ```
-docs/
-├── codebase-structure.md   guide to your code (scout writes it, you keep it up to date)
-├── decisions.md            your architectural decisions
-├── features.md             how to prove each feature works (scout starts it, each wave adds rows)
-├── known-issues/           gotchas, one file each (e.g. "tests need Docker")
+pod-docs/
+│  For you: you read these and decide
+├── ideas/                  ideas saved for later (/pod:idea)
 ├── research/               web research reports
-├── plans/                  plans
-├── sprints/                the current sprint, plus archive/ for finished ones
 ├── design-drafts/          look options to choose from
 ├── reports/                plan reports
-├── handoff-queue-archive.md resolved notes from earlier plans
-└── handoff-queue.md        notes between agents and you
+│
+│  Shared: you and the agents both read and write these
+├── plans/                  plans; each keeps its resolved notes in a ## Queue log
+├── decisions.md            your decisions, which agents must follow
+├── handoff-queue.md        open notes between agents and you
+│
+│  For agents: agents keep these; skim them, fix what's wrong
+├── codebase-structure.md   guide to your code (scout writes it, you keep it up to date)
+├── features.md             how to prove each feature works (scout starts it, each wave adds rows)
+├── known-issues/           gotchas, one file each (e.g. "tests need Docker")
+└── sprints/                the current sprint, plus archive/ for finished ones
 ```
+
+Read each sprint doc before `/pod:code` starts it, even though agents keep it. That's your best chance to catch two slices that touch the same files.
 
 Everything else (the agents, skills, and rules) stays inside the plugin and updates with it.
 
@@ -183,7 +197,7 @@ The first line runs inside Claude Code. The other two run in your terminal; skip
 
 To get updates without asking, turn on **Enable auto-update** for the `pod` marketplace under `/plugin` → **Marketplaces**. It's off by default for marketplaces outside Anthropic's.
 
-Your `docs/` files are never touched. See [`CHANGELOG.md`](CHANGELOG.md) for what changed.
+Updating never touches your `pod-docs/` files. When a new version changes their layout, pod stops and asks you to run `/pod:init`, which shows what will move and waits for your yes. Projects from pod 0.1.2 or earlier keep pod's files in `docs/`; `/pod:init` moves them to `pod-docs/` with `git mv` and leaves the rest of `docs/` alone. See [`CHANGELOG.md`](CHANGELOG.md) for what changed.
 
 **Other ways to install:** use a local clone with `/plugin marketplace add /path/to/claude-pod`, or try it for one session with `claude --plugin-dir /path/to/claude-pod`.
 
@@ -224,10 +238,10 @@ Several of pod's checks come from **pstack**, a Cursor plugin by Lauren Tan. Fla
 
 - **Reproduce before fixing:** `/pod:fix` reproduces a bug and names its cause before changing code (from pstack's Bug fix playbook).
 - **Dismissed findings:** the reviewer lists what it checked and dropped, so you can overrule it (from `/interrogate`).
-- **Feature map:** `docs/features.md` records how to prove each feature works on the running app (from `/create-verification-skill`).
+- **Feature map:** `pod-docs/features.md` records how to prove each feature works on the running app (from `/create-verification-skill`).
 - **Contract friction:** engineers report a design that keeps fighting back instead of working around it (from `/architect`).
 
-Ideas still under consideration are in [`docs/ideas/`](docs/ideas/).
+Ideas for pod itself that are still under consideration are in [`docs/ideas/`](docs/ideas/).
 
 ## License
 

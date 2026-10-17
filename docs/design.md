@@ -78,7 +78,7 @@ A plan's final PR is easily thousands of lines. The fix, used by GitHub itself, 
 
 `pod:reviewer` never edits, pushes, merges, or approves. It does run things: the only files it leaves behind are build output and caches in its own worktree.
 
-1. **Read the ground truth** from the main repo: the plan (goals, scope, **Verification** section), every archived sprint doc for the plan (each slice's success criteria), the codebase brief, known issues, and decisions. Then **run the checks**: the smoke recipe's `Verification:` command, every scripted check it lists, and every `docs/features.md` row (browser rows in its own browser session, or from the orchestrator's results when it holds the only browser (see Browser checks), judging text and state, not looks). A failing check is a blocking finding.
+1. **Read the ground truth** from the main repo: the plan (goals, scope, **Verification** section), every archived sprint doc for the plan (each slice's success criteria), the codebase brief, known issues, and decisions. Then **run the checks**: the smoke recipe's `Verification:` command, every scripted check it lists, and every `pod-docs/features.md` row (browser rows in its own browser session, or from the orchestrator's results when it holds the only browser (see Browser checks), judging text and state, not looks). A failing check is a blocking finding.
 2. **Per-wave pass.** For each first-parent commit on the plan branch (skipping docs-only commits), review `git diff <commit>^1 <commit>`:
    - **Honest tests** — each criterion's test exists, would fail if the behavior broke, and isn't weaker than the criterion.
    - **Beyond the tests** — branches, error paths, and inputs no test covers; code special-cased to pass.
@@ -255,7 +255,7 @@ Agents check pages with `agent-browser`. Each agent gets its own named session (
 pod switched to `agent-browser` from chrome-devtools-axi (commit 5e0954b). Each axi session spent about 5.5 s fetching `chrome-devtools-mcp@latest`, and each call spent about 1 s in npx. `agent-browser` starts in about 1.2 s and batches known steps into one call.
 
 - **Browser calls have a time limit.** Engineers give each browser call 2 minutes. Three calls once hung for about 3 hours each.
-- **Without `agent-browser`, pod asks once.** You can install it, use the Chrome DevTools MCP, or stop. pod saves the answer as `## <date> — browser: <choice>` in `docs/decisions.md`. `/pod:ship` asks at its go check, before the run is unattended.
+- **Without `agent-browser`, pod asks once.** You can install it, use the Chrome DevTools MCP, or stop. pod saves the answer as `## <date> — browser: <choice>` in `pod-docs/decisions.md`. `/pod:ship` asks at its go check, before the run is unattended.
 - **With the MCP, only the orchestrator opens the browser.** An MCP server is one browser shared by the whole session. Engineers and the reviewer get `browser: none`. The orchestrator drives the page checks at each wave check and hands the results to the reviewer as browser rows.
 - **A `/pod:fix` engineer uses the MCP itself.** It works alone, so nothing else shares the browser.
 - **The cost is fewer checks.** Engineers can't check their own pages, so UI slices top out at `medium` Confidence.
@@ -269,6 +269,9 @@ pod switched to `agent-browser` from chrome-devtools-axi (commit 5e0954b). Each 
 - **The fix pass merges its own PR.** It only touches files the reviewer named, and the whole final PR still comes to you (or passes autopilot's checks) before reaching `main`.
 - **The reviewer never fixes code itself.** Its value is independence: a fix it committed would reach `main` unreviewed. Fixes go to an engineer, and the reviewer re-checks them.
 - **No coding-standards file or `/retro` yet.** Conventions live in the brief's Stack & conventions, and growing instruction files tend to cost more than they help. Revisit when one project runs several plans and the same review findings keep coming back.
+- **pod's files live in `pod-docs/`, with a version.** Many projects keep their own docs, or a published docs site, in `docs/`, so pod's queue, sprints, and drafts move to a folder that is only pod's. `pod-docs/README.md` carries `pod docs: <N>`; a project with pod's files in `docs/` and no such line is version 1. Every skill checks the version and stops when it's old, so a layout change never happens partway through a run; only `/pod:init` upgrades, after showing what will move. Each future layout change adds one upgrade step to `/pod:init` and never deletes the human's files.
+- **Parked ideas come back only inside pod commands.** `/pod:research`, `/pod:plan`, and `/pod:fix` check `pod-docs/ideas/` against the new work. A line in the project's `CLAUDE.md` could bring them up in any chat, but pod is opt-in: such a line would have every agent, pod's own included, stop to mention pod.
+- **Each plan keeps its own queue log.** When the next plan starts, its resolved queue entries move to a `## Queue log` at the end of its plan doc. One shared archive file grew with every plan and nothing read it; a per-plan log stays the size of its plan, and `/pod:report` can still find an old plan's entries.
 
 ## Sources
 

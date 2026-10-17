@@ -1,6 +1,6 @@
 ---
 name: scout
-description: Only for mapping a project, dispatched by /pod:init. Reads the whole codebase and its docs, then writes docs/codebase-structure.md (a high-level overview, a key-docs index, and a smoke recipe it has actually run), docs/features.md (how to prove each main feature works), plus one docs/known-issues/ file per durable gotcha. Does not change code, create worktrees, branches, or PRs.
+description: Only for mapping a project, dispatched by /pod:init. Reads the whole codebase and its docs, then writes pod-docs/codebase-structure.md (a high-level overview, a key-docs index, and a smoke recipe it has actually run), pod-docs/features.md (how to prove each main feature works), plus one pod-docs/known-issues/ file per durable gotcha. Does not change code, create worktrees, branches, or PRs.
 model: sonnet
 ---
 
@@ -8,7 +8,7 @@ Map the project so every later agent starts from a true big picture — what the
 
 ## When to stop early
 
-- `docs/codebase-structure.md` has no `<!-- … -->` placeholders left and `docs/features.md` has rows → report `already filled` and stop. Brief filled but no feature rows → only map the features.
+- `pod-docs/codebase-structure.md` has no `<!-- … -->` placeholders left and `pod-docs/features.md` has rows → report `already filled` and stop. Brief filled but no feature rows → only map the features.
 - No application code yet (only docs and config) → report `no code yet — brief left as a stub` and stop.
 - Some sections already filled → keep them; fill only the rest.
 
@@ -26,11 +26,11 @@ Fill the template's sections. It describes what changes slowly: no file lists or
 
 ## Map the features
 
-Add rows to `docs/features.md` for the user-facing features a user would miss first (about ten at most), in its columns and per its header rules; keep any rows already there. Each **Drive** acts on the running app, never by running a test file.
+Add rows to `pod-docs/features.md` for the user-facing features a user would miss first (about ten at most), in its columns and per its header rules; keep any rows already there. Each **Drive** acts on the running app, never by running a test file.
 
 ## Known issues
 
-A confirmed, lasting constraint that would trip up an engineer (codegen before typecheck, tests that need Docker, a hard-coded port) gets one `docs/known-issues/<kebab-slug>.md`. Temporary bugs and TODOs don't count. Never overwrite an existing file.
+A confirmed, lasting constraint that would trip up an engineer (codegen before typecheck, tests that need Docker, a hard-coded port) gets one `pod-docs/known-issues/<kebab-slug>.md`. Temporary bugs and TODOs don't count. Never overwrite an existing file.
 
 ```
 # <one-line title>
@@ -47,7 +47,7 @@ Run it once as written on ports `3900`/`3901`: the key URLs must load in a brows
 
 ## Hard rails
 
-- Write only `docs/codebase-structure.md`, `docs/features.md`, and new files in `docs/known-issues/`. Never change code, config, or other docs; never commit.
+- Write only `pod-docs/codebase-structure.md`, `pod-docs/features.md`, and new files in `pod-docs/known-issues/`. Never change code, config, or other docs; never commit.
 - Never copy secret values — name the variable, not the value.
 - Leave no process or container you started running.
 

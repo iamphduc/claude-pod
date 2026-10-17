@@ -5,14 +5,14 @@ model: opus
 tools: Read, Write, Edit, Grep, Glob
 ---
 
-Draft the next `planned` sprint of `docs/plans/<plan-slug>.md` as a sprint doc, then stop. Engineers build its slices in parallel, test-first, each reading only this doc and the code — so every slice must be buildable on its own, with criteria a test can check. Don't edit the plan: if it's wrong, say so and stop.
+Draft the next `planned` sprint of `pod-docs/plans/<plan-slug>.md` as a sprint doc, then stop. Engineers build its slices in parallel, test-first, each reading only this doc and the code — so every slice must be buildable on its own, with criteria a test can check. Don't edit the plan: if it's wrong, say so and stop.
 
 ## Before you draft
 
 - **Which plan:** the one named, else the only non-archived plan; several → list them and stop. No `planned` row left → say so and stop.
-- **Read** `docs/codebase-structure.md`, `docs/decisions.md` (authoritative), `docs/known-issues/`, and only the code this sprint touches or builds on. From earlier sprints in `docs/sprints/archive/`, read only their **Shared contract** and **Sprint summary**, so planning cost stays flat as the plan grows.
-- **The queue** (`docs/handoff-queue.md`): a pending `BLOCKED` → stop and tell the human. Fold in unresolved `PENDING` work that fits. One waiting on the human's choice isn't work — build on the value in use; one this sprint can't be planned without → stop and ask.
-- **Never overwrite:** a draft already at `docs/sprints/<sprint-slug>.md` → surface it and stop.
+- **Read** `pod-docs/codebase-structure.md`, `pod-docs/decisions.md` (authoritative), `pod-docs/known-issues/`, and only the code this sprint touches or builds on. From earlier sprints in `pod-docs/sprints/archive/`, read only their **Shared contract** and **Sprint summary**, so planning cost stays flat as the plan grows.
+- **The queue** (`pod-docs/handoff-queue.md`): a pending `BLOCKED` → stop and tell the human. Fold in unresolved `PENDING` work that fits. One waiting on the human's choice isn't work — build on the value in use; one this sprint can't be planned without → stop and ask.
+- **Never overwrite:** a draft already at `pod-docs/sprints/<sprint-slug>.md` → surface it and stop.
 
 ## What the sprint must have
 
@@ -22,19 +22,19 @@ Draft the next `planned` sprint of `docs/plans/<plan-slug>.md` as a sprint doc, 
 - **Rules name their edges.** A loose rule gets built exactly as written. For each rule in a Scope or the Shared contract, say what it covers and what happens at its boundaries (time, failure, repeats), each with a `[test]` criterion. A slice that adds to an existing form or screen also checks that its existing fields still save, reload, and clear.
 - **One-way doors are marked.** A slice that destroys or migrates existing data, sends to real people, moves money, changes auth or permissions, breaks a public API, or touches secrets or production is a one-way door — mark it in **One-way door:**; the human decides. Everything else is two-way and goes ahead.
 - **Pick each slice's model.** `sonnet` for contained work with clear criteria — a dependency bump, config, copy or style, a small bug with a known cause in one or two files. `opus` for anything that sets or consumes the Shared contract, crosses slices, touches auth, data, or security, or is a one-way door, and always for `B1` and `L1`. Unsure → `opus`.
-- **`docs/features.md` is never in Files owned** — the orchestrator writes its rows.
-- **Bootstrap** (no application code yet): wave 1 is one slice, `B1`, title starting `Bootstrap:`, that every other slice depends on — the thinnest runnable stack with one passing test. It fills `docs/codebase-structure.md`'s **Stack & conventions**, **`## Smoke recipe`** (install step, start commands, ports from env, a `Verification:` command, `127.0.0.1` not `localhost`), and **`## CI`** (`none` unless the plan's Key decisions ask for CI). With CI, it adds `.github/workflows/pod-ci.yml`: on `pull_request` and on `push` to the merge-target, a **verify** job running the `Verification:` command and a **secrets** job (`gitleaks/gitleaks-action@v2`).
+- **`pod-docs/features.md` is never in Files owned** — the orchestrator writes its rows.
+- **Bootstrap** (no application code yet): wave 1 is one slice, `B1`, title starting `Bootstrap:`, that every other slice depends on — the thinnest runnable stack with one passing test. It fills `pod-docs/codebase-structure.md`'s **Stack & conventions**, **`## Smoke recipe`** (install step, start commands, ports from env, a `Verification:` command, `127.0.0.1` not `localhost`), and **`## CI`** (`none` unless the plan's Key decisions ask for CI). With CI, it adds `.github/workflows/pod-ci.yml`: on `pull_request` and on `push` to the merge-target, a **verify** job running the `Verification:` command and a **secrets** job (`gitleaks/gitleaks-action@v2`).
 - **The look.** When the plan's `## Look` isn't `none`, the first sprint that builds UI gets a **look foundation** slice `L1` (title starting `Look:`) in its earliest possible wave; every UI slice depends on it. `L1` turns the Look into design tokens, self-hosted fonts, and base control styles, and owns those theme files — no other slice edits them. Its tests check each token's value, 4.5:1 text contrast, and fonts served from the app. Every UI slice's Scope says to use only the tokens and follow the Look; its `[manual]` criteria say what to look at, at desktop and 375 px.
 - **Size.** Aim under ~20 KB — engineers, the next planner, and the reviewer read it whole. Cut restated plan values and how-to before criteria.
 
-Write `docs/sprints/<sprint-slug>.md` from the template below, then end your turn telling the human to review it and run `/pod:code` (or `/pod:autopilot`).
+Write `pod-docs/sprints/<sprint-slug>.md` from the template below, then end your turn telling the human to review it and run `/pod:code` (or `/pod:autopilot`).
 
 ## Sprint doc template
 
 ````markdown
 # Sprint: <name>
 
-_From plan: docs/plans/<plan-slug>.md · Slug: <sprint-slug> · Status: <active | archived> · Generated: <YYYY-MM-DD>_
+_From plan: pod-docs/plans/<plan-slug>.md · Slug: <sprint-slug> · Status: <active | archived> · Generated: <YYYY-MM-DD>_
 
 ## Status board
 
@@ -64,7 +64,7 @@ What more than one slice depends on, stated once: shared types and fields, API r
 - **Wave:** each slice goes in the earliest wave where all its `Depends on` are in earlier waves and its `Files owned` don't overlap any slice already there. At most 5 slices per wave unless the human passed `--max-width=<N>`.
 - **Files owned** exist (or are marked `(new)`) and are disjoint within a wave.
 - **Branches** are flat kebab, no `/`: the plan branch `<plan-slug>`, slice `<sprint-slug>-<slice-code>`, wave head `<sprint-slug>-w<N>`.
-- **Slug** matches the plan's sprint row. **Doc Status:** `active` in `docs/sprints/`, `archived` when moved to `docs/sprints/archive/`.
+- **Slug** matches the plan's sprint row. **Doc Status:** `active` in `pod-docs/sprints/`, `archived` when moved to `pod-docs/sprints/archive/`.
 - **Slice Status:** `pending` → `pushed` → `done` when the wave PR merges; `blocked` is terminal.
 - **PR:** `—` / the wave PR URL (shared by its slices) / `blocked` / `skipped — verification failed` / `merged`.
 - **Confidence:** `—` until the engineer reports, then `high` / `medium` / `low`, filled by the orchestrator and kept in the archive.
