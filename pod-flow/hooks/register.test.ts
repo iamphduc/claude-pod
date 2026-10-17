@@ -11,7 +11,7 @@ _Generated: 2026-10-01 · Status: active_
 
 const SPRINT = `# Sprint: One
 
-_From plan: docs/plans/demo.md · Slug: one · Status: active · Generated: 2026-10-01_
+_From plan: pod-docs/plans/demo.md · Slug: one · Status: active · Generated: 2026-10-01_
 
 | Wave | Slice | Title | Branch | PR | Status | Confidence | Depends on |
 |------|-------|-------|--------|----|--------|------------|------------|
@@ -19,8 +19,8 @@ _From plan: docs/plans/demo.md · Slug: one · Status: active · Generated: 2026
 `
 
 const docs = (): Record<string, string> => ({
-  'docs/plans/demo.md': PLAN,
-  'docs/sprints/one.md': SPRINT,
+  'pod-docs/plans/demo.md': PLAN,
+  'pod-docs/sprints/one.md': SPRINT,
 })
 
 // The engine hands fs hooks an absolute path (on Windows, with backslashes): match on its end.
@@ -37,7 +37,7 @@ const world = (on: Parameters<typeof mock.clock>[0], opened: string[], isPlaced 
   mock.clock(on)
   on('session.root', () => ({ value: root }))
   // Docs live only in the main checkout, /proj: a worktree's copy is old, so here it has none.
-  const isOutsideDocs = (path: string) => !fromRoot(path).startsWith(`${ROOT}/docs`)
+  const isOutsideDocs = (path: string) => !/^\/proj\/(pod-)?docs\//.test(fromRoot(path))
   on('fs.list', (_$, e) => {
     const names = isOutsideDocs(e.path) ? [] : Object.keys(files).filter(p => endsAt(e.path, p.slice(0, p.lastIndexOf('/'))))
     return {
@@ -85,7 +85,7 @@ test('a narrow terminal tells each new milestone in the transcript, once', async
   world(on, [], false, logged, files)
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
   expect(logged).toEqual([])
-  files['docs/sprints/one.md'] = SPRINT.replace('| pending |', '| blocked |')
+  files['pod-docs/sprints/one.md'] = SPRINT.replace('| pending |', '| blocked |')
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
   expect(logged).toEqual(['✗ BLOCKED · one · A1 First slice'])
@@ -96,7 +96,7 @@ test('a drawn pane keeps milestones out of the transcript', async ($, on) => {
   const files = docs()
   world(on, [], true, logged, files)
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
-  files['docs/sprints/one.md'] = SPRINT.replace('| pending |', '| blocked |')
+  files['pod-docs/sprints/one.md'] = SPRINT.replace('| pending |', '| blocked |')
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
   expect(logged).toEqual([])
 })
@@ -106,7 +106,7 @@ test('a pane behind another plugin pane counts as hidden', async ($, on) => {
   const files = docs()
   world(on, [], true, logged, files, false)
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
-  files['docs/sprints/one.md'] = SPRINT.replace('| pending |', '| blocked |')
+  files['pod-docs/sprints/one.md'] = SPRINT.replace('| pending |', '| blocked |')
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
   expect(logged).toEqual(['✗ BLOCKED · one · A1 First slice'])
 })
@@ -132,7 +132,7 @@ test('the turns of a spawned agent add up its tokens, and other loops add none',
 })
 
 test('the resume hint under a halt is drawn cyan, not dim', async ($, on) => {
-  const files = { ...docs(), 'docs/handoff-queue.md': '- `[2026-10-06 · BLOCKED · orchestrator → human]` Gate 4: wave check failed **Resolution:** pending' }
+  const files = { ...docs(), 'pod-docs/handoff-queue.md': '- `[2026-10-06 · BLOCKED · orchestrator → human]` Gate 4: wave check failed **Resolution:** pending' }
   world(on, [], true, [], files)
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
   const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 120 } as never })
@@ -183,7 +183,7 @@ test('/pod-flow reset forgets the session agents, so their rounds and tokens lea
 })
 
 test('a sprint-planner spawned during the run shows as drafting under its sprint', async ($, on) => {
-  const files = { 'docs/plans/demo.md': PLAN.replace('| one | First | active |', '| one | First | done |\n| two | Second | planned |') }
+  const files = { 'pod-docs/plans/demo.md': PLAN.replace('| one | First | active |', '| one | First | done |\n| two | Second | planned |') }
   world(on, [], true, [], files, true, [{ id: 'p1', type: 'pod:sprint-planner', status: 'running' }])
   on('session.surfaces', () => ({ value: ['terminal' as const] }))
   on('agent.spawn', () => ({ agentId: 'p1', model: 'claude-opus-5-5' }))
@@ -208,11 +208,32 @@ test('a session working in a worktree still reads the main checkout docs', async
   expect((await run($, 'text')).text).toBe('Demo · sprint 1/1 · wave 1/1\n● one')
 })
 
+// A project from before docs version 2 keeps pod's files in docs/.
+const oldLayout = (): Record<string, string> => ({
+  'docs/plans/demo.md': PLAN,
+  'docs/sprints/one.md': SPRINT.replace('From plan: pod-docs/plans', 'From plan: docs/plans'),
+})
+
+test('a project not upgraded yet still shows its tree from docs/', async ($, on) => {
+  world(on, [], true, [], oldLayout())
+  on('session.surfaces', () => ({ value: ['terminal' as const] }))
+  await run($, 'preview')
+  expect((await run($, 'text')).text).toBe('Demo · sprint 1/1 · wave 1/1\n● one')
+})
+
+test('once pod-docs/ has a plan, the old docs/ copy is ignored', async ($, on) => {
+  const old = Object.fromEntries(Object.entries(oldLayout()).map(([p, md]) => [p, md.replace('# Plan: Demo', '# Plan: Old')]))
+  world(on, [], true, [], { ...old, ...docs() })
+  on('session.surfaces', () => ({ value: ['terminal' as const] }))
+  await run($, 'preview')
+  expect((await run($, 'text')).text).toBe('Demo · sprint 1/1 · wave 1/1\n● one')
+})
+
 const close = (files: Record<string, string>) => {
   // What a run's close-out leaves: the plan archived, its sprint done and moved to the archive.
-  files['docs/plans/demo.md'] = PLAN.replace('Status: active', 'Status: archived').replace('| one | First | active |', '| one | First | done |')
-  files['docs/sprints/archive/one.md'] = SPRINT.replace('Status: active', 'Status: archived').replace('| pending |', '| done |')
-  delete files['docs/sprints/one.md']
+  files['pod-docs/plans/demo.md'] = PLAN.replace('Status: active', 'Status: archived').replace('| one | First | active |', '| one | First | done |')
+  files['pod-docs/sprints/archive/one.md'] = SPRINT.replace('Status: active', 'Status: archived').replace('| pending |', '| done |')
+  delete files['pod-docs/sprints/one.md']
 }
 
 test('the tree stays once the run archives its plan', async ($, on) => {
@@ -244,7 +265,7 @@ test('starting a new run clears the tree of the plan the last run finished', asy
 })
 
 test('a narrow pane shows the whole hand-back label, waiting', async ($, on) => {
-  const files = { ...docs(), 'docs/handoff-queue.md': '- `[2026-10-09 · PENDING · orchestrator → human · plan: demo]` plan demo complete — final PR https://github.com/me/demo/pull/8, review pass **Resolution:** pending' }
+  const files = { ...docs(), 'pod-docs/handoff-queue.md': '- `[2026-10-09 · PENDING · orchestrator → human · plan: demo]` plan demo complete — final PR https://github.com/me/demo/pull/8, review pass **Resolution:** pending' }
   world(on, [], true, [], files)
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
   const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 42 } as never })
@@ -253,7 +274,7 @@ test('a narrow pane shows the whole hand-back label, waiting', async ($, on) => 
 
 const handBack = (pull: number) => ({
   ...docs(),
-  'docs/handoff-queue.md': `- \`[2026-10-09 · PENDING · orchestrator → human · plan: demo]\` plan demo complete — final PR https://github.com/me/demo/pull/${pull}, review pass **Resolution:** pending`,
+  'pod-docs/handoff-queue.md': `- \`[2026-10-09 · PENDING · orchestrator → human · plan: demo]\` plan demo complete — final PR https://github.com/me/demo/pull/${pull}, review pass **Resolution:** pending`,
 })
 
 test('a hand-back whose PR has merged shows it merged, with nothing left to do', async ($, on) => {
@@ -299,7 +320,7 @@ test('a blank line sets each tree apart, the first from the header too', async (
 })
 
 test("a new plan's tree leaves out the last plan's hand-back", async ($, on) => {
-  const files = { ...docs(), 'docs/handoff-queue.md': handBack(7)['docs/handoff-queue.md']!.replace('plan: demo', 'plan: older').replace('plan demo', 'plan older') }
+  const files = { ...docs(), 'pod-docs/handoff-queue.md': handBack(7)['pod-docs/handoff-queue.md']!.replace('plan: demo', 'plan: older').replace('plan demo', 'plan older') }
   world(on, [], true, [], files)
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
   const text = (await run($, 'text')).text
@@ -308,7 +329,7 @@ test("a new plan's tree leaves out the last plan's hand-back", async ($, on) => 
 })
 
 test('a narrow pane keeps what needs you in the header, over the plan name', async ($, on) => {
-  const files = { ...handBack(12), 'docs/plans/demo.md': PLAN.replace('# Plan: Demo', '# Plan: A rather long plan name') }
+  const files = { ...handBack(12), 'pod-docs/plans/demo.md': PLAN.replace('# Plan: Demo', '# Plan: A rather long plan name') }
   world(on, [], true, [], files)
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
   const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 42 } as never })
@@ -320,16 +341,16 @@ test('with no tree, the pane and the text say why', async ($, on) => {
   world(on, [], true, [], files)
   on('session.surfaces', () => ({ value: ['terminal' as const] }))
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
-  expect((await run($, 'text')).text).toBe('No plan in docs/plans yet.')
+  expect((await run($, 'text')).text).toBe('No plan in pod-docs/plans yet.')
   // A plan still being written has no sprint table yet.
-  files['docs/plans/demo.md'] = '# Plan: Demo\n\n_Generated: 2026-10-10 · Status: active_\n'
+  files['pod-docs/plans/demo.md'] = '# Plan: Demo\n\n_Generated: 2026-10-10 · Status: active_\n'
   expect((await run($, 'text')).text).toBe('Plan has no sprints yet.')
   const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 80 } as never })
   expect(await pane.find({ type: 'Text', text: 'Plan has no sprints yet.' })).toBeDefined()
 })
 
 test('a finished wave in a running sprint draws folded, as a button', async ($, on) => {
-  const files = { ...docs(), 'docs/sprints/one.md': `${SPRINT}| 2 | A2 | Second slice | one-A2 | — | pending | — | A1 |\n`.replace('| one-A1 | — | pending | — |', '| one-A1 | merged | done | high |') }
+  const files = { ...docs(), 'pod-docs/sprints/one.md': `${SPRINT}| 2 | A2 | Second slice | one-A2 | — | pending | — | A1 |\n`.replace('| one-A1 | — | pending | — |', '| one-A1 | merged | done | high |') }
   world(on, [], true, [], files)
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
   const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 80 } as never })

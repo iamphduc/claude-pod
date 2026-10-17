@@ -9,6 +9,8 @@ Args: the sprint slug (none → the only active sprint doc; several → list the
 
 ## Checks — warn at the top, don't halt
 
+**Docs version** first: check it per `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md`. An old version is the one check that halts.
+
 `origin` exists; the merge-target and the plan branch `<plan-slug>` (the sprint doc's `From plan:`) are on origin — plan branch missing → show how to create it off the merge-target; the wave's `Files owned` don't overlap (name any overlap); the browser per `/pod:code`'s **Preflight** (`${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md`) — reuse a recorded choice; ask only if none.
 
 ## The current wave
@@ -21,7 +23,7 @@ Git and GitHub are the record here, not the board, because the human runs the wa
 
 ## Output
 
-1. **A header:** the wave and why it's current (`Wave 2 — wave 1's PR #14 is merged`), any rows you synced, its slices (flag any whose `One-way door:` isn't `none`), and any slice missing scope, files owned, or criteria. Then one `git worktree add <parent>/.claude/worktrees/<sprint-slug>-<slice-code>/ -b <branch> origin/<plan-slug>` per slice, to run **before** any session starts (sessions creating worktrees at once fight over one `.git`). Then the steps: one terminal per block at the project root, `claude --agent pod:engineer`, then `/model sonnet` if the slice's **Model:** is `sonnet`, and paste the block; when all are pushed, add each session's `Concerns` to `docs/handoff-queue.md`, combine the wave on its wave head `<sprint-slug>-w<N>` into one PR to `<plan-slug>` (title and `Door:` line per `/pod:code`'s **Wave PR**), and re-run this command after it merges.
+1. **A header:** the wave and why it's current (`Wave 2 — wave 1's PR #14 is merged`), any rows you synced, its slices (flag any whose `One-way door:` isn't `none`), and any slice missing scope, files owned, or criteria. Then one `git worktree add <parent>/.claude/worktrees/<sprint-slug>-<slice-code>/ -b <branch> origin/<plan-slug>` per slice, to run **before** any session starts (sessions creating worktrees at once fight over one `.git`). Then the steps: one terminal per block at the project root, `claude --agent pod:engineer`, then `/model sonnet` if the slice's **Model:** is `sonnet`, and paste the block; when all are pushed, add each session's `Concerns` to `pod-docs/handoff-queue.md`, combine the wave on its wave head `<sprint-slug>-w<N>` into one PR to `<plan-slug>` (title and `Door:` line per `/pod:code`'s **Wave PR**), and re-run this command after it merges.
 2. **One fenced block per slice**, carrying the engineer's **Required dispatch context** from the sprint doc:
 
    ```

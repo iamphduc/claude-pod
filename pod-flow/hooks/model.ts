@@ -100,7 +100,7 @@ export function parseSprint(md: string, isArchived: boolean, fileSlug?: string):
   if (!slug) return undefined
   return {
     slug,
-    plan: /From plan:\s*docs\/plans\/([\w-]+)\.md/.exec(md)?.[1] ?? '',
+    plan: /From plan:\s*(?:pod-)?docs\/plans\/([\w-]+)\.md/.exec(md)?.[1] ?? '',
     isArchived,
     rows: boardRows(md),
   }

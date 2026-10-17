@@ -15,7 +15,7 @@ const expanded = atom({ plugin: 'pod-flow', key: 'expanded' } as const, [] as st
 const spawns = atom({ plugin: 'pod-flow', key: 'spawns' } as const, {} as Record<string, Dispatch>)
 const tokens = atom({ plugin: 'pod-flow', key: 'tokens' } as const, {} as Record<string, number>)
 const planShown = atom({ plugin: 'pod-flow', key: 'planShown' } as const, '')
-const NO_PLAN = 'No plan in docs/plans yet.'
+const NO_PLAN = 'No plan in pod-docs/plans yet.'
 const emptyNote = atom({ plugin: 'pod-flow', key: 'emptyNote' } as const, NO_PLAN)
 
 const COLOR: Record<string, string | undefined> = {
@@ -70,6 +70,13 @@ async function listNames($: Dollar, dir: string): Promise<{ name: string; mtimeM
   } catch {
     return []
   }
+}
+
+/** pod's docs folder: `pod-docs/` since docs version 2; a project not upgraded yet keeps its plans in `docs/`. */
+async function docsDir($: Dollar, root: string): Promise<string> {
+  const current = `${root}/pod-docs`
+  if ((await listNames($, `${current}/plans`)).length) return current
+  return (await listNames($, `${root}/docs/plans`)).length ? `${root}/docs` : current
 }
 
 /**
@@ -143,7 +150,7 @@ async function refresh($: Dollar): Promise<void> {
 async function buildLines($: Dollar) {
   // The main checkout's docs, even while the run works in one of its worktrees, whose copy of the board is old.
   const root = mainCheckout(await $.session.root())
-  const docs = `${root}/docs`
+  const docs = await docsDir($, root)
   const plan = await planToShow($, docs)
   if (typeof plan === 'string') {
     await update($, lines, () => [])

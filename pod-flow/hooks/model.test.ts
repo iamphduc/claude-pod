@@ -772,3 +772,9 @@ test('parseDispatch reads the branch name, not the merge-target branch', () => {
   expect(parseDispatch('merge-target: long-runs\nbranch: ui-A1').branch).toBe('ui-A1')
   expect(parseDispatch('plan branch: long-runs\n- branch: long-runs-fix').branch).toBe('long-runs-fix')
 })
+
+test('a sprint doc links its plan from pod-docs/ or, before the move, docs/', () => {
+  const head = (dir: string) => `_From plan: ${dir}/plans/demo.md · Slug: one · Status: active_\n`
+  expect(parseSprint(head('pod-docs'), false)?.plan).toBe('demo')
+  expect(parseSprint(head('docs'), false)?.plan).toBe('demo')
+})

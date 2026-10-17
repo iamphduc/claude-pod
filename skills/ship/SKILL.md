@@ -3,7 +3,7 @@ name: ship
 description: Use when the user types /pod:ship <idea> or asks to go from an idea to a shipped plan in one command — research, plan interview, setup, then autopilot.
 ---
 
-Take one idea from research to autopilot in one command. Run each step's own skill. Args: the idea, `--no-research`, `--deep` (for research), and autopilot's `--max-*` bounds.
+Take one idea from research to autopilot in one command. Run each step's own skill. Args: the idea, `--no-research`, `--deep` (for research), and autopilot's `--max-*` bounds. **Docs version** first: check it per `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md`.
 
 1. **Resume:** autopilot already started on this plan → step 7. Plan written but not started → step 5.
 2. **Size check:** run `/pod:plan`'s **Size check** now, before research. Yes → it sets pod up if needed and runs `/pod:fix` instead, and this command stops.
