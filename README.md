@@ -52,6 +52,7 @@ That's it. pod researches the idea, interviews you, writes the plan, sets pod up
 | Make one small change, outside any plan | `/pod:fix <task>` |
 | Run each engineer myself in my own terminals | `/pod:create-wave-prompts` |
 | Get a report on a finished plan | `/pod:report` |
+| Save an idea for later | `/pod:idea <idea>` |
 
 ## How it works
 
@@ -139,6 +140,10 @@ Options: `--merge-target=<branch>`.
 
 Writes an HTML report of a plan: key features, decisions, data structures, and how the agents worked together.
 
+### `/pod:idea [idea]`: save an idea for later
+
+Saves the idea to `docs/ideas/<slug>.md`, with why it waits and what would make it worth building. Run it with no idea to list what's saved. When you later start `/pod:research`, `/pod:plan`, `/pod:ship`, or `/pod:fix` on something a saved idea touches, pod shows it and asks whether to build on it. At the end of `/pod:plan`, pod also offers to save what you left out of scope.
+
 ## The agents
 
 | Agent | What it does |
@@ -163,8 +168,8 @@ docs/
 ├── sprints/                the current sprint, plus archive/ for finished ones
 ├── design-drafts/          look options to choose from
 ├── reports/                plan reports
-├── handoff-queue-archive.md resolved notes from earlier plans
-└── handoff-queue.md        notes between agents and you
+├── ideas/                  ideas saved for later (/pod:idea)
+└── handoff-queue.md        notes between agents and you; resolved ones move to their plan's doc
 ```
 
 Everything else (the agents, skills, and rules) stays inside the plugin and updates with it.
@@ -227,7 +232,7 @@ Several of pod's checks come from **pstack**, a Cursor plugin by Lauren Tan. Fla
 - **Feature map:** `docs/features.md` records how to prove each feature works on the running app (from `/create-verification-skill`).
 - **Contract friction:** engineers report a design that keeps fighting back instead of working around it (from `/architect`).
 
-Ideas still under consideration are in [`docs/ideas/`](docs/ideas/).
+Ideas for pod itself that are still under consideration are in [`docs/ideas/`](docs/ideas/).
 
 ## License
 

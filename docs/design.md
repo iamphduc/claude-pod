@@ -269,6 +269,8 @@ pod switched to `agent-browser` from chrome-devtools-axi (commit 5e0954b). Each 
 - **The fix pass merges its own PR.** It only touches files the reviewer named, and the whole final PR still comes to you (or passes autopilot's checks) before reaching `main`.
 - **The reviewer never fixes code itself.** Its value is independence: a fix it committed would reach `main` unreviewed. Fixes go to an engineer, and the reviewer re-checks them.
 - **No coding-standards file or `/retro` yet.** Conventions live in the brief's Stack & conventions, and growing instruction files tend to cost more than they help. Revisit when one project runs several plans and the same review findings keep coming back.
+- **Parked ideas come back only inside pod commands.** `/pod:research`, `/pod:plan`, and `/pod:fix` check `docs/ideas/` against the new work. A line in the project's `CLAUDE.md` could bring them up in any chat, but pod is opt-in: such a line would have every agent, pod's own included, stop to mention pod.
+- **Each plan keeps its own queue log.** When the next plan starts, its resolved queue entries move to a `## Queue log` at the end of its plan doc. One shared archive file grew with every plan and nothing read it; a per-plan log stays the size of its plan, and `/pod:report` can still find an old plan's entries.
 
 ## Sources
 
