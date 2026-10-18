@@ -78,7 +78,7 @@ A few words pod uses:
 then: one final PR (plan branch → main), reviewed, then merged
 ```
 
-Engineers work **test-first**: they write a test for each goal, watch it fail, then make it pass. They also check UI work in a real browser. The code is reviewed once, on the final PR. [`pod-docs/design.md`](pod-docs/design.md) explains why.
+Engineers work **test-first**: they write a test for each goal, watch it fail, then make it pass. They also check UI work in a real browser. The code is reviewed once, on the final PR. [`docs/design.md`](docs/design.md) explains why.
 
 ## The commands
 

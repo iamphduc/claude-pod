@@ -35,7 +35,7 @@ Git and GitHub are the record here, not the board, because the human runs the wa
    - merge-target:     <plan-slug>
    - parent-repo:      <absolute project root>
    - worktree:         <parent>/.claude/worktrees/<sprint-slug>-<slice-code>/
-   - dev ports:        web <3000+10i>, api <3001+10i>
+   - dev ports:        web <B+10i>, api <B+1+10i>
    - scope:            <scope>
    - files owned:      <paths>
    - success criteria: <criteria>
@@ -43,4 +43,4 @@ Git and GitHub are the record here, not the board, because the human runs the wa
    - browser:          <agent-browser | none>
    ```
 
-   Print ports as numbers: *i* is the slice's row on the status board (row 1 → `3010`/`3011`), so no two sessions share a port and `3000`/`3001` stay free for checking the wave head. `devtools-mcp` → print `none`: hand-run sessions must not share the MCP browser; check the wave's pages yourself.
+   Print ports as numbers: B is the plan doc's `Port base:` (none → claim one per `/pod:code`'s **Preflight**) and *i* is the slice's row on the status board (base `3000`, row 1 → `3010`/`3011`), so no two sessions share a port and B/B+1 stay free for checking the wave head. `devtools-mcp` → print `none`: hand-run sessions must not share the MCP browser; check the wave's pages yourself.
