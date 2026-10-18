@@ -20,6 +20,7 @@ pod-docs/
 │  For agents: agents keep these; skim them, fix what's wrong
 ├── codebase-structure.md   guide to your code, with the smoke recipe
 ├── features.md             how to prove each feature works
+├── feature-details/        how each feature works and why, one file each
 ├── known-issues/           gotchas, one file each
 └── sprints/                the current sprint, plus archive/ for finished ones
 ```

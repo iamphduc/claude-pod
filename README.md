@@ -138,7 +138,7 @@ Options: `--merge-target=<branch>`.
 
 ### `/pod:report [slug]`: plan report
 
-Writes an HTML report of a plan: key features, decisions, data structures, and how the agents worked together.
+Writes an HTML report of a plan: key features, decisions, data structures, and how the agents worked together. At the end of a plan, the reporter also writes `pod-docs/feature-details/<feature>.md` for each feature the plan added or changed: how it works, why it's built that way, and what to watch out for. Later agents read these before they change a feature.
 
 ### `/pod:idea [idea]`: save an idea for later
 
@@ -153,7 +153,7 @@ Saves the idea to `pod-docs/ideas/<slug>.md`, with why it waits and what would m
 | **sprint-planner** | Splits the next part of the plan into slices and waves |
 | **engineer** | Builds one slice in its own copy of the repo, test-first, then checks it in the browser |
 | **reviewer** | Reviews the final plan PR and every `/pod:fix` PR. Never edits code |
-| **reporter** | Writes the HTML report of a finished plan |
+| **reporter** | Writes the HTML report of a finished plan, and the feature details of what it built |
 
 ## What pod keeps in your repo
 
@@ -175,6 +175,7 @@ pod-docs/
 │  For agents: agents keep these; skim them, fix what's wrong
 ├── codebase-structure.md   guide to your code (scout writes it, you keep it up to date)
 ├── features.md             how to prove each feature works (scout starts it, each wave adds rows)
+├── feature-details/        how each feature works and why, one file each (written at plan end)
 ├── known-issues/           gotchas, one file each (e.g. "tests need Docker")
 └── sprints/                the current sprint, plus archive/ for finished ones
 ```
