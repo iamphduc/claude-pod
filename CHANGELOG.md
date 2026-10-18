@@ -7,6 +7,7 @@ Newest first. The `pod` and `pod-flow` plugins share this file.
 - `/pod:plan` shows the three look directions as one grid with columns A, B, and C, so you compare the same button, input, or screen side by side. The first row still shows each direction whole.
 - Engineers check a change where it lives (the real command, a real request, or the page), and saved data counts only when read back after a reload or restart.
 - `/pod:ship` maps an existing project in the background while it researches, so the plan interview starts from the codebase brief.
+- At plan end, the orchestrator fixes any part of the codebase brief the plan made wrong, so the next plan doesn't start from a stale map.
 
 ## 0.2.0 — 2026-10-18
 
