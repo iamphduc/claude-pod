@@ -20,6 +20,8 @@ No CI (`## CI` is `none`) isn't a halt: say once, at the start, that merges rest
 
 **Browser:** settle `/pod:code`'s browser check first — once the run is unattended, a question nobody answers stalls it.
 
+**Merge target:** no `--merge-target` given → reuse a `## <date> — merge target: <choice>` entry in `pod-docs/decisions.md`; none → ask once, with the browser check: **Staging (recommended)** — merges land on `pod-staging` and the human moves them to the default branch after looking, so unattended code never reaches it alone — or **Default branch**. Record it there under that title. With staging: no `pod-staging` on origin → cut it from origin's default branch and push it; it exists → merge origin's default branch into it first (a conflict → gate 3). Use it as the merge-target everywhere.
+
 ## The wave check is a gate
 
 `/pod:code`'s check of the combined wave must exercise the merged slices' behavior, not just a clean merge. It fails → gate 4. A defect a user would notice that nothing errors on → `/pod:code`'s **Wave fix**, not a halt.
@@ -34,7 +36,7 @@ No CI (`## CI` is `none`) isn't a halt: say once, at the start, that merges rest
 | 4 | inter-wave-verify | Wave verification fails | `BLOCKED` |
 | 5 | safety-bound | A safety bound is hit | `PENDING` |
 | 6 | escalation-valve | A mergeable PR withheld for a risk signal (`Confidence: low`, or a one-way door) | `PENDING` |
-| 7 | plan-complete | No `planned` sprint row left | `PENDING` |
+| 7 | plan-complete | No `planned` sprint row left; with staging, open (or reuse) a PR from `pod-staging` to the default branch and name it in the halt — never merge it | `PENDING` |
 
 **Gate 1's one exception:** a `BLOCKED` whose only fix is a test fixture or doc that no other slice in the wave owns. Add the file to that engineer's files owned, resume the same engineer, and say so in your next message to the human.
 
