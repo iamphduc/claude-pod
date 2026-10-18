@@ -41,7 +41,7 @@ Why pod checks work where it does, what each check covers, and what we chose not
 | Test first | engineer | every slice | a success criterion not actually met — each has a test written before the code |
 | Static checks | engineer | every slice | broken tests, types, lint, build |
 | Edges first | engineer | every slice | a gap the spec left open in a rule — listed and tested before the code |
-| Run it | engineer | every slice | the change doesn't work when used — pages in its own browser session, routes with real requests |
+| Run it | engineer | every slice | the change doesn't work when used — the real command, request, or page in its own browser session; saved data read back after a reload |
 | Files owned | orchestrator | every wave | a slice edited files it doesn't own |
 | Smoke test | orchestrator | every wave | slices that work alone but break together |
 | Look check | orchestrator | every wave that changes what a user sees | pages off the plan's Look (colors or fonts it doesn't list), sideways scroll at phone width, unreadable text |

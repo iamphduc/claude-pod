@@ -5,6 +5,7 @@ Newest first. The `pod` and `pod-flow` plugins share this file.
 ## Unreleased
 
 - `/pod:plan` shows the three look directions as one grid with columns A, B, and C, so you compare the same button, input, or screen side by side. The first row still shows each direction whole.
+- Engineers check a change where it lives (the real command, a real request, or the page), and saved data counts only when read back after a reload or restart.
 
 ## 0.2.0 — 2026-10-18
 
