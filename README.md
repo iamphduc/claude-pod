@@ -10,7 +10,7 @@ idea → research → plan → sprints → waves of parallel engineers → revie
 
 ## Quick start
 
-You need Claude Code, `git`, and the GitHub CLI (`gh`), logged in. For apps with a UI, agents check pages with [`agent-browser`](https://github.com/vercel-labs/agent-browser): `npm i -g agent-browser`. Without it, pod offers to install it or to use the [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp) instead. With the MCP, only one agent can use the browser at a time, so during a plan the engineers skip their own page checks and the orchestrator does them. You get fewer checks.
+You need Claude Code, `git`, and the GitHub CLI (`gh`), logged in. For apps with a UI, agents check pages with [`agent-browser`](https://github.com/vercel-labs/agent-browser): `npm i -g agent-browser`. Without it, pod offers to install it or to use the [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp) instead. To connect the MCP, follow its README, then restart Claude Code. With the MCP, only one agent can use the browser at a time, so during a plan the engineers skip their own page checks and the orchestrator does them. You get fewer checks.
 
 **1. Install** (inside Claude Code):
 

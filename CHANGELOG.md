@@ -8,6 +8,7 @@ Newest first. The `pod` and `pod-flow` plugins share this file.
 - Engineers check a change where it lives (the real command, a real request, or the page), and saved data counts only when read back after a reload or restart.
 - `/pod:ship` maps an existing project in the background while it researches, so the plan interview starts from the codebase brief.
 - At plan end, the orchestrator fixes any part of the codebase brief the plan made wrong, so the next plan doesn't start from a stale map.
+- The README says how to connect the Chrome DevTools MCP when you can't install `agent-browser`.
 
 ## 0.2.0 — 2026-10-18
 
