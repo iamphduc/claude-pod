@@ -241,8 +241,6 @@ Several of pod's checks come from **pstack**, a Cursor plugin by Lauren Tan. Fla
 - **Feature map:** `pod-docs/features.md` records how to prove each feature works on the running app (from `/create-verification-skill`).
 - **Contract friction:** engineers report a design that keeps fighting back instead of working around it (from `/architect`).
 
-Ideas for pod itself that are still under consideration are in [`docs/ideas/`](docs/ideas/).
-
 ## License
 
 [MIT](LICENSE)
