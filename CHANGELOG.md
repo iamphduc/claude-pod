@@ -2,12 +2,15 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file.
 
-## Unreleased
+## 0.2.0 — 2026-10-18
+
+**Breaking:** after you update, run `/pod:init` once in each project that uses pod. Other pod commands stop until you do.
 
 - **pod's files move from `docs/` to `pod-docs/`**, so they stay apart from your own docs. Run `/pod:init` in each project once: it shows what will move, moves pod's files with `git mv`, and leaves the rest of `docs/` alone. Until then, other pod commands stop and ask you to run it. `pod-docs/README.md` gives an overview and holds the docs version (`pod docs: 2`). pod-flow reads both places.
 - New `/pod:idea` saves an idea for later in `pod-docs/ideas/`. `/pod:research`, `/pod:plan`, `/pod:ship`, and `/pod:fix` bring a saved idea back when your new work touches it, and `/pod:plan` offers to save what you left out of scope.
 - Resolved queue entries now move to a `## Queue log` at the end of their plan's doc when the next plan starts, instead of one archive file that grew forever. pod no longer writes `docs/handoff-queue-archive.md`. If you have one, you can keep it or delete it.
 - The README groups `pod-docs/` into files for you, shared files, and files agents keep, and each file `/pod:init` creates says who reads it.
+- pod-flow 0.1.2: reads `pod-docs/`, and `docs/` in projects not upgraded yet.
 
 ## 0.1.2 — 2026-10-16
 

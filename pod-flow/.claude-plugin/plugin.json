@@ -1,6 +1,6 @@
 {
   "name": "pod-flow",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Live tree of a pod run (plan, sprints, waves, engineers) beside the transcript while /pod:autopilot or /pod:ship runs.",
   "author": { "name": "Duc Pham" },
   "license": "MIT",
