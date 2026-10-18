@@ -10,7 +10,7 @@ Draft the next `planned` sprint of `pod-docs/plans/<plan-slug>.md` as a sprint d
 ## Before you draft
 
 - **Which plan:** the one named, else the only non-archived plan; several → list them and stop. No `planned` row left → say so and stop.
-- **Read** `pod-docs/codebase-structure.md`, `pod-docs/decisions.md` (authoritative), `pod-docs/known-issues/`, and only the code this sprint touches or builds on. From earlier sprints in `pod-docs/sprints/archive/`, read only their **Shared contract** and **Sprint summary**, so planning cost stays flat as the plan grows.
+- **Read** `pod-docs/codebase-structure.md`, `pod-docs/decisions.md` (authoritative), `pod-docs/known-issues/`, the `pod-docs/feature-details/` file of each feature the sprint changes, and only the code this sprint touches or builds on. From earlier sprints in `pod-docs/sprints/archive/`, read only their **Shared contract** and **Sprint summary**, so planning cost stays flat as the plan grows.
 - **The queue** (`pod-docs/handoff-queue.md`): a pending `BLOCKED` → stop and tell the human. Fold in unresolved `PENDING` work that fits. One waiting on the human's choice isn't work — build on the value in use; one this sprint can't be planned without → stop and ask.
 - **Never overwrite:** a draft already at `pod-docs/sprints/<sprint-slug>.md` → surface it and stop.
 
