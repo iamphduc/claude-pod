@@ -231,6 +231,14 @@ claude plugin validate . && claude plugin validate ./pod-flow
 cd pod-flow && claude plugin test .
 ```
 
+Before a release, also run the eval cases in `evals/`. They run real Claude on small scratch repos (`/pod:init` on an empty and an old-layout repo, `/pod:idea`) and check the files it writes. They use your Claude login, so they aren't in CI:
+
+```
+claude plugin eval . --scaffold --allow-tools Write Edit --ablation none --runs 1
+```
+
+The cases grant no shell, so they run on native Windows too. Longer flows (`/pod:ship`, `/pod:code`, autopilot) still need a manual run in a throwaway repo.
+
 To typecheck pod-flow, load it in a session once so Claude Code writes its types (`claude --plugin-dir ./pod-flow`), then run `npx tsc --noEmit -p .` from `pod-flow/`.
 
 The rule files in `agents/` and `skills/` have no tests. To try a rule change, run pod on a scratch repo with `claude --plugin-dir /path/to/claude-pod`.
