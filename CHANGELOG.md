@@ -4,6 +4,7 @@ Newest first. The `pod` and `pod-flow` plugins share this file.
 
 ## Unreleased
 
+- New JavaScript projects use pnpm, so each engineer's install reuses one shared store instead of downloading everything again. Existing projects keep the package manager their lockfile names, and engineers never switch it.
 - New `pod-docs/feature-details/`: at the end of each plan, the reporter writes one short file per feature the plan added or changed, covering how it works, why it's built that way, and what to watch out for. Engineers, the sprint-planner, and `/pod:plan` read it before they change that feature, and a `/pod:fix` adds a line to its history.
 - `/pod:plan` shows the three look directions as one grid with columns A, B, and C, so you compare the same button, input, or screen side by side. The first row still shows each direction whole.
 - Engineers check a change where it lives (the real command, a real request, or the page), and saved data counts only when read back after a reload or restart.
