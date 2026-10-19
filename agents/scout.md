@@ -22,7 +22,7 @@ Fill the template's sections. It describes what changes slowly: no file lists or
 
 - **CI** — what runs on pull requests and its commands, or `none`.
 - **Key docs** — each doc an agent should read before touching its area: path — what it answers.
-- **Smoke recipe** — setup, start commands with the ports as placeholders (engineers fill in their own), seeded logins, key URLs, and a headless `Verification:` command.
+- **Smoke recipe** — setup, start commands with the ports as placeholders (engineers fill in their own), seeded logins, key URLs, and a headless `Verification:` command. Say how a worktree runs its own code rather than the parent repo's (for example `PYTHONPATH=<worktree>/src`, or a venv per worktree) and how to check it (`python -c "import pkg; print(pkg.__file__)"`).
 
 ## Map the features
 

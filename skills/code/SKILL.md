@@ -10,12 +10,12 @@ Args: the plan slug (none → ask, listing plans not `Status: archived`) and `--
 ## Guardrails
 
 - **One plan branch, one final PR.** `<plan-slug>` is cut off `origin/<merge-target>` once; everything else branches off it, and only the final PR reaches the merge-target.
-- **The parent repo only holds docs.** It stays on `<plan-slug>` and only takes `pod-docs/` commits (plus pod's CI workflow at preflight) and pulls. Build, merge, review, and fix in worktrees under `<parent-repo>/.claude/worktrees/`; run teardown from the parent repo.
+- **The parent repo only holds docs.** It stays on `<plan-slug>` and only takes `pod-docs/` commits (plus pod's CI workflow at preflight) and pulls. Build, merge, review, and fix in worktrees under `<parent-repo>/.claude/worktrees/`; run teardown from the parent repo, with your shell outside the worktree and its servers stopped (Windows won't remove a folder a shell or server is using).
 - **Disjoint files.** Two slices in a wave owning the same path → halt `BLOCKED` before dispatch. A slice that touched files outside its own → `NOTE` (`PENDING` if another slice owns them).
 - **Nothing broken moves forward.** A merge conflict, a failed smoke recipe, or a slice's `BLOCKED` → halt `BLOCKED`.
 - **No known bug reaches the merge-target.** A reproduced bug is fixed before the final merge, or the final PR stays `Review still failing` — never a decision, a default, or a someday item.
 - **No force.** No `--force` (`git worktree remove --force` included), `-D`, force-push, or recursive delete of a worktree or repo. A safe command refuses → find out why; leave a failed teardown and name it.
-- **Clean up when you stop.** Before ending any turn (except after `try`), stop your servers, free the ports, and close your browser session.
+- **Clean up when you stop.** Before ending any turn (except after `try`), stop your servers, free the ports, and close your browser session. Start a dev server as a background command that ends in `; exit 0`, prove it started from the page's `<title>`, and read a crash from its log, so a planned stop never shows as a failure.
 - **The paper trail rides the plan branch.** Commit `pod-docs/` (with the old `docs/` paths a `/pod:init` upgrade moved, never other `docs/` changes) to `<plan-slug>` at each sprint's end and at plan end, before the final merge.
 
 ## Contracts
