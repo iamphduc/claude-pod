@@ -4,6 +4,11 @@ Newest first. The `pod` and `pod-flow` plugins share this file.
 
 ## Unreleased
 
+- Dev servers start as a background command that ends in `; exit 0`, and agents prove a server started from the page's `<title>`, so a planned stop no longer shows as a failed command.
+- The scout's smoke recipe says how a worktree runs its own code (for example `PYTHONPATH=<worktree>/src`) and how to check it.
+- The sprint-planner looks for an additive, two-way change before it marks a slice as a one-way door.
+- Engineers scope test commits by area (`test(<area>)`), like every other commit.
+- Teardown runs with the shell outside the worktree and its servers stopped, so Windows can remove the folder.
 - `/pod:autopilot` and `/pod:ship` ask once where unattended runs merge, recommending a `pod-staging` branch. At the end, autopilot opens a PR from `pod-staging` to your default branch for you to merge after a look.
 - Two pod runs on one machine no longer fight over ports. Each plan or fix claims a port base (3000, 3100, …) with a file in the system temp folder, records it in the plan doc, and offsets every port from it.
 - New JavaScript projects use pnpm, so each engineer's install reuses one shared store instead of downloading everything again. Existing projects keep the package manager their lockfile names, and engineers never switch it.
