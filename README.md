@@ -116,6 +116,8 @@ Options: `--max-width=N` allows wider waves (default 5).
 
 For each wave, pod starts one engineer per slice, combines their work into one PR, starts the app to check it, and checks the look at desktop and phone sizes. Then it **stops for you to merge**. Reply `continue` for the next wave. When the plan is done, it opens the final PR to `main`. The **reviewer** checks it and fixes any blocking issues once. You also get an HTML report (`pod-docs/reports/<slug>.html`). Any question you didn't answer along the way is saved in `pod-docs/decisions.md` as an *agent default*, so you can change it later.
 
+Each plan claims its own port range (3000, 3100, …) and records it in the plan doc, so two pod runs on one machine, such as two repos overnight, never fight over ports. In a new JavaScript project, engineers use pnpm, so each install reuses one shared store; an existing project keeps the package manager its lockfile names.
+
 Options: `--merge-target=<branch>` (default: your repo's default branch).
 
 ### `/pod:autopilot [slug]`: build without stopping for you

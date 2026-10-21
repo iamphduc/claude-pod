@@ -2,7 +2,7 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file.
 
-## Unreleased
+## 0.3.0 — 2026-10-21
 
 - pod checks that the browser actually opens a page, under a 30-second limit, instead of trusting `agent-browser --version`. pod's commands run through Bash, because on Windows `agent-browser` can hang when PowerShell captures its output.
 - When `agent-browser` doesn't work, pod also offers chrome-devtools-axi, so engineers keep checking their own pages.
