@@ -4,6 +4,8 @@ Newest first. The `pod` and `pod-flow` plugins share this file.
 
 ## Unreleased
 
+- pod checks that the browser actually opens a page, under a 30-second limit, instead of trusting `agent-browser --version`. pod's commands run through Bash, because on Windows `agent-browser` can hang when PowerShell captures its output.
+- When `agent-browser` doesn't work, pod also offers chrome-devtools-axi, so engineers keep checking their own pages.
 - Dev servers start as a background command that ends in `; exit 0`, and agents prove a server started from the page's `<title>`, so a planned stop no longer shows as a failed command.
 - The scout's smoke recipe says how a worktree runs its own code (for example `PYTHONPATH=<worktree>/src`) and how to check it.
 - The sprint-planner looks for an additive, two-way change before it marks a slice as a one-way door.
