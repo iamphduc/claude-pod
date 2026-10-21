@@ -40,7 +40,7 @@ Git and GitHub are the record here, not the board, because the human runs the wa
    - files owned:      <paths>
    - success criteria: <criteria>
    - teardown:         defer
-   - browser:          <agent-browser | none>
+   - browser:          <agent-browser | axi | none>
    ```
 
-   Print ports as numbers: B is the plan doc's `Port base:` (none → claim one per `/pod:code`'s **Preflight**) and *i* is the slice's row on the status board (base `3000`, row 1 → `3010`/`3011`), so no two sessions share a port and B/B+1 stay free for checking the wave head. `devtools-mcp` → print `none`: hand-run sessions must not share the MCP browser; check the wave's pages yourself.
+   Print ports as numbers: B is the plan doc's `Port base:` (none → claim one per `/pod:code`'s **Preflight**) and *i* is the slice's row on the status board (base `3000`, row 1 → `3010`/`3011`), so no two sessions share a port and B/B+1 stay free for checking the wave head. `axi` → print `axi`. `devtools-mcp` → print `none`: hand-run sessions must not share the MCP browser; check the wave's pages yourself.

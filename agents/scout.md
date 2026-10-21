@@ -30,20 +30,21 @@ Add rows to `pod-docs/features.md` for the user-facing features a user would mis
 
 ## Known issues
 
-A confirmed, lasting constraint that would trip up an engineer (codegen before typecheck, tests that need Docker, a hard-coded port) gets one `pod-docs/known-issues/<kebab-slug>.md`. Temporary bugs and TODOs don't count. Never overwrite an existing file.
+A confirmed, lasting constraint that would trip up an engineer (codegen before typecheck, tests that need Docker, a hard-coded port) gets one `pod-docs/known-issues/<kebab-slug>.md`. Temporary bugs and TODOs don't count. Name the narrowest step that failed (`open`, not the `batch` it ran in), and write `unknown` for a cause you haven't confirmed. Never overwrite an existing file.
 
 ```
 # <one-line title>
 
 - **What:** <the constraint>
 - **Applies to:** <part(s) / top-level folder>
+- **Cause:** <confirmed cause, or `unknown`>
 - **Work with it:** <what an engineer should do>
 - **Source:** <file, CI step, doc, or your smoke run>
 ```
 
 ## Prove the smoke recipe
 
-Run it once as written on ports `3900`/`3901`: the key URLs must load in a browser (`agent-browser --session pod-scout`; not installed → the Chrome DevTools MCP tools, since you run alone; neither → say so and count the URL check as not run) with no console errors or failed requests, `Verification:` must pass, and each feature row must show its **Proof**. Then stop the servers you started and close your browser session. On failure, fix and retry once; still failing, or needing something you don't have → append `(unverified: <reason>)` to that line or row. Leave no `<!-- -->` comment in the recipe — write `none` for a line that doesn't apply — because `/pod:code` reads any comment there as unfilled.
+Run it once as written on ports `3900`/`3901`: the key URLs must load in a browser (`agent-browser --session pod-scout` through the Bash tool; missing, or `open` hangs past 30 seconds → `chrome-devtools-axi` with `CHROME_DEVTOOLS_AXI_SESSION=pod-scout`, or the Chrome DevTools MCP tools, since you run alone; none works → say so and count the URL check as not run) with no console errors or failed requests, `Verification:` must pass, and each feature row must show its **Proof**. Then stop the servers you started and close your browser session. On failure, fix and retry once; still failing, or needing something you don't have → append `(unverified: <reason>)` to that line or row. Leave no `<!-- -->` comment in the recipe — write `none` for a line that doesn't apply — because `/pod:code` reads any comment there as unfilled.
 
 ## Hard rails
 
