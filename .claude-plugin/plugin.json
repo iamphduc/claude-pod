@@ -1,6 +1,6 @@
 {
   "name": "pod",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Ship a plan in waves of parallel Claude engineers: strategy → sprint → parallel waves → review, with you as the merge gate.",
   "author": {
     "name": "Duc Pham"
