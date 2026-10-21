@@ -30,13 +30,14 @@ Add rows to `pod-docs/features.md` for the user-facing features a user would mis
 
 ## Known issues
 
-A confirmed, lasting constraint that would trip up an engineer (codegen before typecheck, tests that need Docker, a hard-coded port) gets one `pod-docs/known-issues/<kebab-slug>.md`. Temporary bugs and TODOs don't count. Never overwrite an existing file.
+A confirmed, lasting constraint that would trip up an engineer (codegen before typecheck, tests that need Docker, a hard-coded port) gets one `pod-docs/known-issues/<kebab-slug>.md`. Temporary bugs and TODOs don't count. Name the narrowest step that failed (`open`, not the `batch` it ran in), and write `unknown` for a cause you haven't confirmed. Never overwrite an existing file.
 
 ```
 # <one-line title>
 
 - **What:** <the constraint>
 - **Applies to:** <part(s) / top-level folder>
+- **Cause:** <confirmed cause, or `unknown`>
 - **Work with it:** <what an engineer should do>
 - **Source:** <file, CI step, doc, or your smoke run>
 ```
