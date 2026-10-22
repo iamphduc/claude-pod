@@ -323,7 +323,9 @@ export const register: Register = on => {
     const isGap = (i: number) => rows[i]!.depth <= 1 && !rows[i]!.isContinued
     let shown = 0
     for (let used = 0; shown < rows.length; shown++) {
-      used += isGap(shown) ? 2 : 1
+      // A check's how-to-reach line takes a row of its own, more when it wraps.
+      const extra = rows[shown]!.kind === 'check' && rows[shown]!.note ? Math.ceil(rows[shown]!.note!.length / Math.max(10, width - 8)) : 0
+      used += (isGap(shown) ? 2 : 1) + extra
       if (used > room) break
     }
 
@@ -339,7 +341,13 @@ export const register: Register = on => {
           await update($, isAppRunning, () => !isRunning)
           await refresh($)
         }
-        return <Button key="run-app" plain label={fit(`${stems[i]}${glyph} ${row.text}`, row.note, width)} onPress={press} />
+        // A real button, in the accent color: the one thing to press at the hand-back.
+        return (
+          <Box flexDirection="row">
+            <Button key="run-app" variant="primary" label={row.text} onPress={press} />
+            {row.note && <Text>{`  then ${row.note}:`}</Text>}
+          </Box>
+        )
       }
       if (row.kind === 'check') {
         const tick = async () => {
@@ -347,7 +355,19 @@ export const register: Register = on => {
           await refresh($)
         }
         const box = row.status === 'done' ? '☑' : '☐'
-        return <Button key={`check:${row.text}`} plain dimColor={row.status === 'done'} label={fit(`${stems[i]}${box} ${row.text}`, row.note, width)} onPress={tick} />
+        // The name whole on its own line, how to reach it below, wrapped: nothing here is cut.
+        const rail = (stems[i] ?? '').replace('└─ ', '   ').replace('├─ ', '│  ')
+        return (
+          <Box flexDirection="column">
+            <Button key={`check:${row.text}`} plain dimColor={row.status === 'done'} label={`${stems[i]}${box} ${row.text}`} onPress={tick} />
+            {row.note && (
+              <Box flexDirection="row">
+                <Text dimColor>{`${rail}  `}</Text>
+                <Text wrap="wrap" dimColor>{row.note}</Text>
+              </Box>
+            )}
+          </Box>
+        )
       }
       if (isFoldable(row)) {
         const key = foldKey(row)

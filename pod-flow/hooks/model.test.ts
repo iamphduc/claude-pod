@@ -648,11 +648,13 @@ test('a merged hand-back keeps the run-app line; a gate halt or no halt has none
 })
 
 test('the snapshot says how to run the app without a button, and lists the checks', () => {
-  expect(snapshot(appTree({ ticked: ['Saved keys'] })).split('\n').slice(-4)).toEqual([
+  expect(snapshot(appTree({ ticked: ['Saved keys'] })).split('\n').slice(-6)).toEqual([
     '└─ ➜ merge PR #58',
     "○ Run app  reply 'run app'",
-    '├─ ☐ Sign in  the login page, or a magic link',
-    '└─ ☑ Saved keys  Settings → API keys',
+    '├─ ☐ Sign in',
+    '│    the login page, or a magic link',
+    '└─ ☑ Saved keys',
+    '     Settings → API keys',
   ])
 })
 
