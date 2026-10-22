@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# A pod project mid-plan: sprint one, wave 1, slice A1 dispatched.
+# A pod project mid-plan: sprint one, wave 1, slice A1 dispatched. Its queue keeps an older Format line with no plan:, so the tag must come from the skill.
 set -e
 git init -q -b main
 mkdir -p pod-docs/plans pod-docs/sprints/archive src
 printf '# pod docs\n\npod docs: 2\n' > pod-docs/README.md
 printf '# Codebase structure\n\n## What it is\n\nA command-line tool with no UI.\n\n## Smoke recipe\n\n`node src/index.js` prints hi.\n' > pod-docs/codebase-structure.md
-printf '# Handoff Queue\n\nFormat: `` - `[YYYY-MM-DD · TYPE · from → to · plan: <slug> · sprint: <slug> · slice: <code>]` <body> **Resolution:** pending ``\n\n---\n' > pod-docs/handoff-queue.md
+printf '# Handoff Queue\n\nFormat: `` - `[YYYY-MM-DD · TYPE · from → to · sprint: <slug> · slice: <code>]` <body> **Resolution:** pending ``\n\n---\n' > pod-docs/handoff-queue.md
 printf '# Features\n\n| Feature | How to prove it |\n|---|---|\n| greet | `node src/index.js` prints hi |\n' > pod-docs/features.md
 printf '# Decisions\n' > pod-docs/decisions.md
 cat > pod-docs/plans/demo.md <<'PLAN'

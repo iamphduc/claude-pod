@@ -40,7 +40,7 @@ No CI (`## CI` is `none`) isn't a halt: say once, at the start, that merges rest
 
 **Gate 1's one exception:** a `BLOCKED` whose only fix is a test fixture or doc that no other slice in the wave owns. Add the file to that engineer's files owned, resume the same engineer, and say so in your next message to the human.
 
-**Every gate halts:** append a one-line queue entry from `orchestrator`, with `plan: <plan-slug>` in its header, naming the gate and the artifact, send a `PushNotification`, and end the turn. `BLOCKED` must be resolved before resuming; `PENDING` only needs acknowledging. A queue entry that only needs the human's decision is **not** a halt — notify and keep going on the value in use. `/pod:code`'s **Plan complete** step 5 writes its entry whatever the verdict (`review <pass | still failing>`); that is gate 7's entry, so don't write a second. A gate 2 halt adds its own.
+**Every gate halts:** append a one-line queue entry from `orchestrator` naming the gate and the artifact, send a `PushNotification`, and end the turn. `BLOCKED` must be resolved before resuming; `PENDING` only needs acknowledging. A queue entry that only needs the human's decision is **not** a halt — notify and keep going on the value in use. `/pod:code`'s **Plan complete** step 5 writes its entry whatever the verdict (`review <pass | still failing>`); that is gate 7's entry, so don't write a second. A gate 2 halt adds its own.
 
 ## Safety bounds
 
