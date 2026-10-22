@@ -25,7 +25,7 @@ You need Claude Code, `git`, and the GitHub CLI (`gh`), logged in. For apps with
 /plugin install pod-flow@pod
 ```
 
-The tree opens beside the transcript when you start `/pod:autopilot` or `/pod:ship`. Its first group, **needs you**, lists the queue entries waiting on your answer: a `BLOCKED`, a decision, a product choice, or a one-way door. To open it again, run `/pod-flow`. Other commands:
+The tree opens beside the transcript when you start `/pod:autopilot` or `/pod:ship`. Its first group, **needs you**, lists the queue entries waiting on your answer: a `BLOCKED`, a decision, a product choice, or a one-way door. At the plan's hand-back, a **Run app** button starts the app for you to look at (it sends `run app`, as if you typed it), above a checklist of the features the plan added or changed. To open it again, run `/pod-flow`. Other commands:
 
 - `/pod-flow preview`: open the tree on this project's docs without a run.
 - `/pod-flow text`: print the tree as a few lines, for a narrow terminal.
@@ -233,7 +233,7 @@ claude plugin validate . && claude plugin validate ./pod-flow
 cd pod-flow && claude plugin test .
 ```
 
-Before a release, also run the eval cases in `evals/`. They run real Claude on small scratch repos (`/pod:init` on an empty and an old-layout repo, `/pod:idea`, queue entries mid-plan and at plan end, and the reviewer dispatch from `/pod:code` and `/pod:fix`) and check the files it writes or the dispatch it sends. A reviewer dispatch isn't allowed to run, so no reviewer starts: the case checks only the dispatch text. They use your Claude login, so they aren't in CI:
+Before a release, also run the eval cases in `evals/`. They run real Claude on small scratch repos (`/pod:init` on an empty and an old-layout repo, `/pod:idea`, queue entries mid-plan and at plan end, the reviewer dispatch from `/pod:code` and `/pod:fix`, and the `run app` reply to a hand-back) and check the files it writes, the dispatch it sends, or its answer. A reviewer dispatch and Bash aren't allowed to run, so no reviewer or app starts: those cases check only the dispatch text or the start command in the answer. They use your Claude login, so they aren't in CI:
 
 ```
 claude plugin eval . --scaffold --allow-tools Write Edit --ablation none --runs 1

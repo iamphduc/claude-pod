@@ -2,8 +2,8 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Dispatch, TreeLine } from '../types'
-import { buildTree, fit, foldKey, GLYPH, header, isFoldable, latestHalt, mainCheckout, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, pullOf, questionGlyph, snapshot, turnTokens, visibleLines } from './model'
-import type { PlanDoc, SprintDoc } from './model'
+import { buildTree, changedFeatures, fit, foldKey, GLYPH, header, isFoldable, latestHalt, mainCheckout, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, pullOf, questionGlyph, snapshot, turnTokens, uncheckedReminder, visibleLines } from './model'
+import type { FeatureCheck, PlanDoc, SprintDoc } from './model'
 
 const PANE = 'pod-flow'
 const REFRESH_MS = 3000
@@ -17,6 +17,11 @@ const tokens = atom({ plugin: 'pod-flow', key: 'tokens' } as const, {} as Record
 const planShown = atom({ plugin: 'pod-flow', key: 'planShown' } as const, '')
 const NO_PLAN = 'No plan in pod-docs/plans yet.'
 const emptyNote = atom({ plugin: 'pod-flow', key: 'emptyNote' } as const, NO_PLAN)
+// The hand-back's checklist: what you ticked, and whether you pressed Run app. Yours alone, never in pod's docs.
+const ticked = atom({ plugin: 'pod-flow', key: 'ticked' } as const, [] as string[])
+const isAppRunning = atom({ plugin: 'pod-flow', key: 'isAppRunning' } as const, false)
+// The hand-back PR you said continue after, once merged: its part folds to one line.
+const handBackClosed = atom({ plugin: 'pod-flow', key: 'handBackClosed' } as const, 0)
 
 const COLOR: Record<string, string | undefined> = {
   running: 'yellow',
@@ -35,6 +40,27 @@ let told: Set<string> | undefined
 const lastSeen: Record<string, number> = {}
 const merged = new Set<number>()
 const pullCheckedAt: Record<number, number> = {}
+const checksOf: Record<number, FeatureCheck[]> = {}
+const diffAskedAt: Record<number, number> = {}
+// The latest `gh` calls a refresh started.
+let ghWork: Promise<unknown> = Promise.resolve()
+const GH_WAIT_MS = 5000
+
+/** Reads the features the hand-back's PR added or changed, once per PR; a failed `gh` tries again after PULL_CHECK_MS. */
+async function loadChecks($: Dollar, number: number, cwd: string) {
+  const now = await $.clock.now()
+  if (checksOf[number] || now - (diffAskedAt[number] ?? -Infinity) < PULL_CHECK_MS) return
+  diffAskedAt[number] = now
+  try {
+    const { exitCode, stdout } = await $.process.run(['gh', 'pr', 'diff', String(number)], { cwd, timeoutMs: 20_000 })
+    if (exitCode === 0) {
+      checksOf[number] = changedFeatures(stdout)
+      void refresh($)
+    }
+  } catch {
+    // No checklist yet: the button still shows.
+  }
+}
 
 /**
  * Asks GitHub whether the hand-back's PR has merged, at most once per PULL_CHECK_MS, off the refresh path.
@@ -48,7 +74,10 @@ async function checkPull($: Dollar, number: number, cwd: string) {
     const { exitCode, stdout } = await $.process.run(['gh', 'pr', 'view', String(number), '--json', 'state', '--jq', '.state'], { cwd, timeoutMs: 10_000 })
     if (exitCode === 0 && stdout.trim() === 'MERGED') {
       merged.add(number)
-      void refresh($)
+      await refresh($)
+      // Seen merged once: one soft line for the important checks left, never a block or a question.
+      const reminder = uncheckedReminder(await read($, lines))
+      if (reminder) $.ui.log(reminder)
     }
   } catch {
     // The row stays as it is.
@@ -166,12 +195,17 @@ async function buildLines($: Dollar) {
   const queueText = await readText($, `${docs}/handoff-queue.md`)
   const halt = latestHalt(queueText, plan)
   const pull = halt && pullOf(halt.body)
-  if (pull) void checkPull($, Number(pull[1]), root)
+  // Off the refresh path; kept so a text answer can wait for it.
+  // A call already under way makes the next one return at once: chained, so the wait still covers it.
+  if (pull) ghWork = Promise.all([ghWork, checkPull($, Number(pull[1]), root), loadChecks($, Number(pull[1]), root)])
   const queue = parseQueue(queueText)
   const known = await read($, spawns)
   const spent = await read($, tokens)
   const now = await $.clock.now()
-  await update($, lines, () => buildTree({ plan, sprints, spawns: known, live, halt: halt?.body, haltType: halt?.type, now, lastSeen, queue, tokens: spent, merged: [...merged] }))
+  const checks = pull ? (checksOf[Number(pull[1])] ?? []) : []
+  const isHandBackClosed = pull !== null && pull !== undefined && (await read($, handBackClosed)) === Number(pull[1])
+  const app = { checks, ticked: await read($, ticked), isAppRunning: await read($, isAppRunning), isHandBackClosed }
+  await update($, lines, () => buildTree({ plan, sprints, spawns: known, live, halt: halt?.body, haltType: halt?.type, now, lastSeen, queue, tokens: spent, merged: [...merged], ...app }))
 }
 
 /** Keeps the tree fresh: a timer, started once per load of this module. */
@@ -200,6 +234,18 @@ export const register: Register = on => {
     })
     // A reload runs this again with the run's state kept: pick the refresh back up.
     if (await read($, isActive)) await startRefreshing($)
+    return next(e)
+  })
+
+  // Your `continue` after the hand-back's PR merged: the plan is done, so its hand-back part folds to one line.
+  on('prompt.submit', async ($, e, next) => {
+    if (/^\s*continue\b/i.test(e.text) && (await read($, isActive))) {
+      const done = (await read($, lines)).map(l => (l.kind === 'halt' ? /^PR #(\d+) merged$/.exec(l.text)?.[1] : undefined)).find(Boolean)
+      if (done) {
+        await update($, handBackClosed, () => Number(done))
+        await refresh($)
+      }
+    }
     return next(e)
   })
 
@@ -249,6 +295,9 @@ export const register: Register = on => {
       await update($, tokens, () => ({}))
       await update($, expanded, () => [])
       await update($, planShown, () => '')
+      await update($, ticked, () => [])
+      await update($, isAppRunning, () => false)
+      await update($, handBackClosed, () => 0)
       for (const id of Object.keys(lastSeen)) delete lastSeen[id]
       merged.clear()
       for (const n of Object.keys(pullCheckedAt)) delete pullCheckedAt[Number(n)]
@@ -264,12 +313,17 @@ export const register: Register = on => {
       return { text: 'No /pod:autopilot or /pod:ship run in this session yet. Use /pod-flow preview to try it.' }
     }
     await startRefreshing($)
-    const text = snapshot(await read($, lines)) || (await read($, emptyNote))
-    if (arg === 'text') return { text }
+    // A pane redraws when `gh` answers; text is read once (under -p there's no second call), so it waits for `gh` a little.
+    const textNow = async () => {
+      await Promise.race([ghWork, $.clock.sleep(GH_WAIT_MS)])
+      await refresh($)
+      return snapshot(await read($, lines)) || (await read($, emptyNote))
+    }
+    if (arg === 'text') return { text: await textNow() }
     // Where no pane can draw (-p, a narrow terminal, a surface without panes), the run comes back as a few lines.
-    if ((await $.session.surfaces()).length === 0) return { text }
+    if ((await $.session.surfaces()).length === 0) return { text: await textNow() }
     const opened = await $.ui.open({ id: PANE, title: 'pod flow' })
-    if (!opened.isPlaced) return { text: `${text}\n(no pane: ${opened.reason})` }
+    if (!opened.isPlaced) return { text: `${await textNow()}\n(no pane: ${opened.reason})` }
     return { text: arg === 'preview' ? 'pod flow preview opened.' : 'pod flow opened.' }
   })
 
@@ -285,10 +339,15 @@ export const register: Register = on => {
     const stems = prefixes(rows)
     const room = Math.max(1, (e.viewport?.rows ?? 30) - 5)
     // A blank line before each tree sets it apart from the header and the tree above. It takes a row of the room too.
-    const isGap = (i: number) => rows[i]!.depth <= 1 && !rows[i]!.isContinued
+    // Run app gets a divider in place of the gap: the run is over, the part below is yours.
+    const isGap = (i: number) => rows[i]!.depth <= 1 && !rows[i]!.isContinued && (rows[i]!.kind !== 'app' || rows[i]!.status === 'done')
     let shown = 0
     for (let used = 0; shown < rows.length; shown++) {
-      used += isGap(shown) ? 2 : 1
+      // A check's how-to-reach line takes a row of its own, more when it wraps.
+      const extra = rows[shown]!.kind === 'check' && rows[shown]!.note ? Math.ceil(rows[shown]!.note!.length / Math.max(10, width - 8)) : 0
+      // Run app: its divider above, its gap below, and the fold line once all are ticked.
+      const app = rows[shown]!.kind === 'app' && rows[shown]!.status !== 'done' ? (rows[shown]!.detail ? 3 : 2) : 0
+      used += (isGap(shown) ? 2 : 1) + extra + app
       if (used > room) break
     }
 
@@ -296,6 +355,52 @@ export const register: Register = on => {
       const glyph = row.isContinued ? ' ' : row.kind === 'concern' ? '⚠' : row.kind === 'hint' ? '➜' : row.kind === 'question' ? questionGlyph(row) : (GLYPH[row.status] ?? '·')
       // What you do next, or what waits on you: never dim.
       const isForYou = row.kind === 'hint' || row.kind === 'question'
+      if (row.kind === 'app' && row.status === 'done') {
+        // The plan is done and you moved on: one quiet line, no button, no list.
+        return <Text wrap="truncate-end" color={COLOR.done}>{[`${GLYPH.done} ${row.text}`, row.note].filter(Boolean).join(' · ')}</Text>
+      }
+      if (row.kind === 'also') return <Text dimColor>{`${row.text}:`}</Text>
+      if (row.kind === 'app') {
+        // Sends your reply, as if typed: the orchestrator starts or stops the app per /pod:code's **Run app**.
+        const press = async () => {
+          const isRunning = await read($, isAppRunning)
+          await $.prompt.submit({ text: isRunning ? 'stop app' : 'run app', asUser: true })
+          await update($, isAppRunning, () => !isRunning)
+          await refresh($)
+        }
+        // All ticked: the list folds to one line, which opens it again.
+        const isOpen = open.includes(foldKey(row))
+        const toggle = () => update($, expanded, list => (isOpen ? list.filter(s => s !== foldKey(row)) : [...list, foldKey(row)]))
+        // A real button, in the accent color: the one thing to press at the hand-back.
+        return (
+          <Box flexDirection="column" marginBottom={1}>
+            <Text dimColor>{'─'.repeat(width)}</Text>
+            <Box flexDirection="row">
+              <Button key="run-app" variant="primary" label={row.text} onPress={press} />
+              {row.note && <Text>{`  then ${row.note}:`}</Text>}
+            </Box>
+            {row.detail && <Button key="checks" plain label={`${isOpen ? '▾' : '▸'} ${row.detail}`} onPress={toggle} />}
+          </Box>
+        )
+      }
+      if (row.kind === 'check') {
+        const tick = async () => {
+          await update($, ticked, list => (list.includes(row.text) ? list.filter(t => t !== row.text) : [...list, row.text]))
+          await refresh($)
+        }
+        const box = row.status === 'done' ? '☑' : '☐'
+        // A plain list under the button, no tree: the name whole, how to reach it below, wrapped.
+        return (
+          <Box flexDirection="column">
+            <Button key={`check:${row.text}`} plain dimColor={row.status === 'done'} label={`${box} ${row.text}`} onPress={tick} />
+            {row.note && (
+              <Box marginLeft={2}>
+                <Text wrap="wrap" dimColor>{row.note}</Text>
+              </Box>
+            )}
+          </Box>
+        )
+      }
       if (isFoldable(row)) {
         const key = foldKey(row)
         const isOpen = open.includes(key)

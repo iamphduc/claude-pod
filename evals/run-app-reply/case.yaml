@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: run-app-reply
+tags: [hand-back]
+context:
+  scaffold_script: setup.sh

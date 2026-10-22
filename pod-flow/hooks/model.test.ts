@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 
-import { ageNote, buildTree, header, mainCheckout, snapshot, formatTokens, tokenTotals, turnTokens, concernText, fit, parseQueue, formatAge, prState, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, milestones, prefixes, summarize, tableRows, visibleLines } from './model'
+import { ageNote, buildTree, uncheckedReminder, changedFeatures, foldKey, isFoldable, header, mainCheckout, snapshot, formatTokens, tokenTotals, turnTokens, concernText, fit, parseQueue, formatAge, prState, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, milestones, prefixes, summarize, tableRows, visibleLines } from './model'
 import type { TreeLine } from '../types'
 
 const PLAN = `# Plan: Long runs
@@ -589,6 +589,119 @@ test('the snapshot and the transcript lines show each question', () => {
   expect([...milestones(lines).values()]).toContain('? NEEDS YOU · keep reading the old sound key? · reviewer')
 })
 
+// What `gh pr diff` prints for a plan that added one feature row, changed one, and touched another file's table.
+const DIFF = [
+  'diff --git a/pod-docs/features.md b/pod-docs/features.md',
+  'index 1111111..2222222 100644',
+  '--- a/pod-docs/features.md',
+  '+++ b/pod-docs/features.md',
+  '@@ -12,3 +12,4 @@',
+  ' | Feature | User reaches it by | Drive | Proof |',
+  ' |---|---|---|---|',
+  '-| Sign in | the login page | POST /login | a session cookie |',
+  '+| [Sign in](feature-details/sign-in.md) | the login page, or a magic link | POST /login | a session cookie |',
+  '+| Saved keys | Settings → API keys | save, reload | the key reads back masked |',
+  ' | Search | the top bar | type "a" | results list |',
+  'diff --git a/README.md b/README.md',
+  '--- a/README.md',
+  '+++ b/README.md',
+  '@@ -1,1 +1,2 @@',
+  '+| Not | a | feature | row |',
+].join('\n')
+
+test('changedFeatures reads the features rows a PR added or changed, as plain text, and which are new', () => {
+  expect(changedFeatures(DIFF)).toEqual([
+    { feature: 'Sign in', reach: 'the login page, or a magic link', isNew: false },
+    { feature: 'Saved keys', reach: 'Settings → API keys', isNew: true },
+  ])
+  expect(changedFeatures(DIFF.replaceAll('pod-docs/features.md', 'docs/features.md'))).toHaveLength(2)
+  expect(changedFeatures('')).toEqual([])
+})
+
+// The plan's hand-back, a one-way door, a decision pod defaulted, and another plan's one-way door.
+const HAND_BACK_QUEUE = [
+  '- `[2026-10-07 · PENDING · engineer → human · plan: long-runs · sprint: ui · slice: L1]` needs your decision: the input border. **Resolution:** 2026-10-08 — default recorded: 1px grey; override anytime',
+  '- `[2026-10-08 · PENDING · engineer → human · plan: long-runs]` one-way door in PR #35: saved keys move to the v2 format. Undo: restore the copy. **Resolution:** pending',
+  '- `[2026-10-08 · PENDING · engineer → human · plan: other]` one-way door in PR #9: another plan. **Resolution:** pending',
+  '- `[2026-10-09 · PENDING · orchestrator → human · plan: long-runs]` plan long-runs complete — final PR https://github.com/me/app/pull/58, review pass **Resolution:** pending',
+].join('\n')
+
+const appTree = (input: Partial<Parameters<typeof buildTree>[0]> = {}) => {
+  const halt = latestHalt(HAND_BACK_QUEUE)
+  return buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [], spawns: {}, live: [], queue: parseQueue(HAND_BACK_QUEUE), halt: halt?.body, haltType: halt?.type, checks: changedFeatures(DIFF), ...input })
+}
+
+test('at the hand-back, the checklist puts one-way doors, decisions made for you and new features first', () => {
+  const lines = appTree({ ticked: ['Saved keys'] })
+  const at = lines.findIndex(l => l.kind === 'app')
+  expect(lines[at - 1]).toMatchObject({ kind: 'hint', text: 'merge PR #58' })
+  expect(lines.slice(at).map(l => `${l.kind} ${l.status} ${l.isImportant ? '!' : '-'} ${l.text} | ${l.note ?? ''}`)).toEqual([
+    'app waiting - Run app | check these (1/4)',
+    'check waiting ! one-way door in PR #35: saved keys move to the v2 format. | ',
+    'check waiting ! Decided for you: the input border. | default recorded: 1px grey; override anytime',
+    'check done ! Saved keys | Settings → API keys',
+    'also  - also changed | ',
+    'check waiting - Sign in | the login page, or a magic link',
+  ])
+  expect(appTree({ isAppRunning: true }).find(l => l.kind === 'app')?.text).toBe('Stop app')
+  // The checklist says what to look at; its ticks are not one more done or blocked row.
+  expect(summarize(lines)).toBe(summarize(appTree({ ticked: [] })))
+})
+
+test('a merged hand-back keeps the run-app line; a gate halt or no halt has none', () => {
+  expect(appTree({ merged: [58] }).some(l => l.kind === 'app')).toBe(true)
+  expect(appTree({ halt: 'Gate 4: wave check failed', haltType: 'BLOCKED' }).some(l => l.kind === 'app' || l.kind === 'check')).toBe(false)
+  expect(appTree({ halt: undefined }).some(l => l.kind === 'app')).toBe(false)
+  // Nothing to check: the button alone.
+  const bare = appTree({ checks: [], queue: [] })
+  expect(bare.filter(l => l.kind === 'app' || l.kind === 'check' || l.kind === 'also').map(l => l.text)).toEqual(['Run app'])
+  // Only changed rows: no "also changed" label over a list that is all of them.
+  expect(appTree({ checks: [{ feature: 'Sign in', reach: '', isNew: false }], queue: [] }).some(l => l.kind === 'also')).toBe(false)
+})
+
+const ALL = ['one-way door in PR #35: saved keys move to the v2 format.', 'Decided for you: the input border.', 'Saved keys', 'Sign in']
+
+test('the run-app line counts the ticks, and folds the list once all are ticked', () => {
+  const done = appTree({ ticked: ALL })
+  const app = done.find(l => l.kind === 'app')!
+  expect(app).toMatchObject({ note: 'check these (4/4)', detail: '✓ all 4 checked' })
+  expect(isFoldable(app)).toBe(true)
+  // Folded unless you open it again.
+  expect(visibleLines(done, []).some(l => l.kind === 'check' || l.kind === 'also')).toBe(false)
+  expect(visibleLines(done, [foldKey(app)]).filter(l => l.kind === 'check')).toHaveLength(4)
+  expect(snapshot(done).split('\n').slice(-2)).toEqual(["○ Run app  reply 'run app'", '✓ all 4 checked'])
+})
+
+test('after the merge and your continue, the hand-back part is one line', () => {
+  const lines = appTree({ merged: [58], ticked: ['Saved keys'], isHandBackClosed: true })
+  expect(lines.filter(l => l.kind === 'app' || l.kind === 'check' || l.kind === 'also').map(l => `${l.status} ${l.text} | ${l.note}`)).toEqual(['done plan done | checked 1/4'])
+  expect(snapshot(lines).split('\n').at(-1)).toBe('✓ plan done · checked 1/4')
+})
+
+test('the merge reminder names the important checks left, and says nothing when they are ticked', () => {
+  expect(uncheckedReminder(appTree({ ticked: ['Saved keys'] }))).toBe(
+    '☐ Merged with 2 important checks not ticked: one-way door in PR #35: saved keys move…; Decided for you: the input border.',
+  )
+  // Only what is not important left: nothing to say.
+  expect(uncheckedReminder(appTree({ ticked: ALL.slice(0, 3) }))).toBeUndefined()
+  expect(uncheckedReminder(appTree({ checks: [], queue: [] }))).toBeUndefined()
+})
+
+test('the snapshot says how to run the app without a button, and lists the checks, important first', () => {
+  expect(snapshot(appTree({ ticked: ['Saved keys'] })).split('\n').slice(-10)).toEqual([
+    '─'.repeat(30),
+    "○ Run app  reply 'run app'",
+    '☐ one-way door in PR #35: saved keys move to the v2 format.',
+    '☐ Decided for you: the input border.',
+    '  default recorded: 1px grey; override anytime',
+    '☑ Saved keys',
+    '  Settings → API keys',
+    'also changed:',
+    '☐ Sign in',
+    '  the login page, or a magic link',
+  ])
+})
+
 test('parseDispatch reads a reviewer plan slug and round, and ignores words that only end in round', () => {
   expect(parseDispatch('**plan slug**: `long-runs`\n**round**: 2')).toMatchObject({ plan: 'long-runs', round: 2 })
   expect(parseDispatch('run it in background: true').round).toBeUndefined()
@@ -745,7 +858,7 @@ test('a final PR URL reads as its number, with a merge line of its own', () => {
   const halt = 'plan long-runs complete — final PR https://github.com/me/app/pull/58, review pass, 1 open entries sorted in the hand-back'
   const lines = buildTree({ plan: done, sprints: [], spawns: {}, live: [], halt })
   expect(lines.find(l => l.kind === 'halt')?.note).toBe('plan long-runs complete — final PR #58, review pass, 1 open entries sorted in the hand-back')
-  expect(lines.at(-1)).toMatchObject({ depth: 2, kind: 'hint', text: 'merge PR #58' })
+  expect(lines.find(l => l.kind === 'hint')).toMatchObject({ depth: 2, text: 'merge PR #58' })
   expect([...milestones(lines).values()].at(-1)).toBe('◐ WAITING · merge PR #58 · plan long-runs complete — final PR #58, review pass, 1 open entries sorted in the hand-back')
 })
 
