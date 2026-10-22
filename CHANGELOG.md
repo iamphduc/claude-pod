@@ -8,6 +8,7 @@ Newest first. The `pod` and `pod-flow` plugins share this file.
 - `/pod:code` and `/pod:fix` send the reviewer its context as labeled field lines (`- **PR URL:** <url>`, `- **plan slug:** <slug>`), using the names in the reviewer's Required dispatch context. Longer items, such as round-1 findings, go in a block under their label.
 - pod-flow's review list shows only the current plan's rounds. Before, reviews from `/pod:fix` and from earlier plans in the same session were mixed in, and their tokens counted toward the plan.
 - pod-flow opens with a **needs you** group: each pending queue entry addressed to you that asks something (a `BLOCKED`, a decision, a product choice, or a one-way door), so a question doesn't scroll away in the chat. The header counts them, and a narrow terminal tells each one once. "Someday" notes and answered entries stay out.
+- At a plan's hand-back, pod-flow shows a **Run app** button. It sends `run app` for you and turns into **Stop app**. Under it is a checklist of the `pod-docs/features.md` rows the plan's PR added or changed, which you can tick. The hand-back's reply words are now `run app` and `stop app` instead of `try` and `stop`.
 
 ## 0.3.0 — 2026-10-21
 

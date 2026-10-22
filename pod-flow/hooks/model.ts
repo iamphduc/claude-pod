@@ -445,6 +445,11 @@ export function snapshot(lines: TreeLine[]): string {
       const end = after.findIndex(l => l.kind !== 'hint')
       const hints = end < 0 ? after : after.slice(0, end)
       if (hints.length > 0) row(2, `➜ ${hints.map(h => h.text).join(', ')}`)
+    } else if (line.kind === 'app') {
+      // No button where no pane draws: say what to reply.
+      row(1, `${glyph} ${line.text}  reply '${line.text.toLowerCase()}'`)
+    } else if (line.kind === 'check') {
+      row(2, `${line.status === 'done' ? '☑' : '☐'} ${line.text}  ${line.note ?? ''}`.trimEnd())
     }
   }
   const stems = prefixes(rows)
@@ -583,6 +588,28 @@ export type TreeInput = {
   tokens?: Record<string, number>
   /** Pull request numbers known to be merged: the queue keeps a hand-back pending after its PR merges. */
   merged?: number[]
+  /** The features the hand-back's PR added or changed, to check by hand; the ones ticked; whether the app was started. */
+  checks?: FeatureCheck[]
+  ticked?: string[]
+  isAppRunning?: boolean
+}
+
+export type FeatureCheck = { feature: string; reach: string }
+
+/**
+ * The `features.md` rows a PR's diff adds or changes, from `gh pr diff`: a changed row is removed and added,
+ * so its added line is enough. Each row's Feature and "User reaches it by" cells, as plain text.
+ */
+export function changedFeatures(diff: string): FeatureCheck[] {
+  const checks: FeatureCheck[] = []
+  let isFeatures = false
+  for (const line of diff.split(/\r?\n/)) {
+    if (line.startsWith('diff --git ')) isFeatures = /\/(pod-)?docs\/features\.md$/.test(line)
+    if (!isFeatures || !/^\+\s*\|/.test(line) || /^\+\s*\|[\s:|-]+$/.test(line)) continue
+    const [feature = '', reach = ''] = line.replace(/^\+\s*\|/, '').split('|').map(cell => concernText(cell.trim()))
+    if (feature && feature !== 'Feature') checks.push({ feature, reach })
+  }
+  return checks
 }
 
 /** The pull request a halt or hand-back links to, by its number. */
@@ -591,7 +618,7 @@ export const pullOf = (text: string) => /https?:\/\/[^\s,;)]+?\/pull\/(\d+)/.exe
 const ENDED = new Set(['completed', 'failed', 'killed'])
 const PLANNER = /(^|:)sprint-planner$/
 
-export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, lastSeen = {}, queue = [], tokens = {}, merged = [] }: TreeInput): TreeLine[] {
+export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, lastSeen = {}, queue = [], tokens = {}, merged = [], checks = [], ticked = [], isAppRunning = false }: TreeInput): TreeLine[] {
   const spent = tokenTotals(spawns, tokens, sprints, plan.slug)
   // Live until it ends: an agent `waiting` on its own background work, `pending` or `idle` is still at it.
   const running = live.filter(a => !ENDED.has(a.status))
@@ -745,10 +772,15 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
     const isHandBack = haltType !== 'BLOCKED' && !/still failing/i.test(haltText) && HAND_BACK.test(haltText)
     // A pull request URL reads as its short number.
     const pull = pullOf(haltText)
+    // At the hand-back, merged or not: run the app and look at what the plan changed.
+    const appLines = (): TreeLine[] => [
+      { depth: 1, kind: 'app', text: isAppRunning ? 'Stop app' : 'Run app', status: isAppRunning ? 'running' : 'waiting', note: checks.length > 0 ? 'check these' : undefined },
+      ...checks.map(c => ({ depth: 2, kind: 'check' as const, text: c.feature, status: ticked.includes(c.feature) ? 'done' : 'waiting', note: c.reach || undefined })),
+    ]
     if (isHandBack && pull && merged.includes(Number(pull[1]))) {
       // Nothing left for you: the hand-back's PR is in.
       lines.push({ depth: 1, kind: 'halt', text: `PR #${pull[1]} merged`, status: 'done' })
-      return lines
+      return [...lines, ...appLines()]
     }
     lines.push({
       depth: 1,
@@ -765,6 +797,7 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
       // The note's end is the first thing a narrow pane cuts, so the PR to merge gets a line of its own.
       lines.push({ depth: 2, kind: 'hint', text: `merge PR #${pull[1]}`, status: 'waiting' })
     }
+    if (isHandBack) lines.push(...appLines())
   }
   return lines
 }

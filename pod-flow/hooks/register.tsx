@@ -2,8 +2,8 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Dispatch, TreeLine } from '../types'
-import { buildTree, fit, foldKey, GLYPH, header, isFoldable, latestHalt, mainCheckout, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, pullOf, questionGlyph, snapshot, turnTokens, visibleLines } from './model'
-import type { PlanDoc, SprintDoc } from './model'
+import { buildTree, changedFeatures, fit, foldKey, GLYPH, header, isFoldable, latestHalt, mainCheckout, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, pullOf, questionGlyph, snapshot, turnTokens, visibleLines } from './model'
+import type { FeatureCheck, PlanDoc, SprintDoc } from './model'
 
 const PANE = 'pod-flow'
 const REFRESH_MS = 3000
@@ -17,6 +17,9 @@ const tokens = atom({ plugin: 'pod-flow', key: 'tokens' } as const, {} as Record
 const planShown = atom({ plugin: 'pod-flow', key: 'planShown' } as const, '')
 const NO_PLAN = 'No plan in pod-docs/plans yet.'
 const emptyNote = atom({ plugin: 'pod-flow', key: 'emptyNote' } as const, NO_PLAN)
+// The hand-back's checklist: what you ticked, and whether you pressed Run app. Yours alone, never in pod's docs.
+const ticked = atom({ plugin: 'pod-flow', key: 'ticked' } as const, [] as string[])
+const isAppRunning = atom({ plugin: 'pod-flow', key: 'isAppRunning' } as const, false)
 
 const COLOR: Record<string, string | undefined> = {
   running: 'yellow',
@@ -35,6 +38,24 @@ let told: Set<string> | undefined
 const lastSeen: Record<string, number> = {}
 const merged = new Set<number>()
 const pullCheckedAt: Record<number, number> = {}
+const checksOf: Record<number, FeatureCheck[]> = {}
+const diffAskedAt: Record<number, number> = {}
+
+/** Reads the features the hand-back's PR added or changed, once per PR; a failed `gh` tries again after PULL_CHECK_MS. */
+async function loadChecks($: Dollar, number: number, cwd: string) {
+  const now = await $.clock.now()
+  if (checksOf[number] || now - (diffAskedAt[number] ?? -Infinity) < PULL_CHECK_MS) return
+  diffAskedAt[number] = now
+  try {
+    const { exitCode, stdout } = await $.process.run(['gh', 'pr', 'diff', String(number)], { cwd, timeoutMs: 20_000 })
+    if (exitCode === 0) {
+      checksOf[number] = changedFeatures(stdout)
+      void refresh($)
+    }
+  } catch {
+    // No checklist yet: the button still shows.
+  }
+}
 
 /**
  * Asks GitHub whether the hand-back's PR has merged, at most once per PULL_CHECK_MS, off the refresh path.
@@ -166,12 +187,17 @@ async function buildLines($: Dollar) {
   const queueText = await readText($, `${docs}/handoff-queue.md`)
   const halt = latestHalt(queueText, plan)
   const pull = halt && pullOf(halt.body)
-  if (pull) void checkPull($, Number(pull[1]), root)
+  if (pull) {
+    void checkPull($, Number(pull[1]), root)
+    void loadChecks($, Number(pull[1]), root)
+  }
   const queue = parseQueue(queueText)
   const known = await read($, spawns)
   const spent = await read($, tokens)
   const now = await $.clock.now()
-  await update($, lines, () => buildTree({ plan, sprints, spawns: known, live, halt: halt?.body, haltType: halt?.type, now, lastSeen, queue, tokens: spent, merged: [...merged] }))
+  const checks = pull ? (checksOf[Number(pull[1])] ?? []) : []
+  const app = { checks, ticked: await read($, ticked), isAppRunning: await read($, isAppRunning) }
+  await update($, lines, () => buildTree({ plan, sprints, spawns: known, live, halt: halt?.body, haltType: halt?.type, now, lastSeen, queue, tokens: spent, merged: [...merged], ...app }))
 }
 
 /** Keeps the tree fresh: a timer, started once per load of this module. */
@@ -249,6 +275,8 @@ export const register: Register = on => {
       await update($, tokens, () => ({}))
       await update($, expanded, () => [])
       await update($, planShown, () => '')
+      await update($, ticked, () => [])
+      await update($, isAppRunning, () => false)
       for (const id of Object.keys(lastSeen)) delete lastSeen[id]
       merged.clear()
       for (const n of Object.keys(pullCheckedAt)) delete pullCheckedAt[Number(n)]
@@ -296,6 +324,24 @@ export const register: Register = on => {
       const glyph = row.isContinued ? ' ' : row.kind === 'concern' ? '⚠' : row.kind === 'hint' ? '➜' : row.kind === 'question' ? questionGlyph(row) : (GLYPH[row.status] ?? '·')
       // What you do next, or what waits on you: never dim.
       const isForYou = row.kind === 'hint' || row.kind === 'question'
+      if (row.kind === 'app') {
+        // Sends your reply, as if typed: the orchestrator starts or stops the app per /pod:code's **Run app**.
+        const press = async () => {
+          const isRunning = await read($, isAppRunning)
+          await $.prompt.submit({ text: isRunning ? 'stop app' : 'run app', asUser: true })
+          await update($, isAppRunning, () => !isRunning)
+          await refresh($)
+        }
+        return <Button key="run-app" plain label={fit(`${stems[i]}${glyph} ${row.text}`, row.note, width)} onPress={press} />
+      }
+      if (row.kind === 'check') {
+        const tick = async () => {
+          await update($, ticked, list => (list.includes(row.text) ? list.filter(t => t !== row.text) : [...list, row.text]))
+          await refresh($)
+        }
+        const box = row.status === 'done' ? '☑' : '☐'
+        return <Button key={`check:${row.text}`} plain dimColor={row.status === 'done'} label={fit(`${stems[i]}${box} ${row.text}`, row.note, width)} onPress={tick} />
+      }
       if (isFoldable(row)) {
         const key = foldKey(row)
         const isOpen = open.includes(key)

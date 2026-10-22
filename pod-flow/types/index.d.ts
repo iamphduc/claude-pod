@@ -12,7 +12,7 @@ export type Dispatch = {
   runPlan?: string
 }
 
-export type TreeKind = 'plan' | 'sprint' | 'wave' | 'slice' | 'agent' | 'halt' | 'hint' | 'concern' | 'review' | 'round' | 'ask' | 'question'
+export type TreeKind = 'plan' | 'sprint' | 'wave' | 'slice' | 'agent' | 'halt' | 'hint' | 'concern' | 'review' | 'round' | 'ask' | 'question' | 'app' | 'check'
 
 export type TreeLine = {
   depth: number
@@ -40,6 +40,9 @@ declare module 'claude-code' {
       planShown: string
       /** Why there is no tree, shown in its place. */
       emptyNote: string
+      /** The hand-back checklist's ticked features, and whether Run app was pressed last. */
+      ticked: string[]
+      isAppRunning: boolean
     }
   }
 }

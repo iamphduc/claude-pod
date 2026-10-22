@@ -365,9 +365,9 @@ test('a blank line sets each tree apart, the first from the header too', async (
   world(on, [], true, [], handBack(11))
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
   const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 80 } as never })
-  // Two trees, sprint one and the hand-back: a gap over each.
+  // Three trees, sprint one, the hand-back and run-app: a gap over each.
   const gaps = JSON.stringify(await pane.drawn()).match(/"marginTop":1/g) ?? []
-  expect(gaps).toHaveLength(2)
+  expect(gaps).toHaveLength(3)
 })
 
 test("a new plan's tree leaves out the last plan's hand-back", async ($, on) => {
@@ -408,6 +408,45 @@ test('a finished wave in a running sprint draws folded, as a button', async ($, 
   expect(await pane.find({ type: 'Button', text: /^├─ ▸ wave 1 {2}1 slice$/ })).toBeDefined()
   expect(await pane.find({ type: 'Text', text: /A1 First slice/ })).toBeUndefined()
   expect(await pane.find({ type: 'Text', text: /A2 Second slice/ })).toBeDefined()
+})
+
+test('at the hand-back, Run app sends your reply and turns into Stop app, and each changed feature ticks', async ($, on) => {
+  const diff = [
+    'diff --git a/pod-docs/features.md b/pod-docs/features.md',
+    '+++ b/pod-docs/features.md',
+    '+| Saved keys | Settings → API keys | save, reload | the key reads back masked |',
+  ].join('\n')
+  const asked: string[] = []
+  const sent: { text: string; asUser?: boolean }[] = []
+  world(on, [], true, [], handBack(12))
+  on('process.run', (_$, e) => {
+    asked.push(e.argv.slice(0, 3).join(' '))
+    const isDiff = e.argv[2] === 'diff'
+    return { value: { exitCode: 0, stdout: isDiff ? diff : 'OPEN\n', stderr: '' } as never }
+  })
+  on('prompt.submit', (_$, e) => {
+    sent.push({ text: e.text, asUser: (e.origin as { asUser?: boolean } | undefined)?.asUser })
+    return { text: e.text } as never
+  })
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  // The diff is read once per PR, beside the merge check.
+  await run($, 'text')
+  expect(asked.filter(a => a === 'gh pr diff')).toHaveLength(1)
+  const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 100 } as never })
+  expect(await pane.find({ type: 'Button', text: /^○ Run app {2}check these$/ })).toBeDefined()
+  expect(await pane.find({ type: 'Button', text: /^└─ ☐ Saved keys {2}Settings → API keys$/ })).toBeDefined()
+
+  await pane.press({ key: 'run-app' })
+  expect(sent).toEqual([{ text: 'run app', asUser: true }])
+  expect(await pane.find({ type: 'Button', text: /^● Stop app/ })).toBeDefined()
+  await pane.press({ key: 'run-app' })
+  expect(sent.at(-1)).toEqual({ text: 'stop app', asUser: true })
+  expect(await pane.find({ type: 'Button', text: /^○ Run app/ })).toBeDefined()
+
+  await pane.press({ key: 'check:Saved keys' })
+  expect(await pane.find({ type: 'Button', text: /^└─ ☑ Saved keys/ })).toBeDefined()
+  // A tick is yours alone: nothing goes to the chat.
+  expect(sent).toHaveLength(2)
 })
 
 test('a failing engine call during refresh leaves the tree as it was', async ($, on) => {
