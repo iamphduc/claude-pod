@@ -216,6 +216,7 @@ export const register: Register = on => {
         type: e.subagentType,
         description: e.description,
         startedAt: await $.clock.now(),
+        runPlan: await read($, planShown),
         ...parseDispatch(e.prompt),
       }
       await update($, spawns, known => ({ ...known, [result.agentId as string]: dispatch }))

@@ -211,9 +211,8 @@ const WAVE_FIX = /^(.+)-w(\d+)-fix$/
 /** A plan review round, the plan's fix pass, or a wave's fix, told by the agent's type and branch. */
 export function roundOf(d: Dispatch | undefined, planSlug: string): { text: string; sprint?: string; wave?: number } | undefined {
   if (!d) return undefined
-  if (/(^|:)reviewer$/.test(d.type)) {
-    return d.plan && d.plan !== planSlug ? undefined : { text: `round ${d.round ?? 1}` }
-  }
+  // A reviewer that names no plan is a /pod:fix review, not a round of this one.
+  if (/(^|:)reviewer$/.test(d.type)) return d.plan === planSlug ? { text: `round ${d.round ?? 1}` } : undefined
   const branch = d.branch ?? ''
   if (branch === `${planSlug}-fix`) return { text: 'fix pass' }
   const wave = WAVE_FIX.exec(branch)
@@ -505,13 +504,17 @@ export function formatTokens(n: number): string {
 export const turnTokens = (u: ModelUsage) =>
   u.input_tokens + u.output_tokens + u.cache_creation_input_tokens
 
-export type TokenTotals = { sprints: Map<string, number>; review: number; plan: number }
+/** The spawns of runs on this plan: a session can run several plans, and its spawns outlive each run. */
+const spawnsOf = (spawns: Record<string, Dispatch>, planSlug: string) =>
+  Object.fromEntries(Object.entries(spawns).filter(([, d]) => !d.runPlan || d.runPlan === planSlug))
+
+export type TokenTotals ={ sprints: Map<string, number>; review: number; plan: number }
 
 /** Each spawned agent's tokens, added to the sprint or review it worked for, and to the plan. */
 export function tokenTotals(spawns: Record<string, Dispatch>, tokens: Record<string, number>, sprints: SprintDoc[], planSlug: string): TokenTotals {
   const totals: TokenTotals = { sprints: new Map(), review: 0, plan: 0 }
   const codes = sprints.flatMap(s => s.rows.map(r => r.slice))
-  for (const [id, d] of Object.entries(spawns)) {
+  for (const [id, d] of Object.entries(spawnsOf(spawns, planSlug))) {
     const n = tokens[id] ?? 0
     if (n === 0) continue
     totals.plan += n
@@ -567,7 +570,7 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
   const codes = sprints.flatMap(s => s.rows.map(r => r.slice))
   const agentOfSlice = new Map<string, LiveAgent>()
   // Kept after they finish (the spawn record outlives the agent), so the order of rounds stays on screen.
-  const rounds = Object.entries(spawns)
+  const rounds = Object.entries(spawnsOf(spawns, plan.slug))
     .map(([id, d]) => ({ id, d, round: roundOf(d, plan.slug) }))
     .filter(r => r.round !== undefined)
     .sort((a, b) => (a.d.startedAt ?? 0) - (b.d.startedAt ?? 0))
