@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Dispatch, TreeLine } from '../types'
-import { buildTree, fit, foldKey, GLYPH, header, isFoldable, latestHalt, mainCheckout, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, pullOf, snapshot, turnTokens, visibleLines } from './model'
+import { buildTree, fit, foldKey, GLYPH, header, isFoldable, latestHalt, mainCheckout, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, pullOf, questionGlyph, snapshot, turnTokens, visibleLines } from './model'
 import type { PlanDoc, SprintDoc } from './model'
 
 const PANE = 'pod-flow'
@@ -293,7 +293,9 @@ export const register: Register = on => {
     }
 
     const draw = (row: TreeLine, i: number) => {
-      const glyph = row.isContinued ? ' ' : row.kind === 'concern' ? '⚠' : row.kind === 'hint' ? '➜' : (GLYPH[row.status] ?? '·')
+      const glyph = row.isContinued ? ' ' : row.kind === 'concern' ? '⚠' : row.kind === 'hint' ? '➜' : row.kind === 'question' ? questionGlyph(row) : (GLYPH[row.status] ?? '·')
+      // What you do next, or what waits on you: never dim.
+      const isForYou = row.kind === 'hint' || row.kind === 'question'
       if (isFoldable(row)) {
         const key = foldKey(row)
         const isOpen = open.includes(key)
@@ -312,8 +314,8 @@ export const register: Register = on => {
         return <Button plain dimColor label={fit(name, isOpen ? row.note : row.detail, width)} onPress={toggle} />
       }
       return (
-        // The resume hint is what you do next: cyan, as a hand-back is, never dim.
-        <Text wrap="truncate-end" color={row.kind === 'hint' ? 'cyan' : COLOR[row.status]} dimColor={row.kind !== 'hint' && row.status === 'waiting'}>
+        // Cyan, as a hand-back is; a blocked question stays red.
+        <Text wrap="truncate-end" color={isForYou && row.status !== 'blocked' ? 'cyan' : COLOR[row.status]} dimColor={!isForYou && row.status === 'waiting'}>
           {fit(`${stems[i]}${glyph} ${row.text}`, row.note, width)}
         </Text>
       )

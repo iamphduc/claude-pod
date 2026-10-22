@@ -25,7 +25,7 @@ You need Claude Code, `git`, and the GitHub CLI (`gh`), logged in. For apps with
 /plugin install pod-flow@pod
 ```
 
-The tree opens beside the transcript when you start `/pod:autopilot` or `/pod:ship`. To open it again, run `/pod-flow`. Other commands:
+The tree opens beside the transcript when you start `/pod:autopilot` or `/pod:ship`. Its first group, **needs you**, lists the queue entries waiting on your answer: a `BLOCKED`, a decision, a product choice, or a one-way door. To open it again, run `/pod-flow`. Other commands:
 
 - `/pod-flow preview`: open the tree on this project's docs without a run.
 - `/pod-flow text`: print the tree as a few lines, for a narrow terminal.

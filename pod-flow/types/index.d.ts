@@ -12,7 +12,7 @@ export type Dispatch = {
   runPlan?: string
 }
 
-export type TreeKind = 'plan' | 'sprint' | 'wave' | 'slice' | 'agent' | 'halt' | 'hint' | 'concern' | 'review' | 'round'
+export type TreeKind = 'plan' | 'sprint' | 'wave' | 'slice' | 'agent' | 'halt' | 'hint' | 'concern' | 'review' | 'round' | 'ask' | 'question'
 
 export type TreeLine = {
   depth: number

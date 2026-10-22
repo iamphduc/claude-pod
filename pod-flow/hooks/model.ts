@@ -115,10 +115,27 @@ const GATE = /\bgate\s*\d|blocked-concern|plan-review-fail|auto-merge-fail|inter
  */
 export function latestHalt(queue: string, plan?: PlanDoc): { body: string; type: string } | undefined {
   const halt = parseQueue(queue)
-    .filter(e => e.isPending && /^orchestrator\b/i.test(e.route) && (GATE.test(e.body) || HAND_BACK.test(e.body)))
+    .filter(isHalt)
     .filter(e => !plan || isForPlan(e, plan))
     .at(-1)
   return halt && { body: halt.body, type: halt.type }
+}
+
+const isHalt = (e: QueueEntry) => e.isPending && /^orchestrator\b/i.test(e.route) && (GATE.test(e.body) || HAND_BACK.test(e.body))
+
+/** What only the person can answer: a BLOCKED entry, or a decision, product choice or one-way door, by how the body opens. */
+const ASKS = /^[^:]{0,40}\b(decision|product choice)\b|^one-way door/i
+
+/** The pending entries to the human that ask something of them, the halt aside (it has its own line). Most are notes. */
+export function questionsFor(entries: QueueEntry[], plan: PlanDoc): QueueEntry[] {
+  return entries.filter(
+    e =>
+      e.isPending &&
+      /→\s*human\b/i.test(e.route) &&
+      isForPlan(e, plan) &&
+      !isHalt(e) &&
+      (e.type === 'BLOCKED' || (e.type === 'PENDING' && ASKS.test(e.body.replace(/[*`]/g, '').trim()))),
+  )
 }
 
 /**
@@ -169,7 +186,8 @@ export function concernText(body: string): string {
   const plain = body
     .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
     .replace(/[*`]/g, '')
-    .replace(/^\s*(someday|fix next|needs your decision|before hosting)\s*:\s*/i, '')
+    // A leading label, such as `Someday:`, `needs your decision:` or `now (product choice):`.
+    .replace(/^\s*(someday|fix next|needs your decision|decision|before hosting|now)\s*(\([^)]*\))?\s*:\s*/i, '')
     .trim()
   return plain.split(/(?<=[.!?])\s/)[0] ?? plain
 }
@@ -297,9 +315,11 @@ export function summarize(lines: TreeLine[]): string {
     }
   }
   const working = lines.filter(l => (l.kind === 'slice' || l.kind === 'agent' || l.kind === 'round') && l.status === 'running').length
-  const blocked = lines.filter(l => l.status === 'blocked' && l.kind !== 'wave' && l.kind !== 'concern' && l.kind !== 'review' && l.kind !== 'halt').length
+  const blocked = lines.filter(l => l.status === 'blocked' && l.kind !== 'wave' && l.kind !== 'concern' && l.kind !== 'question' && l.kind !== 'review' && l.kind !== 'halt').length
+  const questions = lines.filter(l => l.kind === 'question').length
   if (working > 0) parts.push(`${working} running`)
   if (blocked > 0) parts.push(`${blocked} blocked`)
+  if (questions > 0) parts.push(`${questions} ${questions === 1 ? 'question' : 'questions'}`)
   // A halt says so itself, not as one more blocked row.
   if (lines.some(l => l.kind === 'halt' && l.status === 'blocked')) parts.push('halted')
   if (lines.some(l => l.kind === 'halt' && l.status === 'pushed')) parts.push('waiting on you')
@@ -322,6 +342,9 @@ export function header(lines: TreeLine[], width = Infinity): string {
 
 /** The symbol for each status, shared by the tree and the transcript lines. */
 export const GLYPH: Record<string, string> = { running: '●', pushed: '◐', done: '✓', blocked: '✗', waiting: '○' }
+
+/** A question waits with a `?`; a blocked one keeps its `✗`. */
+export const questionGlyph = (line: TreeLine) => (line.status === 'blocked' ? GLYPH.blocked : '?')
 
 /**
  * The run's turning points in the tree: a wave opens its PR, finishes or is skipped, a slice is blocked,
@@ -346,6 +369,7 @@ export function milestones(lines: TreeLine[]): Map<string, string> {
       if (line.status === 'blocked' && line.note?.includes('skipped')) found.set(`${where} skipped`, `${GLYPH.blocked} SKIPPED · ${where}`)
     }
     if (line.kind === 'slice' && line.status === 'blocked') found.set(`${where} blocked`, `${GLYPH.blocked} BLOCKED · ${where}`)
+    if (line.kind === 'question') found.set(`question ${line.text}`, [`${questionGlyph(line)} NEEDS YOU`, line.text, line.note].filter(Boolean).join(' · '))
     if (line.kind === 'halt') {
       // The action leads, so the line says what to do before why.
       const after = lines.slice(i + 1)
@@ -368,6 +392,11 @@ export function snapshot(lines: TreeLine[]): string {
   const row = (depth: number, text: string) => rows.push({ depth, kind: 'plan', text, status: '' })
   const summary = header(lines)
   if (summary) row(0, summary)
+  // What waits on you comes first, as in the pane.
+  for (const line of lines) {
+    if (line.kind === 'ask') row(1, `${GLYPH[line.status]} ${line.text} · ${line.note}`)
+    if (line.kind === 'question') row(2, `${questionGlyph(line)} ${line.text}  ${line.note ?? ''}`.trimEnd())
+  }
   const sprints = lines.filter(l => l.kind === 'sprint')
   const done = sprints.filter(l => l.status === 'done').length
   if (done > 0) row(1, `${GLYPH.done} ${done} ${done === 1 ? 'sprint' : 'sprints'} done`)
@@ -603,6 +632,22 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
   const lines: TreeLine[] = [
     { depth: 0, kind: 'plan', text: plan.title, status: isPlanDone ? 'done' : 'running', note: tokenNote(spent.plan) },
   ]
+
+  // First, what waits on you: in the chat, a question scrolls away under the run's own messages.
+  const questions = questionsFor(queue, plan)
+  if (questions.length > 0) {
+    lines.push({ depth: 1, kind: 'ask', text: 'needs you', status: 'pushed', note: `${questions.length}` })
+    for (const entry of questions) {
+      const from = entry.route.split('→')[0]?.trim()
+      lines.push({
+        depth: 2,
+        kind: 'question',
+        text: short(concernText(entry.body), 80),
+        status: entry.type === 'BLOCKED' ? 'blocked' : 'waiting',
+        note: [entry.slice, from].filter(Boolean).join(' · ') || undefined,
+      })
+    }
+  }
 
   for (const sprint of plan.sprints) {
     const doc = sprints.find(s => s.slug === sprint.slug)

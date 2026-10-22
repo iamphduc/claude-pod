@@ -141,6 +141,24 @@ test('the resume hint under a halt is drawn cyan, not dim', async ($, on) => {
   expect((hint as { props?: { dimColor?: boolean } }).props?.dimColor).toBeFalsy()
 })
 
+test('the pane opens with the questions waiting on you, above the sprints, and not dim', async ($, on) => {
+  const queue = [
+    '- `[2026-10-06 · PENDING · reviewer → human · plan: demo]` **Someday:** rename the helper. **Resolution:** pending',
+    '- `[2026-10-06 · PENDING · engineer → human · plan: demo · sprint: one · slice: A1]` needs your decision: the input border. **Resolution:** pending',
+  ].join('\n')
+  world(on, [], true, [], { ...docs(), 'pod-docs/handoff-queue.md': queue })
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 120 } as never })
+  expect(await pane.find({ type: 'Text', text: /^Demo · sprint 1\/1 · wave 1\/1 · 1 question$/ })).toBeDefined()
+  expect(await pane.find({ type: 'Text', text: /^◐ needs you  1$/ })).toMatchObject({ props: { color: 'cyan' } })
+  const question = await pane.find({ type: 'Text', text: /^└─ \? the input border\.  A1 · engineer$/ })
+  expect(question).toMatchObject({ props: { color: 'cyan' } })
+  expect((question as { props?: { dimColor?: boolean } }).props?.dimColor).toBeFalsy()
+  expect(await pane.find({ type: 'Text', text: /rename the helper/ })).toBeUndefined()
+  const drawn = JSON.stringify(await pane.drawn())
+  expect(drawn.indexOf('needs you')).toBeLessThan(drawn.indexOf('● one'))
+})
+
 const run = ($: { command: { run: (input: never) => Promise<unknown> } }, args: string) =>
   $.command.run({ command: 'pod-flow', args } as never) as Promise<{ text: string }>
 
