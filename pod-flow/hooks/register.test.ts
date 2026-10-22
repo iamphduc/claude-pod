@@ -464,7 +464,7 @@ test('the first /pod-flow text already has the checklist, as under -p, where the
   })
   const { text } = await run($, 'preview')
   expect(text).toContain("○ Run app  reply 'run app'")
-  expect(text).toContain('  ☐ Saved keys\n    Settings → API keys')
+  expect(text).toContain('\n☐ Saved keys\n  Settings → API keys')
 })
 
 test('a failing engine call during refresh leaves the tree as it was', async ($, on) => {

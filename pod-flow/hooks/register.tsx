@@ -357,7 +357,7 @@ export const register: Register = on => {
         const box = row.status === 'done' ? '☑' : '☐'
         // A plain list under the button, no tree: the name whole, how to reach it below, wrapped.
         return (
-          <Box flexDirection="column" marginLeft={2}>
+          <Box flexDirection="column">
             <Button key={`check:${row.text}`} plain dimColor={row.status === 'done'} label={`${box} ${row.text}`} onPress={tick} />
             {row.note && (
               <Box marginLeft={2}>

@@ -450,8 +450,8 @@ export function snapshot(lines: TreeLine[]): string {
       row(1, `${glyph} ${line.text}  reply '${line.text.toLowerCase()}'`)
     } else if (line.kind === 'check') {
       // A plain list, no tree: the name whole, then how to reach it on a line of its own.
-      row(1, `  ${line.status === 'done' ? '☑' : '☐'} ${line.text}`)
-      if (line.note) row(1, `    ${line.note}`)
+      row(1, `${line.status === 'done' ? '☑' : '☐'} ${line.text}`)
+      if (line.note) row(1, `  ${line.note}`)
     }
   }
   const stems = prefixes(rows)
