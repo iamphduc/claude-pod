@@ -182,6 +182,39 @@ test('/pod-flow reset forgets the session agents, so their rounds and tokens lea
   expect(text).not.toContain('tokens')
 })
 
+test("a new run on a new plan leaves out the last run's rounds and tokens, and a resume keeps them", async ($, on) => {
+  const files = docs()
+  world(on, [], true, [], files)
+  on('session.surfaces', () => ({ value: ['terminal' as const] }))
+  let next = 0
+  on('agent.spawn', () => ({ agentId: `r${++next}`, model: 'claude-opus-5-5' }))
+  on('turn.complete', () => ({ text: '' }))
+  const usage = { input_tokens: 10, output_tokens: 200, cache_creation_input_tokens: 3000, cache_read_input_tokens: 0, model: 'm' }
+  const review = async (prompt: string) => {
+    await $.agent.spawn({ subagentType: 'pod:reviewer', description: 'Review plan', prompt } as never)
+    await $.turn.complete({ answer: '', durationMs: 1, isAborted: false, turnId: 't', reason: 'answer', agentId: `r${next}`, usage })
+  }
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  await review('plan slug: demo · round: 1')
+  // A resume of the same plan keeps its round.
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'continue' })
+  await review('plan slug: demo · round: 2')
+  expect((await run($, 'text')).text).toContain('review · 2 rounds')
+
+  // The next plan, in the same session: the demo plan's reviews and tokens are not its.
+  files['pod-docs/plans/demo.md'] = PLAN.replace('Status: active', 'Status: archived')
+  files['pod-docs/plans/next.md'] = PLAN.replace('# Plan: Demo', '# Plan: Next')
+  await $.skill.prompt({ skill: 'pod:ship', text: 'next idea' })
+  expect((await run($, 'text')).text).not.toContain('review')
+  await review('plan slug: next · round: 1')
+  // A reviewer that names no plan, as /pod:fix sends: not a round of this plan's review.
+  await review('kind: fix · round: 2')
+  const { text } = await run($, 'text')
+  expect(text).toContain('review · 1 round')
+  // This run's two reviewers, 3.2k each; the fix review counts for the plan, not as a round.
+  expect(text).toContain('Next · sprint 1/1 · 6.4k tokens')
+})
+
 test('a sprint-planner spawned during the run shows as drafting under its sprint', async ($, on) => {
   const files = { 'pod-docs/plans/demo.md': PLAN.replace('| one | First | active |', '| one | First | done |\n| two | Second | planned |') }
   world(on, [], true, [], files, true, [{ id: 'p1', type: 'pod:sprint-planner', status: 'running' }])

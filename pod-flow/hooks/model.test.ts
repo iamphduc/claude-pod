@@ -585,6 +585,32 @@ test('review and fix rounds sit under a review node in order, and stay after the
   expect(summarize(lines)).toContain('1 running')
 })
 
+test("the review shows only this plan's rounds, not a fix review or an earlier run's", () => {
+  // As seen in a long session: reviews from /pod:fix and an earlier plan, mixed in by start time.
+  const spawns = {
+    fixReview: { type: 'pod:reviewer', description: 'Review fix', branch: 'fix-login', startedAt: 0 },
+    fixReview2: { type: 'pod:reviewer', description: 'Review fix again', branch: 'fix-login', round: 2, startedAt: 1 },
+    oldR1: { type: 'pod:reviewer', description: 'Review plan', plan: 'old-plan', startedAt: 2, runPlan: 'old-plan' },
+    oldNoSlug: { type: 'pod:reviewer', description: 'Review plan', round: 2, startedAt: 3, runPlan: 'old-plan' },
+    oldFix: { type: 'pod:engineer', description: 'Review fixes', branch: 'long-runs-fix', startedAt: 4, runPlan: 'old-plan' },
+    r1: { type: 'pod:reviewer', description: 'Review plan', plan: 'long-runs', startedAt: 5, runPlan: 'long-runs' },
+    f1: { type: 'pod:engineer', description: 'Review fixes', branch: 'long-runs-fix', startedAt: 6, runPlan: 'long-runs' },
+    r2: { type: 'pod:reviewer', description: 'Review again', plan: 'long-runs', round: 2, startedAt: 7, runPlan: 'long-runs' },
+  }
+  const tokens = Object.fromEntries(Object.keys(spawns).map(id => [id, 100_000]))
+  const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [], spawns, live: [], tokens })
+  const review = lines.slice(lines.findIndex(l => l.kind === 'review'))
+  expect(review.map(l => `${l.depth} ${l.text} ${l.note ?? ''}`.trim())).toEqual(['1 review 300k tokens', '2 round 1', '2 fix pass', '2 round 2'])
+  // Agents of another run add nothing; the fix reviews were in this run, so the plan counts them, not the review.
+  expect(lines[0]?.note).toBe('500k tokens')
+})
+
+test("a spawn from before the run saw its plan still counts for it", () => {
+  const spawns = { r1: { type: 'pod:reviewer', description: 'Review plan', plan: 'long-runs', startedAt: 1, runPlan: '' } }
+  const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [], spawns, live: [] })
+  expect(lines.filter(l => l.kind === 'round').map(l => l.text)).toEqual(['round 1'])
+})
+
 test('a wave fix sits under its own wave, not as a loose agent or a slice', () => {
   const lines = buildTree({
     plan: parsePlan(PLAN, 'long-runs'),

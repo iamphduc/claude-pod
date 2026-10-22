@@ -8,6 +8,8 @@ export type Dispatch = {
   /** A reviewer's plan slug and round, from its dispatch. */
   plan?: string
   round?: number
+  /** The plan the tree showed when it was spawned; '' before the run found one. */
+  runPlan?: string
 }
 
 export type TreeKind = 'plan' | 'sprint' | 'wave' | 'slice' | 'agent' | 'halt' | 'hint' | 'concern' | 'review' | 'round'
