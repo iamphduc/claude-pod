@@ -12,7 +12,7 @@ export type Dispatch = {
   runPlan?: string
 }
 
-export type TreeKind = 'plan' | 'sprint' | 'wave' | 'slice' | 'agent' | 'halt' | 'hint' | 'concern' | 'review' | 'round' | 'ask' | 'question' | 'app' | 'check'
+export type TreeKind = 'plan' | 'sprint' | 'wave' | 'slice' | 'agent' | 'halt' | 'hint' | 'concern' | 'review' | 'round' | 'ask' | 'question' | 'app' | 'check' | 'also'
 
 export type TreeLine = {
   depth: number
@@ -26,6 +26,8 @@ export type TreeLine = {
   blockedCount?: number
   /** The rest of the row above, drawn under it without a branch of its own. */
   isContinued?: boolean
+  /** A check that only the person can judge before the merge: a one-way door, a decision made for them, a new feature. */
+  isImportant?: boolean
 }
 
 declare module 'claude-code' {
@@ -43,6 +45,8 @@ declare module 'claude-code' {
       /** The hand-back checklist's ticked features, and whether Run app was pressed last. */
       ticked: string[]
       isAppRunning: boolean
+      /** The hand-back PR you said continue after, once it merged; 0 for none. */
+      handBackClosed: number
     }
   }
 }

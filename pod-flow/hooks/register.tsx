@@ -20,6 +20,8 @@ const emptyNote = atom({ plugin: 'pod-flow', key: 'emptyNote' } as const, NO_PLA
 // The hand-back's checklist: what you ticked, and whether you pressed Run app. Yours alone, never in pod's docs.
 const ticked = atom({ plugin: 'pod-flow', key: 'ticked' } as const, [] as string[])
 const isAppRunning = atom({ plugin: 'pod-flow', key: 'isAppRunning' } as const, false)
+// The hand-back PR you said continue after, once merged: its part folds to one line.
+const handBackClosed = atom({ plugin: 'pod-flow', key: 'handBackClosed' } as const, 0)
 
 const COLOR: Record<string, string | undefined> = {
   running: 'yellow',
@@ -72,7 +74,10 @@ async function checkPull($: Dollar, number: number, cwd: string) {
     const { exitCode, stdout } = await $.process.run(['gh', 'pr', 'view', String(number), '--json', 'state', '--jq', '.state'], { cwd, timeoutMs: 10_000 })
     if (exitCode === 0 && stdout.trim() === 'MERGED') {
       merged.add(number)
-      void refresh($)
+      await refresh($)
+      // Seen merged once: one soft line for the important checks left, never a block or a question.
+      const reminder = uncheckedReminder(await read($, lines))
+      if (reminder) $.ui.log(reminder)
     }
   } catch {
     // The row stays as it is.
@@ -198,7 +203,8 @@ async function buildLines($: Dollar) {
   const spent = await read($, tokens)
   const now = await $.clock.now()
   const checks = pull ? (checksOf[Number(pull[1])] ?? []) : []
-  const app = { checks, ticked: await read($, ticked), isAppRunning: await read($, isAppRunning) }
+  const isHandBackClosed = pull !== null && pull !== undefined && (await read($, handBackClosed)) === Number(pull[1])
+  const app = { checks, ticked: await read($, ticked), isAppRunning: await read($, isAppRunning), isHandBackClosed }
   await update($, lines, () => buildTree({ plan, sprints, spawns: known, live, halt: halt?.body, haltType: halt?.type, now, lastSeen, queue, tokens: spent, merged: [...merged], ...app }))
 }
 
@@ -231,11 +237,14 @@ export const register: Register = on => {
     return next(e)
   })
 
-  // Your `continue` with features unticked: one line naming them, then on as typed. Never a block or a question.
+  // Your `continue` after the hand-back's PR merged: the plan is done, so its hand-back part folds to one line.
   on('prompt.submit', async ($, e, next) => {
     if (/^\s*continue\b/i.test(e.text) && (await read($, isActive))) {
-      const reminder = uncheckedReminder(await read($, lines))
-      if (reminder) $.ui.log(reminder)
+      const done = (await read($, lines)).map(l => (l.kind === 'halt' ? /^PR #(\d+) merged$/.exec(l.text)?.[1] : undefined)).find(Boolean)
+      if (done) {
+        await update($, handBackClosed, () => Number(done))
+        await refresh($)
+      }
     }
     return next(e)
   })
@@ -288,6 +297,7 @@ export const register: Register = on => {
       await update($, planShown, () => '')
       await update($, ticked, () => [])
       await update($, isAppRunning, () => false)
+      await update($, handBackClosed, () => 0)
       for (const id of Object.keys(lastSeen)) delete lastSeen[id]
       merged.clear()
       for (const n of Object.keys(pullCheckedAt)) delete pullCheckedAt[Number(n)]
@@ -330,13 +340,13 @@ export const register: Register = on => {
     const room = Math.max(1, (e.viewport?.rows ?? 30) - 5)
     // A blank line before each tree sets it apart from the header and the tree above. It takes a row of the room too.
     // Run app gets a divider in place of the gap: the run is over, the part below is yours.
-    const isGap = (i: number) => rows[i]!.depth <= 1 && !rows[i]!.isContinued && rows[i]!.kind !== 'app'
+    const isGap = (i: number) => rows[i]!.depth <= 1 && !rows[i]!.isContinued && (rows[i]!.kind !== 'app' || rows[i]!.status === 'done')
     let shown = 0
     for (let used = 0; shown < rows.length; shown++) {
       // A check's how-to-reach line takes a row of its own, more when it wraps.
       const extra = rows[shown]!.kind === 'check' && rows[shown]!.note ? Math.ceil(rows[shown]!.note!.length / Math.max(10, width - 8)) : 0
       // Run app: its divider above, its gap below, and the fold line once all are ticked.
-      const app = rows[shown]!.kind === 'app' ? (rows[shown]!.detail ? 3 : 2) : 0
+      const app = rows[shown]!.kind === 'app' && rows[shown]!.status !== 'done' ? (rows[shown]!.detail ? 3 : 2) : 0
       used += (isGap(shown) ? 2 : 1) + extra + app
       if (used > room) break
     }
@@ -345,6 +355,11 @@ export const register: Register = on => {
       const glyph = row.isContinued ? ' ' : row.kind === 'concern' ? '⚠' : row.kind === 'hint' ? '➜' : row.kind === 'question' ? questionGlyph(row) : (GLYPH[row.status] ?? '·')
       // What you do next, or what waits on you: never dim.
       const isForYou = row.kind === 'hint' || row.kind === 'question'
+      if (row.kind === 'app' && row.status === 'done') {
+        // The plan is done and you moved on: one quiet line, no button, no list.
+        return <Text wrap="truncate-end" color={COLOR.done}>{[`${GLYPH.done} ${row.text}`, row.note].filter(Boolean).join(' · ')}</Text>
+      }
+      if (row.kind === 'also') return <Text dimColor>{`${row.text}:`}</Text>
       if (row.kind === 'app') {
         // Sends your reply, as if typed: the orchestrator starts or stops the app per /pod:code's **Run app**.
         const press = async () => {

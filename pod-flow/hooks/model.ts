@@ -157,6 +157,7 @@ export type QueueEntry = {
   slice?: string
   body: string
   isPending: boolean
+  resolution?: string
 }
 
 /** The entries of the handoff queue: `- [date · TYPE · from → to · sprint: x · slice: y] body **Resolution:** …`. */
@@ -176,6 +177,8 @@ export function parseQueue(queue: string): QueueEntry[] {
         slice: field('slice'),
         body: rest.replace(/\*\*Resolution:\*\*.*$/i, '').trim(),
         isPending: /\*\*Resolution:\*\*\s*pending/i.test(rest),
+        // What it was settled with, its date left off: `default recorded: 1px grey; override anytime`.
+        resolution: /\*\*Resolution:\*\*\s*(?:\d{4}-\d\d-\d\d\s*[—-]\s*)?(.*)$/i.exec(rest)?.[1]?.trim() || undefined,
       },
     ]
   })
@@ -348,11 +351,11 @@ const REMINDER_NAMES = 3
 
 /** A soft reminder for a `continue` with features still unticked at the hand-back: it names them and goes on. */
 export function uncheckedReminder(lines: TreeLine[]): string | undefined {
-  const checks = lines.filter(l => l.kind === 'check')
-  const left = checks.filter(l => l.status !== 'done').map(l => l.text)
+  const left = lines.filter(l => l.kind === 'check' && l.isImportant && l.status !== 'done').map(l => short(l.text, 40))
   if (left.length === 0) return undefined
-  const names = left.length > REMINDER_NAMES ? `${left.slice(0, REMINDER_NAMES).join(', ')} and ${left.length - REMINDER_NAMES} more` : left.join(', ')
-  return `☐ ${left.length} of ${checks.length} features not checked yet: ${names}. Going on.`
+  const names = left.length > REMINDER_NAMES ? `${left.slice(0, REMINDER_NAMES).join('; ')} and ${left.length - REMINDER_NAMES} more` : left.join('; ')
+  const end = /[.…]$/.test(names) ? '' : '.'
+  return `☐ Merged with ${left.length} important ${left.length === 1 ? 'check' : 'checks'} not ticked: ${names}${end}`
 }
 
 /** The divider over Run app in the text version, which has no width to fill. */
@@ -460,11 +463,15 @@ export function snapshot(lines: TreeLine[]): string {
       const end = after.findIndex(l => l.kind !== 'hint')
       const hints = end < 0 ? after : after.slice(0, end)
       if (hints.length > 0) row(2, `➜ ${hints.map(h => h.text).join(', ')}`)
+    } else if (line.kind === 'app' && line.status === 'done') {
+      row(1, [`${glyph} ${line.text}`, line.note].filter(Boolean).join(' · '))
     } else if (line.kind === 'app') {
       // No button where no pane draws: say what to reply. A divider sets your part apart from the run, as in the pane.
       row(1, '─'.repeat(DIVIDER))
       row(1, `${glyph} ${line.text}  reply '${line.text.toLowerCase()}'`)
       if (line.detail) row(1, line.detail)
+    } else if (line.kind === 'also' && !lines.some(l => l.kind === 'app' && l.detail)) {
+      row(1, `${line.text}:`)
     } else if (line.kind === 'check' && !lines.some(l => l.kind === 'app' && l.detail)) {
       // A plain list, no tree: the name whole, then how to reach it on a line of its own.
       row(1, `${line.status === 'done' ? '☑' : '☐'} ${line.text}`)
@@ -612,24 +619,46 @@ export type TreeInput = {
   checks?: FeatureCheck[]
   ticked?: string[]
   isAppRunning?: boolean
+  /** You said continue after the hand-back's PR merged: the hand-back part folds to one line. */
+  isHandBackClosed?: boolean
 }
 
-export type FeatureCheck = { feature: string; reach: string }
+export type FeatureCheck = { feature: string; reach: string; isNew: boolean }
 
 /**
  * The `features.md` rows a PR's diff adds or changes, from `gh pr diff`: a changed row is removed and added,
- * so its added line is enough. Each row's Feature and "User reaches it by" cells, as plain text.
+ * so its added line is enough, and a row added with no removed row of its name is new. Each row's Feature and
+ * "User reaches it by" cells, as plain text.
  */
 export function changedFeatures(diff: string): FeatureCheck[] {
-  const checks: FeatureCheck[] = []
+  const rows: { sign: string; feature: string; reach: string }[] = []
   let isFeatures = false
   for (const line of diff.split(/\r?\n/)) {
     if (line.startsWith('diff --git ')) isFeatures = /\/(pod-)?docs\/features\.md$/.test(line)
-    if (!isFeatures || !/^\+\s*\|/.test(line) || /^\+\s*\|[\s:|-]+$/.test(line)) continue
-    const [feature = '', reach = ''] = line.replace(/^\+\s*\|/, '').split('|').map(cell => concernText(cell.trim()))
-    if (feature && feature !== 'Feature') checks.push({ feature, reach })
+    const m = /^([+-])\s*\|(.*)$/.exec(line)
+    if (!isFeatures || !m || /^[\s:|-]+$/.test(m[2] ?? '')) continue
+    const [feature = '', reach = ''] = (m[2] ?? '').split('|').map(cell => concernText(cell.trim()))
+    if (feature && feature !== 'Feature') rows.push({ sign: m[1] ?? '', feature, reach })
   }
-  return checks
+  const removed = new Set(rows.filter(r => r.sign === '-').map(r => r.feature))
+  return rows.filter(r => r.sign === '+').map(r => ({ feature: r.feature, reach: r.reach, isNew: !removed.has(r.feature) }))
+}
+
+/**
+ * What only the person can judge before the merge, first: the plan's one-way doors, the decisions pod defaulted
+ * for them, and the features it added. The features it only changed come after.
+ */
+function checklist(queue: QueueEntry[], plan: PlanDoc, checks: FeatureCheck[]): { text: string; note?: string; isImportant: boolean }[] {
+  const mine = queue.filter(e => isForPlan(e, plan) && e.plan)
+  const doors = mine
+    .filter(e => /one-way door/i.test(e.body))
+    .map(e => concernText(e.body))
+    .map(text => ({ text: /^one-way door/i.test(text) ? text : `One-way door: ${text}`, isImportant: true }))
+  const decided = mine
+    .filter(e => !e.isPending && /default recorded/i.test(e.resolution ?? ''))
+    .map(e => ({ text: `Decided for you: ${concernText(e.body)}`, note: e.resolution, isImportant: true }))
+  const features = checks.map(c => ({ text: c.feature, note: c.reach || undefined, isImportant: c.isNew }))
+  return [...doors, ...decided, ...features.filter(f => f.isImportant), ...features.filter(f => !f.isImportant)]
 }
 
 /** The pull request a halt or hand-back links to, by its number. */
@@ -638,7 +667,7 @@ export const pullOf = (text: string) => /https?:\/\/[^\s,;)]+?\/pull\/(\d+)/.exe
 const ENDED = new Set(['completed', 'failed', 'killed'])
 const PLANNER = /(^|:)sprint-planner$/
 
-export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, lastSeen = {}, queue = [], tokens = {}, merged = [], checks = [], ticked = [], isAppRunning = false }: TreeInput): TreeLine[] {
+export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, lastSeen = {}, queue = [], tokens = {}, merged = [], checks = [], ticked = [], isAppRunning = false, isHandBackClosed = false }: TreeInput): TreeLine[] {
   const spent = tokenTotals(spawns, tokens, sprints, plan.slug)
   // Live until it ends: an agent `waiting` on its own background work, `pending` or `idle` is still at it.
   const running = live.filter(a => !ENDED.has(a.status))
@@ -793,19 +822,29 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
     // A pull request URL reads as its short number.
     const pull = pullOf(haltText)
     // At the hand-back, merged or not: run the app and look at what the plan changed.
-    const tickedCount = checks.filter(c => ticked.includes(c.feature)).length
-    const appLines = (): TreeLine[] => [
-      {
-        depth: 1,
-        kind: 'app',
-        text: isAppRunning ? 'Stop app' : 'Run app',
-        status: isAppRunning ? 'running' : 'waiting',
-        note: checks.length > 0 ? `check these (${tickedCount}/${checks.length})` : undefined,
-        // All ticked: the list folds to this line, and opens again when pressed.
-        detail: checks.length > 0 && tickedCount === checks.length ? `✓ all ${checks.length} checked` : undefined,
-      },
-      ...checks.map(c => ({ depth: 2, kind: 'check' as const, text: c.feature, status: ticked.includes(c.feature) ? 'done' : 'waiting', note: c.reach || undefined })),
-    ]
+    const items = checklist(queue, plan, checks)
+    const tickedCount = items.filter(c => ticked.includes(c.text)).length
+    const hasAlso = items.some(c => c.isImportant) && items.some(c => !c.isImportant)
+    const appLines = (): TreeLine[] =>
+      // After the merge and your continue, nothing is left to do here: one line says how it went.
+      isHandBackClosed
+        ? [{ depth: 1, kind: 'app', text: 'plan done', status: 'done', note: items.length > 0 ? `checked ${tickedCount}/${items.length}` : undefined }]
+        : [
+            {
+              depth: 1,
+              kind: 'app',
+              text: isAppRunning ? 'Stop app' : 'Run app',
+              status: isAppRunning ? 'running' : 'waiting',
+              note: items.length > 0 ? `check these (${tickedCount}/${items.length})` : undefined,
+              // All ticked: the list folds to this line, and opens again when pressed.
+              detail: items.length > 0 && tickedCount === items.length ? `✓ all ${items.length} checked` : undefined,
+            },
+            ...items.flatMap((c, n): TreeLine[] => [
+              // The first that isn't important gets a label over it.
+              ...(hasAlso && !c.isImportant && items[n - 1]?.isImportant ? [{ depth: 2, kind: 'also' as const, text: 'also changed', status: '' }] : []),
+              { depth: 2, kind: 'check', text: c.text, status: ticked.includes(c.text) ? 'done' : 'waiting', note: c.note, isImportant: c.isImportant || undefined },
+            ]),
+          ]
     if (isHandBack && pull && merged.includes(Number(pull[1]))) {
       // Nothing left for you: the hand-back's PR is in.
       lines.push({ depth: 1, kind: 'halt', text: `PR #${pull[1]} merged`, status: 'done' })

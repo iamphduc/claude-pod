@@ -34,7 +34,7 @@ const ROOT = '/proj'
 const fromRoot = (path: string) => path.replaceAll('\\', '/').replace(/^[A-Za-z]:/, '')
 
 const world = (on: Parameters<typeof mock.clock>[0], opened: string[], isPlaced = true, logged: string[] = [], files = docs(), isShown = isPlaced, agents: { id: string; type: string; status: string }[] = [], root = ROOT) => {
-  mock.clock(on)
+  const clock = mock.clock(on)
   on('session.root', () => ({ value: root }))
   // Docs live only in the main checkout, /proj: a worktree's copy is old, so here it has none.
   const isOutsideDocs = (path: string) => !/^\/proj\/(pod-)?docs\//.test(fromRoot(path))
@@ -63,6 +63,7 @@ const world = (on: Parameters<typeof mock.clock>[0], opened: string[], isPlaced 
     logged.push(e.text)
     return { value: undefined }
   })
+  return clock
 }
 
 test('starting /pod:autopilot opens the pane', async ($, on) => {
@@ -460,27 +461,36 @@ test('at the hand-back, Run app sends your reply and turns into Stop app, and ea
   expect(sent).toHaveLength(2)
 })
 
-test("'continue' with boxes unticked gets a soft reminder in the chat, and goes through unchanged", async ($, on) => {
-  const diff = 'diff --git a/pod-docs/features.md b/pod-docs/features.md\n+| Saved keys | Settings | save | masked |\n+| Sign in | /login | post | cookie |'
+test('the merge brings one soft reminder of the important checks left; continue after it folds the hand-back to one line', async ($, on) => {
+  // A new feature (important) and a changed one (not).
+  const diff = 'diff --git a/pod-docs/features.md b/pod-docs/features.md\n-| Sign in | /login | post | cookie |\n+| Sign in | /login or a link | post | cookie |\n+| Saved keys | Settings | save | masked |'
   const logged: string[] = []
-  world(on, [], true, logged, handBack(14))
-  on('process.run', (_$, e) => ({ value: { exitCode: 0, stdout: e.argv[2] === 'diff' ? diff : 'OPEN\n', stderr: '' } as never }))
+  let state = 'OPEN'
+  const clock = world(on, [], true, logged, handBack(14))
+  on('process.run', (_$, e) => ({ value: { exitCode: 0, stdout: e.argv[2] === 'diff' ? diff : `${state}\n`, stderr: '' } as never }))
   // Core takes the prompt as typed.
   on('prompt.submit', (_$, e) => ({ text: e.text }) as never)
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
   await run($, 'text')
-  const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 100 } as never })
-  await pane.press({ key: 'check:Saved keys' })
 
-  expect((await $.prompt.submit({ text: 'something else' } as never)).text).toBe('something else')
-  expect(logged).toEqual([])
+  // Before the merge, continue changes nothing and says nothing.
   expect((await $.prompt.submit({ text: 'continue' } as never)).text).toBe('continue')
-  expect(logged).toEqual(['☐ 1 of 2 features not checked yet: Sign in. Going on.'])
+  expect((await run($, 'text')).text).toContain('☐ Saved keys')
+  expect(logged).toEqual([])
 
-  // All ticked: nothing to say.
-  await pane.press({ key: 'check:Sign in' })
-  await $.prompt.submit({ text: 'Continue' } as never)
+  // The merge is seen on the next check: one line, for the important check only.
+  state = 'MERGED'
+  await clock.advance(31_000)
+  await run($, 'text')
+  expect(logged).toEqual(['☐ Merged with 1 important check not ticked: Saved keys.'])
+  await run($, 'text')
   expect(logged).toHaveLength(1)
+
+  // Continue after the merge: the hand-back part is one line, and your reply goes through as typed.
+  expect((await $.prompt.submit({ text: 'continue' } as never)).text).toBe('continue')
+  const { text } = await run($, 'text')
+  expect(text).toContain('✓ plan done · checked 0/2')
+  expect(text).not.toContain('Run app')
 })
 
 test('the first /pod-flow text already has the checklist, as under -p, where there is no second call', async ($, on) => {

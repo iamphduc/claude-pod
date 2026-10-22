@@ -609,30 +609,39 @@ const DIFF = [
   '+| Not | a | feature | row |',
 ].join('\n')
 
-test('changedFeatures reads the features rows a PR added or changed, as plain text', () => {
+test('changedFeatures reads the features rows a PR added or changed, as plain text, and which are new', () => {
   expect(changedFeatures(DIFF)).toEqual([
-    { feature: 'Sign in', reach: 'the login page, or a magic link' },
-    { feature: 'Saved keys', reach: 'Settings → API keys' },
+    { feature: 'Sign in', reach: 'the login page, or a magic link', isNew: false },
+    { feature: 'Saved keys', reach: 'Settings → API keys', isNew: true },
   ])
   expect(changedFeatures(DIFF.replaceAll('pod-docs/features.md', 'docs/features.md'))).toHaveLength(2)
   expect(changedFeatures('')).toEqual([])
 })
 
-const HAND_BACK_QUEUE = '- `[2026-10-09 · PENDING · orchestrator → human · plan: long-runs]` plan long-runs complete — final PR https://github.com/me/app/pull/58, review pass **Resolution:** pending'
+// The plan's hand-back, a one-way door, a decision pod defaulted, and another plan's one-way door.
+const HAND_BACK_QUEUE = [
+  '- `[2026-10-07 · PENDING · engineer → human · plan: long-runs · sprint: ui · slice: L1]` needs your decision: the input border. **Resolution:** 2026-10-08 — default recorded: 1px grey; override anytime',
+  '- `[2026-10-08 · PENDING · engineer → human · plan: long-runs]` one-way door in PR #35: saved keys move to the v2 format. Undo: restore the copy. **Resolution:** pending',
+  '- `[2026-10-08 · PENDING · engineer → human · plan: other]` one-way door in PR #9: another plan. **Resolution:** pending',
+  '- `[2026-10-09 · PENDING · orchestrator → human · plan: long-runs]` plan long-runs complete — final PR https://github.com/me/app/pull/58, review pass **Resolution:** pending',
+].join('\n')
 
 const appTree = (input: Partial<Parameters<typeof buildTree>[0]> = {}) => {
   const halt = latestHalt(HAND_BACK_QUEUE)
-  return buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [], spawns: {}, live: [], halt: halt?.body, haltType: halt?.type, checks: changedFeatures(DIFF), ...input })
+  return buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [], spawns: {}, live: [], queue: parseQueue(HAND_BACK_QUEUE), halt: halt?.body, haltType: halt?.type, checks: changedFeatures(DIFF), ...input })
 }
 
-test('at the hand-back, a run-app line and the checklist of changed features follow the merge hint', () => {
+test('at the hand-back, the checklist puts one-way doors, decisions made for you and new features first', () => {
   const lines = appTree({ ticked: ['Saved keys'] })
   const at = lines.findIndex(l => l.kind === 'app')
   expect(lines[at - 1]).toMatchObject({ kind: 'hint', text: 'merge PR #58' })
-  expect(lines.slice(at).map(l => `${l.depth} ${l.kind} ${l.status} ${l.text} | ${l.note ?? ''}`)).toEqual([
-    '1 app waiting Run app | check these (1/2)',
-    '2 check waiting Sign in | the login page, or a magic link',
-    '2 check done Saved keys | Settings → API keys',
+  expect(lines.slice(at).map(l => `${l.kind} ${l.status} ${l.isImportant ? '!' : '-'} ${l.text} | ${l.note ?? ''}`)).toEqual([
+    'app waiting - Run app | check these (1/4)',
+    'check waiting ! one-way door in PR #35: saved keys move to the v2 format. | ',
+    'check waiting ! Decided for you: the input border. | default recorded: 1px grey; override anytime',
+    'check done ! Saved keys | Settings → API keys',
+    'also  - also changed | ',
+    'check waiting - Sign in | the login page, or a magic link',
   ])
   expect(appTree({ isAppRunning: true }).find(l => l.kind === 'app')?.text).toBe('Stop app')
   // The checklist says what to look at; its ticks are not one more done or blocked row.
@@ -643,39 +652,53 @@ test('a merged hand-back keeps the run-app line; a gate halt or no halt has none
   expect(appTree({ merged: [58] }).some(l => l.kind === 'app')).toBe(true)
   expect(appTree({ halt: 'Gate 4: wave check failed', haltType: 'BLOCKED' }).some(l => l.kind === 'app' || l.kind === 'check')).toBe(false)
   expect(appTree({ halt: undefined }).some(l => l.kind === 'app')).toBe(false)
-  // No changed row: the button alone.
-  expect(appTree({ checks: [] }).filter(l => l.kind === 'app' || l.kind === 'check').map(l => l.text)).toEqual(['Run app'])
+  // Nothing to check: the button alone.
+  const bare = appTree({ checks: [], queue: [] })
+  expect(bare.filter(l => l.kind === 'app' || l.kind === 'check' || l.kind === 'also').map(l => l.text)).toEqual(['Run app'])
+  // Only changed rows: no "also changed" label over a list that is all of them.
+  expect(appTree({ checks: [{ feature: 'Sign in', reach: '', isNew: false }], queue: [] }).some(l => l.kind === 'also')).toBe(false)
 })
+
+const ALL = ['one-way door in PR #35: saved keys move to the v2 format.', 'Decided for you: the input border.', 'Saved keys', 'Sign in']
 
 test('the run-app line counts the ticks, and folds the list once all are ticked', () => {
-  expect(appTree({ ticked: ['Saved keys'] }).find(l => l.kind === 'app')).toMatchObject({ note: 'check these (1/2)', detail: undefined })
-  const done = appTree({ ticked: ['Sign in', 'Saved keys'] })
+  const done = appTree({ ticked: ALL })
   const app = done.find(l => l.kind === 'app')!
-  expect(app).toMatchObject({ note: 'check these (2/2)', detail: '✓ all 2 checked' })
+  expect(app).toMatchObject({ note: 'check these (4/4)', detail: '✓ all 4 checked' })
   expect(isFoldable(app)).toBe(true)
   // Folded unless you open it again.
-  expect(visibleLines(done, []).some(l => l.kind === 'check')).toBe(false)
-  expect(visibleLines(done, [foldKey(app)]).filter(l => l.kind === 'check')).toHaveLength(2)
-  expect(snapshot(done).split('\n').slice(-2)).toEqual(["○ Run app  reply 'run app'", '✓ all 2 checked'])
+  expect(visibleLines(done, []).some(l => l.kind === 'check' || l.kind === 'also')).toBe(false)
+  expect(visibleLines(done, [foldKey(app)]).filter(l => l.kind === 'check')).toHaveLength(4)
+  expect(snapshot(done).split('\n').slice(-2)).toEqual(["○ Run app  reply 'run app'", '✓ all 4 checked'])
 })
 
-test('the reminder names what is not checked yet, and says nothing when all are, or there is no checklist', () => {
-  expect(uncheckedReminder(appTree({ ticked: ['Saved keys'] }))).toBe('☐ 1 of 2 features not checked yet: Sign in. Going on.')
-  expect(uncheckedReminder(appTree({ ticked: ['Sign in', 'Saved keys'] }))).toBeUndefined()
-  expect(uncheckedReminder(appTree({ checks: [] }))).toBeUndefined()
-  const many = ['A', 'B', 'C', 'D', 'E'].map(feature => ({ feature, reach: '' }))
-  expect(uncheckedReminder(appTree({ checks: many, ticked: [] }))).toBe('☐ 5 of 5 features not checked yet: A, B, C and 2 more. Going on.')
+test('after the merge and your continue, the hand-back part is one line', () => {
+  const lines = appTree({ merged: [58], ticked: ['Saved keys'], isHandBackClosed: true })
+  expect(lines.filter(l => l.kind === 'app' || l.kind === 'check' || l.kind === 'also').map(l => `${l.status} ${l.text} | ${l.note}`)).toEqual(['done plan done | checked 1/4'])
+  expect(snapshot(lines).split('\n').at(-1)).toBe('✓ plan done · checked 1/4')
 })
 
-test('the snapshot says how to run the app without a button, and lists the checks', () => {
-  expect(snapshot(appTree({ ticked: ['Saved keys'] })).split('\n').slice(-7)).toEqual([
-    '└─ ➜ merge PR #58',
+test('the merge reminder names the important checks left, and says nothing when they are ticked', () => {
+  expect(uncheckedReminder(appTree({ ticked: ['Saved keys'] }))).toBe(
+    '☐ Merged with 2 important checks not ticked: one-way door in PR #35: saved keys move…; Decided for you: the input border.',
+  )
+  // Only what is not important left: nothing to say.
+  expect(uncheckedReminder(appTree({ ticked: ALL.slice(0, 3) }))).toBeUndefined()
+  expect(uncheckedReminder(appTree({ checks: [], queue: [] }))).toBeUndefined()
+})
+
+test('the snapshot says how to run the app without a button, and lists the checks, important first', () => {
+  expect(snapshot(appTree({ ticked: ['Saved keys'] })).split('\n').slice(-10)).toEqual([
     '─'.repeat(30),
     "○ Run app  reply 'run app'",
-    '☐ Sign in',
-    '  the login page, or a magic link',
+    '☐ one-way door in PR #35: saved keys move to the v2 format.',
+    '☐ Decided for you: the input border.',
+    '  default recorded: 1px grey; override anytime',
     '☑ Saved keys',
     '  Settings → API keys',
+    'also changed:',
+    '☐ Sign in',
+    '  the login page, or a magic link',
   ])
 })
 
