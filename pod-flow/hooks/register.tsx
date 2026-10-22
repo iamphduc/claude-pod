@@ -40,6 +40,9 @@ const merged = new Set<number>()
 const pullCheckedAt: Record<number, number> = {}
 const checksOf: Record<number, FeatureCheck[]> = {}
 const diffAskedAt: Record<number, number> = {}
+// The latest `gh` calls a refresh started.
+let ghWork: Promise<unknown> = Promise.resolve()
+const GH_WAIT_MS = 5000
 
 /** Reads the features the hand-back's PR added or changed, once per PR; a failed `gh` tries again after PULL_CHECK_MS. */
 async function loadChecks($: Dollar, number: number, cwd: string) {
@@ -187,10 +190,9 @@ async function buildLines($: Dollar) {
   const queueText = await readText($, `${docs}/handoff-queue.md`)
   const halt = latestHalt(queueText, plan)
   const pull = halt && pullOf(halt.body)
-  if (pull) {
-    void checkPull($, Number(pull[1]), root)
-    void loadChecks($, Number(pull[1]), root)
-  }
+  // Off the refresh path; kept so a text answer can wait for it.
+  // A call already under way makes the next one return at once: chained, so the wait still covers it.
+  if (pull) ghWork = Promise.all([ghWork, checkPull($, Number(pull[1]), root), loadChecks($, Number(pull[1]), root)])
   const queue = parseQueue(queueText)
   const known = await read($, spawns)
   const spent = await read($, tokens)
@@ -292,12 +294,17 @@ export const register: Register = on => {
       return { text: 'No /pod:autopilot or /pod:ship run in this session yet. Use /pod-flow preview to try it.' }
     }
     await startRefreshing($)
-    const text = snapshot(await read($, lines)) || (await read($, emptyNote))
-    if (arg === 'text') return { text }
+    // A pane redraws when `gh` answers; text is read once (under -p there's no second call), so it waits for `gh` a little.
+    const textNow = async () => {
+      await Promise.race([ghWork, $.clock.sleep(GH_WAIT_MS)])
+      await refresh($)
+      return snapshot(await read($, lines)) || (await read($, emptyNote))
+    }
+    if (arg === 'text') return { text: await textNow() }
     // Where no pane can draw (-p, a narrow terminal, a surface without panes), the run comes back as a few lines.
-    if ((await $.session.surfaces()).length === 0) return { text }
+    if ((await $.session.surfaces()).length === 0) return { text: await textNow() }
     const opened = await $.ui.open({ id: PANE, title: 'pod flow' })
-    if (!opened.isPlaced) return { text: `${text}\n(no pane: ${opened.reason})` }
+    if (!opened.isPlaced) return { text: `${await textNow()}\n(no pane: ${opened.reason})` }
     return { text: arg === 'preview' ? 'pod flow preview opened.' : 'pod flow opened.' }
   })
 

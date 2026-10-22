@@ -449,6 +449,20 @@ test('at the hand-back, Run app sends your reply and turns into Stop app, and ea
   expect(sent).toHaveLength(2)
 })
 
+test('the first /pod-flow text already has the checklist, as under -p, where there is no second call', async ($, on) => {
+  const diff = 'diff --git a/pod-docs/features.md b/pod-docs/features.md\n+| Saved keys | Settings → API keys | save | masked |'
+  world(on, [], true, [], handBack(13))
+  // No surface draws, as under -p.
+  on('session.surfaces', () => ({ value: [] }))
+  // gh answers after the refresh that asked it has drawn the tree.
+  on('process.run', (_$, e) => {
+    return { value: { exitCode: 0, stdout: e.argv[2] === 'diff' ? diff : 'OPEN\n', stderr: '' } as never }
+  })
+  const { text } = await run($, 'preview')
+  expect(text).toContain("○ Run app  reply 'run app'")
+  expect(text).toContain('☐ Saved keys  Settings → API keys')
+})
+
 test('a failing engine call during refresh leaves the tree as it was', async ($, on) => {
   isListBroken = false
   world(on, [])
