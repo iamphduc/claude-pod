@@ -343,6 +343,18 @@ export function header(lines: TreeLine[], width = Infinity): string {
 /** The symbol for each status, shared by the tree and the transcript lines. */
 export const GLYPH: Record<string, string> = { running: '●', pushed: '◐', done: '✓', blocked: '✗', waiting: '○' }
 
+/** How many unticked features the reminder names before `and N more`. */
+const REMINDER_NAMES = 3
+
+/** A soft reminder for a `continue` with features still unticked at the hand-back: it names them and goes on. */
+export function uncheckedReminder(lines: TreeLine[]): string | undefined {
+  const checks = lines.filter(l => l.kind === 'check')
+  const left = checks.filter(l => l.status !== 'done').map(l => l.text)
+  if (left.length === 0) return undefined
+  const names = left.length > REMINDER_NAMES ? `${left.slice(0, REMINDER_NAMES).join(', ')} and ${left.length - REMINDER_NAMES} more` : left.join(', ')
+  return `☐ ${left.length} of ${checks.length} features not checked yet: ${names}. Going on.`
+}
+
 /** The divider over Run app in the text version, which has no width to fill. */
 const DIVIDER = 30
 

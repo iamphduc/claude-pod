@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Dispatch, TreeLine } from '../types'
-import { buildTree, changedFeatures, fit, foldKey, GLYPH, header, isFoldable, latestHalt, mainCheckout, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, pullOf, questionGlyph, snapshot, turnTokens, visibleLines } from './model'
+import { buildTree, changedFeatures, fit, foldKey, GLYPH, header, isFoldable, latestHalt, mainCheckout, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, pullOf, questionGlyph, snapshot, turnTokens, uncheckedReminder, visibleLines } from './model'
 import type { FeatureCheck, PlanDoc, SprintDoc } from './model'
 
 const PANE = 'pod-flow'
@@ -228,6 +228,15 @@ export const register: Register = on => {
     })
     // A reload runs this again with the run's state kept: pick the refresh back up.
     if (await read($, isActive)) await startRefreshing($)
+    return next(e)
+  })
+
+  // Your `continue` with features unticked: one line naming them, then on as typed. Never a block or a question.
+  on('prompt.submit', async ($, e, next) => {
+    if (/^\s*continue\b/i.test(e.text) && (await read($, isActive))) {
+      const reminder = uncheckedReminder(await read($, lines))
+      if (reminder) $.ui.log(reminder)
+    }
     return next(e)
   })
 

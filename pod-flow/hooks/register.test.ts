@@ -460,6 +460,29 @@ test('at the hand-back, Run app sends your reply and turns into Stop app, and ea
   expect(sent).toHaveLength(2)
 })
 
+test("'continue' with boxes unticked gets a soft reminder in the chat, and goes through unchanged", async ($, on) => {
+  const diff = 'diff --git a/pod-docs/features.md b/pod-docs/features.md\n+| Saved keys | Settings | save | masked |\n+| Sign in | /login | post | cookie |'
+  const logged: string[] = []
+  world(on, [], true, logged, handBack(14))
+  on('process.run', (_$, e) => ({ value: { exitCode: 0, stdout: e.argv[2] === 'diff' ? diff : 'OPEN\n', stderr: '' } as never }))
+  // Core takes the prompt as typed.
+  on('prompt.submit', (_$, e) => ({ text: e.text }) as never)
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  await run($, 'text')
+  const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 100 } as never })
+  await pane.press({ key: 'check:Saved keys' })
+
+  expect((await $.prompt.submit({ text: 'something else' } as never)).text).toBe('something else')
+  expect(logged).toEqual([])
+  expect((await $.prompt.submit({ text: 'continue' } as never)).text).toBe('continue')
+  expect(logged).toEqual(['☐ 1 of 2 features not checked yet: Sign in. Going on.'])
+
+  // All ticked: nothing to say.
+  await pane.press({ key: 'check:Sign in' })
+  await $.prompt.submit({ text: 'Continue' } as never)
+  expect(logged).toHaveLength(1)
+})
+
 test('the first /pod-flow text already has the checklist, as under -p, where there is no second call', async ($, on) => {
   const diff = 'diff --git a/pod-docs/features.md b/pod-docs/features.md\n+| Saved keys | Settings → API keys | save | masked |'
   world(on, [], true, [], handBack(13))

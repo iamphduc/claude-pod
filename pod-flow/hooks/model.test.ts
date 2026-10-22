@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 
-import { ageNote, buildTree, changedFeatures, foldKey, isFoldable, header, mainCheckout, snapshot, formatTokens, tokenTotals, turnTokens, concernText, fit, parseQueue, formatAge, prState, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, milestones, prefixes, summarize, tableRows, visibleLines } from './model'
+import { ageNote, buildTree, uncheckedReminder, changedFeatures, foldKey, isFoldable, header, mainCheckout, snapshot, formatTokens, tokenTotals, turnTokens, concernText, fit, parseQueue, formatAge, prState, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, milestones, prefixes, summarize, tableRows, visibleLines } from './model'
 import type { TreeLine } from '../types'
 
 const PLAN = `# Plan: Long runs
@@ -657,6 +657,14 @@ test('the run-app line counts the ticks, and folds the list once all are ticked'
   expect(visibleLines(done, []).some(l => l.kind === 'check')).toBe(false)
   expect(visibleLines(done, [foldKey(app)]).filter(l => l.kind === 'check')).toHaveLength(2)
   expect(snapshot(done).split('\n').slice(-2)).toEqual(["○ Run app  reply 'run app'", '✓ all 2 checked'])
+})
+
+test('the reminder names what is not checked yet, and says nothing when all are, or there is no checklist', () => {
+  expect(uncheckedReminder(appTree({ ticked: ['Saved keys'] }))).toBe('☐ 1 of 2 features not checked yet: Sign in. Going on.')
+  expect(uncheckedReminder(appTree({ ticked: ['Sign in', 'Saved keys'] }))).toBeUndefined()
+  expect(uncheckedReminder(appTree({ checks: [] }))).toBeUndefined()
+  const many = ['A', 'B', 'C', 'D', 'E'].map(feature => ({ feature, reach: '' }))
+  expect(uncheckedReminder(appTree({ checks: many, ticked: [] }))).toBe('☐ 5 of 5 features not checked yet: A, B, C and 2 more. Going on.')
 })
 
 test('the snapshot says how to run the app without a button, and lists the checks', () => {
