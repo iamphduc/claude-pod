@@ -2,6 +2,11 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file.
 
+## Unreleased
+
+- Every queue entry written during a plan, including the plan-complete entry and autopilot's halt entries, has `plan: <slug>` in its header, so tools can tell which plan an entry belongs to. When a new plan starts, an older `plan <slug> complete` entry without the tag moves to that plan's Queue log instead of being deleted.
+- `/pod:code` and `/pod:fix` send the reviewer its context as labeled field lines (`- **PR URL:** <url>`, `- **plan slug:** <slug>`), using the names in the reviewer's Required dispatch context. Longer items, such as round-1 findings, go in a block under their label.
+
 ## 0.3.0 — 2026-10-21
 
 - pod checks that the browser actually opens a page, under a 30-second limit, instead of trusting `agent-browser --version`. pod's commands run through Bash, because on Windows `agent-browser` can hang when PowerShell captures its output.
