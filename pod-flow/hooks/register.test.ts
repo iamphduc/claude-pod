@@ -436,7 +436,8 @@ test('at the hand-back, Run app sends your reply and turns into Stop app, and ea
   // A primary button, not a plain row; each feature whole on its line, how to reach it below, wrapped.
   expect(await pane.find({ type: 'Button', text: /^Run app$/ })).toMatchObject({ props: { variant: 'primary' } })
   expect(await pane.find({ type: 'Text', text: /^ {2}then check these:$/ })).toBeDefined()
-  expect(await pane.find({ type: 'Button', text: /^└─ ☐ Saved keys$/ })).toBeDefined()
+  // A plain list, no tree lines.
+  expect(await pane.find({ type: 'Button', text: /^☐ Saved keys$/ })).toBeDefined()
   expect(await pane.find({ type: 'Text', text: /^Settings → API keys$/ })).toMatchObject({ props: { wrap: 'wrap' } })
 
   await pane.press({ key: 'run-app' })
@@ -447,7 +448,7 @@ test('at the hand-back, Run app sends your reply and turns into Stop app, and ea
   expect(await pane.find({ type: 'Button', text: /^Run app$/ })).toBeDefined()
 
   await pane.press({ key: 'check:Saved keys' })
-  expect(await pane.find({ type: 'Button', text: /^└─ ☑ Saved keys/ })).toBeDefined()
+  expect(await pane.find({ type: 'Button', text: /^☑ Saved keys$/ })).toBeDefined()
   // A tick is yours alone: nothing goes to the chat.
   expect(sent).toHaveLength(2)
 })
@@ -463,7 +464,7 @@ test('the first /pod-flow text already has the checklist, as under -p, where the
   })
   const { text } = await run($, 'preview')
   expect(text).toContain("○ Run app  reply 'run app'")
-  expect(text).toContain('☐ Saved keys\n     Settings → API keys')
+  expect(text).toContain('  ☐ Saved keys\n    Settings → API keys')
 })
 
 test('a failing engine call during refresh leaves the tree as it was', async ($, on) => {

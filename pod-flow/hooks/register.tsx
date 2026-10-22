@@ -355,14 +355,12 @@ export const register: Register = on => {
           await refresh($)
         }
         const box = row.status === 'done' ? '☑' : '☐'
-        // The name whole on its own line, how to reach it below, wrapped: nothing here is cut.
-        const rail = (stems[i] ?? '').replace('└─ ', '   ').replace('├─ ', '│  ')
+        // A plain list under the button, no tree: the name whole, how to reach it below, wrapped.
         return (
-          <Box flexDirection="column">
-            <Button key={`check:${row.text}`} plain dimColor={row.status === 'done'} label={`${stems[i]}${box} ${row.text}`} onPress={tick} />
+          <Box flexDirection="column" marginLeft={2}>
+            <Button key={`check:${row.text}`} plain dimColor={row.status === 'done'} label={`${box} ${row.text}`} onPress={tick} />
             {row.note && (
-              <Box flexDirection="row">
-                <Text dimColor>{`${rail}  `}</Text>
+              <Box marginLeft={2}>
                 <Text wrap="wrap" dimColor>{row.note}</Text>
               </Box>
             )}

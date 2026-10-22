@@ -449,9 +449,9 @@ export function snapshot(lines: TreeLine[]): string {
       // No button where no pane draws: say what to reply.
       row(1, `${glyph} ${line.text}  reply '${line.text.toLowerCase()}'`)
     } else if (line.kind === 'check') {
-      // The name whole, then how to reach it on a line of its own.
-      row(2, `${line.status === 'done' ? '☑' : '☐'} ${line.text}`)
-      if (line.note) rows.push({ depth: 2, kind: 'check', text: `  ${line.note}`, status: '', isContinued: true })
+      // A plain list, no tree: the name whole, then how to reach it on a line of its own.
+      row(1, `  ${line.status === 'done' ? '☑' : '☐'} ${line.text}`)
+      if (line.note) row(1, `    ${line.note}`)
     }
   }
   const stems = prefixes(rows)
