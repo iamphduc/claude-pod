@@ -537,6 +537,58 @@ test('concerns sit under their slice, and do not add to the blocked count', () =
   expect(summarize(lines)).not.toContain('blocked')
 })
 
+// Shaped like real queues: most entries to the human are notes, only a few are questions.
+const ASKS = [
+  '- `[2026-10-06 · BLOCKED · engineer → human · plan: long-runs · sprint: ui · slice: B2]` The list API needs a key. **Resolution:** pending',
+  '- `[2026-10-06 · PENDING · reviewer → human · plan: long-runs]` **Someday:** rename the helper. **Resolution:** pending',
+  '- `[2026-10-06 · PENDING · reviewer → human · plan: long-runs]` Needs your decision: keep reading the old `sound` key? It still works. **Resolution:** pending',
+  '- `[2026-10-06 · PENDING · reviewer → human · plan: long-runs]` now (product choice): a run is titled by its slug, not its task. **Resolution:** pending',
+  '- `[2026-10-06 · PENDING · engineer → human]` one-way door in PR #35: saved keys move to the v2 format. **Resolution:** pending',
+  '- `[2026-10-06 · PENDING · engineer → human · plan: long-runs · sprint: ui · slice: L1]` needs your decision: the input border. **Resolution:** 2026-10-07 — default recorded',
+  '- `[2026-10-06 · PENDING · reviewer → human · plan: other]` Needs your decision: another plan. **Resolution:** pending',
+  '- `[2026-10-06 · PENDING · engineer → orchestrator · plan: long-runs]` decision: pick a debounce delay. **Resolution:** pending',
+  '- `[2026-10-06 · BLOCKED · orchestrator → human · plan: long-runs]` Gate 4: wave check failed. **Resolution:** pending',
+].join('\n')
+
+const askTree = (queue = ASKS) =>
+  buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [parseSprint(SPRINT, false)!], spawns: {}, live: [], queue: parseQueue(queue), halt: latestHalt(queue)?.body, haltType: latestHalt(queue)?.type })
+
+test("the tree opens with the questions waiting on you: this plan's, not notes, answered ones, other plans' or the halt", () => {
+  const lines = askTree()
+  const top = lines.slice(1, lines.findIndex(l => l.kind === 'sprint'))
+  expect(top.map(l => `${l.depth} ${l.kind} ${l.status} ${l.text} | ${l.note ?? ''}`)).toEqual([
+    '1 ask pushed needs you | 4',
+    '2 question blocked The list API needs a key. | B2 · engineer',
+    '2 question waiting keep reading the old sound key? | reviewer',
+    '2 question waiting a run is titled by its slug, not its task. | reviewer',
+    '2 question waiting one-way door in PR #35: saved keys move to the v2 format. | engineer',
+  ])
+  // The halt keeps its own line at the end.
+  expect(lines.filter(l => l.kind === 'halt')).toHaveLength(1)
+})
+
+test('with no question waiting, the tree has no needs-you group', () => {
+  const notesOnly = ASKS.split('\n').filter((_, i) => [1, 5, 6, 7, 8].includes(i)).join('\n')
+  const lines = askTree(notesOnly)
+  expect(lines.some(l => l.kind === 'ask' || l.kind === 'question')).toBe(false)
+})
+
+test('the header counts the questions, and a blocked question is not one more blocked row', () => {
+  expect(summarize(askTree())).toBe('sprint 2/3 · wave 2/2 · 4 questions · halted')
+})
+
+test('the snapshot and the transcript lines show each question', () => {
+  const lines = askTree()
+  expect(snapshot(lines).split('\n').slice(1, 6)).toEqual([
+    '◐ needs you · 4',
+    '├─ ✗ The list API needs a key.  B2 · engineer',
+    '├─ ? keep reading the old sound key?  reviewer',
+    '├─ ? a run is titled by its slug, not its task.  reviewer',
+    '└─ ? one-way door in PR #35: saved keys move to the v2 format.  engineer',
+  ])
+  expect([...milestones(lines).values()]).toContain('? NEEDS YOU · keep reading the old sound key? · reviewer')
+})
+
 test('parseDispatch reads a reviewer plan slug and round, and ignores words that only end in round', () => {
   expect(parseDispatch('**plan slug**: `long-runs`\n**round**: 2')).toMatchObject({ plan: 'long-runs', round: 2 })
   expect(parseDispatch('run it in background: true').round).toBeUndefined()
