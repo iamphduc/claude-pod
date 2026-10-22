@@ -365,9 +365,11 @@ test('a blank line sets each tree apart, the first from the header too', async (
   world(on, [], true, [], handBack(11))
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
   const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 80 } as never })
-  // Three trees, sprint one, the hand-back and run-app: a gap over each.
-  const gaps = JSON.stringify(await pane.drawn()).match(/"marginTop":1/g) ?? []
-  expect(gaps).toHaveLength(3)
+  // Two trees, sprint one and the hand-back: a gap over each. Run app has a divider instead, and a gap below.
+  const drawn = JSON.stringify(await pane.drawn())
+  expect(drawn.match(/"marginTop":1/g) ?? []).toHaveLength(2)
+  expect(await pane.find({ type: 'Text', text: /^─{20,}$/ })).toMatchObject({ props: { dimColor: true } })
+  expect(drawn.match(/"marginBottom":1/g) ?? []).toHaveLength(1)
 })
 
 test("a new plan's tree leaves out the last plan's hand-back", async ($, on) => {

@@ -320,12 +320,15 @@ export const register: Register = on => {
     const stems = prefixes(rows)
     const room = Math.max(1, (e.viewport?.rows ?? 30) - 5)
     // A blank line before each tree sets it apart from the header and the tree above. It takes a row of the room too.
-    const isGap = (i: number) => rows[i]!.depth <= 1 && !rows[i]!.isContinued
+    // Run app gets a divider in place of the gap: the run is over, the part below is yours.
+    const isGap = (i: number) => rows[i]!.depth <= 1 && !rows[i]!.isContinued && rows[i]!.kind !== 'app'
     let shown = 0
     for (let used = 0; shown < rows.length; shown++) {
       // A check's how-to-reach line takes a row of its own, more when it wraps.
       const extra = rows[shown]!.kind === 'check' && rows[shown]!.note ? Math.ceil(rows[shown]!.note!.length / Math.max(10, width - 8)) : 0
-      used += (isGap(shown) ? 2 : 1) + extra
+      // Run app: its divider above, its gap below.
+      const app = rows[shown]!.kind === 'app' ? 2 : 0
+      used += (isGap(shown) ? 2 : 1) + extra + app
       if (used > room) break
     }
 
@@ -343,9 +346,12 @@ export const register: Register = on => {
         }
         // A real button, in the accent color: the one thing to press at the hand-back.
         return (
-          <Box flexDirection="row">
-            <Button key="run-app" variant="primary" label={row.text} onPress={press} />
-            {row.note && <Text>{`  then ${row.note}:`}</Text>}
+          <Box flexDirection="column" marginBottom={1}>
+            <Text dimColor>{'─'.repeat(width)}</Text>
+            <Box flexDirection="row">
+              <Button key="run-app" variant="primary" label={row.text} onPress={press} />
+              {row.note && <Text>{`  then ${row.note}:`}</Text>}
+            </Box>
           </Box>
         )
       }

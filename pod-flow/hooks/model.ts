@@ -343,6 +343,9 @@ export function header(lines: TreeLine[], width = Infinity): string {
 /** The symbol for each status, shared by the tree and the transcript lines. */
 export const GLYPH: Record<string, string> = { running: '●', pushed: '◐', done: '✓', blocked: '✗', waiting: '○' }
 
+/** The divider over Run app in the text version, which has no width to fill. */
+const DIVIDER = 30
+
 /** A question waits with a `?`; a blocked one keeps its `✗`. */
 export const questionGlyph = (line: TreeLine) => (line.status === 'blocked' ? GLYPH.blocked : '?')
 
@@ -446,7 +449,8 @@ export function snapshot(lines: TreeLine[]): string {
       const hints = end < 0 ? after : after.slice(0, end)
       if (hints.length > 0) row(2, `➜ ${hints.map(h => h.text).join(', ')}`)
     } else if (line.kind === 'app') {
-      // No button where no pane draws: say what to reply.
+      // No button where no pane draws: say what to reply. A divider sets your part apart from the run, as in the pane.
+      row(1, '─'.repeat(DIVIDER))
       row(1, `${glyph} ${line.text}  reply '${line.text.toLowerCase()}'`)
     } else if (line.kind === 'check') {
       // A plain list, no tree: the name whole, then how to reach it on a line of its own.
