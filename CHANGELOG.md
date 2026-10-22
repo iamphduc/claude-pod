@@ -2,6 +2,10 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file.
 
+## Unreleased
+
+- The plan-complete hand-back and autopilot's halt entries carry a `plan: <slug>` tag, and the reviewer's dispatch puts the PR, branch, and other context on field lines. Pod Board reads both directly, so a fix review joins its run.
+
 ## 0.3.0 — 2026-10-21
 
 - pod checks that the browser actually opens a page, under a 30-second limit, instead of trusting `agent-browser --version`. pod's commands run through Bash, because on Windows `agent-browser` can hang when PowerShell captures its output.

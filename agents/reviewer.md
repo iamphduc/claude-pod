@@ -18,6 +18,8 @@ You are pod's **only code review**: the whole plan once, before it reaches the m
 - **browser** *(optional, default `agent-browser`)* — `none`: don't open a browser; you also get **browser rows**, the orchestrator's result for each browser row
 - **round** *(optional, default `1`)* — `2` re-checks after the fix pass; you also get your round-1 findings and the fix engineer's summary
 
+The orchestrator writes each as its own field line (`- **PR:** <url>`, `- **branch:** <name>`), not inside a sentence: the board reads them.
+
 Missing anything → don't review: reply `Verdict: incomplete — <what's missing>` and stop. It isn't a `FIX`: a finding about the dispatch would use up the one fix pass on nothing in the code.
 
 ## Guardrails
