@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 
-import { ageNote, buildTree, changedFeatures, header, mainCheckout, snapshot, formatTokens, tokenTotals, turnTokens, concernText, fit, parseQueue, formatAge, prState, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, milestones, prefixes, summarize, tableRows, visibleLines } from './model'
+import { ageNote, buildTree, changedFeatures, foldKey, isFoldable, header, mainCheckout, snapshot, formatTokens, tokenTotals, turnTokens, concernText, fit, parseQueue, formatAge, prState, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, milestones, prefixes, summarize, tableRows, visibleLines } from './model'
 import type { TreeLine } from '../types'
 
 const PLAN = `# Plan: Long runs
@@ -630,7 +630,7 @@ test('at the hand-back, a run-app line and the checklist of changed features fol
   const at = lines.findIndex(l => l.kind === 'app')
   expect(lines[at - 1]).toMatchObject({ kind: 'hint', text: 'merge PR #58' })
   expect(lines.slice(at).map(l => `${l.depth} ${l.kind} ${l.status} ${l.text} | ${l.note ?? ''}`)).toEqual([
-    '1 app waiting Run app | check these',
+    '1 app waiting Run app | check these (1/2)',
     '2 check waiting Sign in | the login page, or a magic link',
     '2 check done Saved keys | Settings → API keys',
   ])
@@ -645,6 +645,18 @@ test('a merged hand-back keeps the run-app line; a gate halt or no halt has none
   expect(appTree({ halt: undefined }).some(l => l.kind === 'app')).toBe(false)
   // No changed row: the button alone.
   expect(appTree({ checks: [] }).filter(l => l.kind === 'app' || l.kind === 'check').map(l => l.text)).toEqual(['Run app'])
+})
+
+test('the run-app line counts the ticks, and folds the list once all are ticked', () => {
+  expect(appTree({ ticked: ['Saved keys'] }).find(l => l.kind === 'app')).toMatchObject({ note: 'check these (1/2)', detail: undefined })
+  const done = appTree({ ticked: ['Sign in', 'Saved keys'] })
+  const app = done.find(l => l.kind === 'app')!
+  expect(app).toMatchObject({ note: 'check these (2/2)', detail: '✓ all 2 checked' })
+  expect(isFoldable(app)).toBe(true)
+  // Folded unless you open it again.
+  expect(visibleLines(done, []).some(l => l.kind === 'check')).toBe(false)
+  expect(visibleLines(done, [foldKey(app)]).filter(l => l.kind === 'check')).toHaveLength(2)
+  expect(snapshot(done).split('\n').slice(-2)).toEqual(["○ Run app  reply 'run app'", '✓ all 2 checked'])
 })
 
 test('the snapshot says how to run the app without a button, and lists the checks', () => {

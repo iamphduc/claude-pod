@@ -452,7 +452,8 @@ export function snapshot(lines: TreeLine[]): string {
       // No button where no pane draws: say what to reply. A divider sets your part apart from the run, as in the pane.
       row(1, '─'.repeat(DIVIDER))
       row(1, `${glyph} ${line.text}  reply '${line.text.toLowerCase()}'`)
-    } else if (line.kind === 'check') {
+      if (line.detail) row(1, line.detail)
+    } else if (line.kind === 'check' && !lines.some(l => l.kind === 'app' && l.detail)) {
       // A plain list, no tree: the name whole, then how to reach it on a line of its own.
       row(1, `${line.status === 'done' ? '☑' : '☐'} ${line.text}`)
       if (line.note) row(1, `  ${line.note}`)
@@ -476,11 +477,12 @@ export function visibleLines(lines: TreeLine[], expanded: string[]): TreeLine[] 
   return shown
 }
 
-/** A finished sprint with a board folds, and so does a finished wave in a sprint still running. */
-export const isFoldable = (line: TreeLine) => (line.kind === 'sprint' || line.kind === 'wave') && line.status === 'done' && line.detail !== undefined
+/** A finished sprint with a board folds, so does a finished wave in a sprint still running, and the checklist once all are ticked. */
+export const isFoldable = (line: TreeLine) =>
+  line.detail !== undefined && (((line.kind === 'sprint' || line.kind === 'wave') && line.status === 'done') || line.kind === 'app')
 
-/** What `expanded` keeps for an opened row: the sprint's slug, or the sprint and wave. */
-export const foldKey = (line: TreeLine) => (line.kind === 'wave' ? `${line.sprint}/${line.text}` : (line.sprint ?? ''))
+/** What `expanded` keeps for an opened row: the sprint's slug, the sprint and wave, or `checks`. */
+export const foldKey = (line: TreeLine) => (line.kind === 'app' ? 'checks' : line.kind === 'wave' ? `${line.sprint}/${line.text}` : (line.sprint ?? ''))
 
 const MIN_HEAD = 16
 
@@ -779,8 +781,17 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
     // A pull request URL reads as its short number.
     const pull = pullOf(haltText)
     // At the hand-back, merged or not: run the app and look at what the plan changed.
+    const tickedCount = checks.filter(c => ticked.includes(c.feature)).length
     const appLines = (): TreeLine[] => [
-      { depth: 1, kind: 'app', text: isAppRunning ? 'Stop app' : 'Run app', status: isAppRunning ? 'running' : 'waiting', note: checks.length > 0 ? 'check these' : undefined },
+      {
+        depth: 1,
+        kind: 'app',
+        text: isAppRunning ? 'Stop app' : 'Run app',
+        status: isAppRunning ? 'running' : 'waiting',
+        note: checks.length > 0 ? `check these (${tickedCount}/${checks.length})` : undefined,
+        // All ticked: the list folds to this line, and opens again when pressed.
+        detail: checks.length > 0 && tickedCount === checks.length ? `✓ all ${checks.length} checked` : undefined,
+      },
       ...checks.map(c => ({ depth: 2, kind: 'check' as const, text: c.feature, status: ticked.includes(c.feature) ? 'done' : 'waiting', note: c.reach || undefined })),
     ]
     if (isHandBack && pull && merged.includes(Number(pull[1]))) {

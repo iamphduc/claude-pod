@@ -326,8 +326,8 @@ export const register: Register = on => {
     for (let used = 0; shown < rows.length; shown++) {
       // A check's how-to-reach line takes a row of its own, more when it wraps.
       const extra = rows[shown]!.kind === 'check' && rows[shown]!.note ? Math.ceil(rows[shown]!.note!.length / Math.max(10, width - 8)) : 0
-      // Run app: its divider above, its gap below.
-      const app = rows[shown]!.kind === 'app' ? 2 : 0
+      // Run app: its divider above, its gap below, and the fold line once all are ticked.
+      const app = rows[shown]!.kind === 'app' ? (rows[shown]!.detail ? 3 : 2) : 0
       used += (isGap(shown) ? 2 : 1) + extra + app
       if (used > room) break
     }
@@ -344,6 +344,9 @@ export const register: Register = on => {
           await update($, isAppRunning, () => !isRunning)
           await refresh($)
         }
+        // All ticked: the list folds to one line, which opens it again.
+        const isOpen = open.includes(foldKey(row))
+        const toggle = () => update($, expanded, list => (isOpen ? list.filter(s => s !== foldKey(row)) : [...list, foldKey(row)]))
         // A real button, in the accent color: the one thing to press at the hand-back.
         return (
           <Box flexDirection="column" marginBottom={1}>
@@ -352,6 +355,7 @@ export const register: Register = on => {
               <Button key="run-app" variant="primary" label={row.text} onPress={press} />
               {row.note && <Text>{`  then ${row.note}:`}</Text>}
             </Box>
+            {row.detail && <Button key="checks" plain label={`${isOpen ? '▾' : '▸'} ${row.detail}`} onPress={toggle} />}
           </Box>
         )
       }

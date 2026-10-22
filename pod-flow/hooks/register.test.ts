@@ -437,7 +437,7 @@ test('at the hand-back, Run app sends your reply and turns into Stop app, and ea
   const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 100 } as never })
   // A primary button, not a plain row; each feature whole on its line, how to reach it below, wrapped.
   expect(await pane.find({ type: 'Button', text: /^Run app$/ })).toMatchObject({ props: { variant: 'primary' } })
-  expect(await pane.find({ type: 'Text', text: /^ {2}then check these:$/ })).toBeDefined()
+  expect(await pane.find({ type: 'Text', text: /^ {2}then check these \(0\/1\):$/ })).toBeDefined()
   // A plain list, no tree lines.
   expect(await pane.find({ type: 'Button', text: /^☐ Saved keys$/ })).toBeDefined()
   expect(await pane.find({ type: 'Text', text: /^Settings → API keys$/ })).toMatchObject({ props: { wrap: 'wrap' } })
@@ -449,7 +449,12 @@ test('at the hand-back, Run app sends your reply and turns into Stop app, and ea
   expect(sent.at(-1)).toEqual({ text: 'stop app', asUser: true })
   expect(await pane.find({ type: 'Button', text: /^Run app$/ })).toBeDefined()
 
+  // The last tick folds the list; pressing the fold opens it again.
   await pane.press({ key: 'check:Saved keys' })
+  expect(await pane.find({ type: 'Button', text: /^Saved keys/ })).toBeUndefined()
+  expect(await pane.find({ type: 'Button', text: /^▸ ✓ all 1 checked$/ })).toBeDefined()
+  await pane.press({ key: 'checks' })
+  expect(await pane.find({ type: 'Button', text: /^▾ ✓ all 1 checked$/ })).toBeDefined()
   expect(await pane.find({ type: 'Button', text: /^☑ Saved keys$/ })).toBeDefined()
   // A tick is yours alone: nothing goes to the chat.
   expect(sent).toHaveLength(2)
