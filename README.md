@@ -124,7 +124,7 @@ Options: `--merge-target=<branch>` (default: your repo's default branch).
 
 Does the same as `/pod:code`, but merges each wave PR itself and moves on to the next sprint. It **stops and notifies you** when something looks risky: a failed check, an engineer who isn't confident, a change that's hard to undo, or a limit you set. If a question comes up, it notifies you and keeps going with a default. Running it means you agree to the auto-merges.
 
-Before it starts, it asks once where to merge. The recommended choice is a `pod-staging` branch: autopilot merges there and, at the end, opens a PR from `pod-staging` to your default branch. You merge that PR after a look, so nothing nobody read reaches `main` overnight. Pass `--merge-target=<branch>` to skip the question.
+Before it starts, it asks once where to merge. The recommended choice is a `pod-staging` branch: autopilot merges there and, at the end, opens a PR from `pod-staging` to your default branch. The PR's title says what the plans built, and its body has a section per plan: the goal, the features, the decisions made for you, loose ends, and links to the plan's PR and report. A later plan that lands before you merge adds its own section. You merge that PR after a look, so nothing nobody read reaches `main` overnight. Pass `--merge-target=<branch>` to skip the question.
 
 Limits: `--max-sprints=N`, `--max-waves=N` (default 20), `--max-runtime=Nh`, and `--max-width=N` for wider waves. CI is optional but recommended. With CI, every check must pass before a merge. The full rules are in [`skills/autopilot/policy.md`](skills/autopilot/policy.md).
 
