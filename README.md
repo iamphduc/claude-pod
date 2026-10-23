@@ -235,7 +235,7 @@ claude plugin validate . && claude plugin validate ./pod-flow
 cd pod-flow && claude plugin test .
 ```
 
-Before a release, also run the eval cases in `evals/`. They run real Claude on small scratch repos (`/pod:init` on an empty and an old-layout repo, `/pod:idea`, queue entries mid-plan and at plan end, the reviewer dispatch from `/pod:code` and `/pod:fix`, the `run app` reply to a hand-back, autopilot's `pod-staging` PR, new and reused, and the overview `/pod:plan` shows before any code) and check the files it writes, the dispatch it sends, or its answer. A reviewer dispatch and Bash aren't allowed to run, so no reviewer or app starts: those cases check only the dispatch text or the start command in the answer. They use your Claude login, so they aren't in CI:
+Before a release, also run the eval cases in `evals/`. They run real Claude on small scratch repos (`/pod:init` on an empty and an old-layout repo, `/pod:idea` and its board, the research page, queue entries mid-plan and at plan end, the reviewer dispatch from `/pod:code` and `/pod:fix`, the `run app` reply to a hand-back, autopilot's `pod-staging` PR, new and reused, and the overview `/pod:plan` shows before any code) and check the files it writes, the dispatch it sends, or its answer. A reviewer dispatch and Bash aren't allowed to run, so no reviewer or app starts: those cases check only the dispatch text or the start command in the answer. They use your Claude login, so they aren't in CI:
 
 ```
 claude plugin eval . --scaffold --allow-tools Write Edit --ablation none --runs 1
