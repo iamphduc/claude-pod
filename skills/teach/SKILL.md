@@ -32,7 +32,7 @@ The human reads HTML. Write `pod-docs/teach/<slug>.html`: `<slug>` is `system` w
 6. **Watch out:** rules that must hold, things that look wrong but aren't, and traps.
 7. **Go deeper:** 3–5 topics worth learning next, each as `/pod:teach <topic>`.
 
-Graphics over text, short sentences, plain words. Self-contained page: inline CSS and SVG, no scripts of your own, and the only outside load is Mermaid from a CDN, pinned to a version; body text at least 16 px; readable in light and dark and at phone width. Open it for the human.
+Graphics over text, short sentences, plain words. Self-contained page: inline CSS and SVG; the only script is Mermaid from a CDN, pinned to a version, plus the call that renders it; body text at least 16 px; readable in light and dark and at phone width. Open it for the human.
 
 ## Hand back
 
