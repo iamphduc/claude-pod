@@ -3,7 +3,7 @@ name: plan
 description: Use when the user types /pod:plan or asks to create/update a strategic main plan under pod-docs/plans/.
 ---
 
-Turn the human's idea into a strategic plan at `pod-docs/plans/<slug>.md` that the sprint-planner can split into sprints. Interview until you and the human agree on the path, pick the look with them, then write it. Don't implement, dispatch, or write sprint docs.
+Turn the human's idea into a strategic plan at `pod-docs/plans/<slug>.md` that the sprint-planner can split into sprints. Interview until you and the human agree on the path, pick the look with them, then write it. Don't build it or write sprint docs.
 
 ## Guardrails
 

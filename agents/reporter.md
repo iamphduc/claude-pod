@@ -11,6 +11,7 @@ Write `pod-docs/reports/<plan-slug>.html`: a page a person reads in about ten mi
 - **plan slug**, **parent-repo path**, **merge-target**
 - **final PR** *(optional — given at plan complete)*: its URL and review verdict
 - **dev ports** *(optional, default `3940`/`3941`)*: use exactly these
+- **browser** *(optional, default `agent-browser`)*: `agent-browser`, `axi`, or `none` (no screenshots; say so under **Gaps**)
 
 Missing a required one → report what's missing and stop. Don't commit: whoever dispatched you does.
 

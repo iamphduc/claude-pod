@@ -66,6 +66,6 @@ What more than one slice depends on, stated once: shared types, routes (method, 
 - Files owned exist or are marked `(new)`.
 - **Branches** are flat kebab, no `/`: the plan branch `<plan-slug>`, slice `<sprint-slug>-<slice-code>`, wave head `<sprint-slug>-w<N>`.
 - **Slug** matches the plan's sprint row. **Doc Status:** `active` in `pod-docs/sprints/`, `archived` when moved to `pod-docs/sprints/archive/`.
-- **Slice Status:** `pending` → `pushed` → `done` when the wave PR merges; `blocked` is terminal.
-- **PR:** `—` / the wave PR URL (shared by its slices) / `blocked` / `skipped — verification failed` / `merged`.
+- **Slice Status:** `pending` → `pushed` → `done` when the wave PR merges; `blocked` waits for the human, then the slice is dispatched again.
+- **PR:** `—` / the wave PR URL (shared by its slices) / `blocked` / `merged`.
 - **Confidence:** `—` until the engineer reports, then `high` / `medium` / `low`, filled by the orchestrator and kept in the archive.

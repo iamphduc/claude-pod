@@ -3,7 +3,7 @@ name: fix
 description: Use when the user types /pod:fix <task> or asks for an ad-hoc code change outside the sprint workflow.
 ---
 
-A one-off change straight to the merge-target, outside any plan: one engineer builds it test-first, the reviewer checks it, and the human merges. Never merge it yourself. Args: the task, `--merge-target=<branch>` (default: origin's default branch; pass it on), `--no-review` (for a change the human knows is trivial; don't pass it on), and `--model=<sonnet | opus>`.
+A one-off change straight to the merge-target, outside any plan: one engineer builds it test-first, the reviewer checks it, and the human merges. Never merge it yourself. Args: the task, `--merge-target=<branch>` (default: origin's default branch; pass it on), `--no-review` (for a change the human knows is trivial), and `--model=<sonnet | opus>`.
 
 - **Docs version** first: check it per `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md`.
 - **Browser** (the project has a UI): as in `/pod:code`'s **Preflight** (`${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md`). Pass `browser: axi` to the engineer and reviewer with `axi`. With `devtools-mcp`, pass it to the engineer (it works alone), and before each reviewer dispatch run the app from the engineer's worktree on B/B+1, drive the browser rows the diff touches, and pass the reviewer `browser: none` with your results as **browser rows**.
