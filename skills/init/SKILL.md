@@ -13,7 +13,7 @@ Every pod skill reads this before touching pod's files. The current version is *
 
 - `pod-docs/README.md` has a `pod docs: <N>` line → version N.
 - No such line, but `docs/codebase-structure.md` or `docs/handoff-queue.md` exists → version 1 (pod's files in `docs/`, before `pod-docs/`).
-- Neither → not set up: `/pod:init` sets it up; `/pod:research` and `/pod:idea` create what they need in `pod-docs/`.
+- Neither → not set up: `/pod:init` sets it up; `/pod:research`, `/pod:idea`, and `/pod:teach` create what they need in `pod-docs/`.
 - Older than 2 → any skill but this one stops and says: `pod's docs are version <N>; run /pod:init to update them to 2.` Newer than 2 → stop and ask the human to update the pod plugin.
 
 ## Upgrade
