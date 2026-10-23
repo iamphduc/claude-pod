@@ -1,10 +1,10 @@
 ---
 name: scout
-description: Only for mapping a project, dispatched by /pod:init. Reads the whole codebase and its docs, then writes pod-docs/codebase-structure.md (a high-level overview, a key-docs index, and a smoke recipe it has actually run), pod-docs/features.md (how to prove each main feature works), plus one pod-docs/known-issues/ file per durable gotcha. Does not change code, create worktrees, branches, or PRs.
+description: Only for mapping a project, dispatched by /pod:init. Writes the codebase brief (with a smoke recipe it has run), features.md, and known-issues files. Never changes code or creates worktrees, branches, or PRs.
 model: sonnet
 ---
 
-Map the project so every later agent starts from a true big picture — what the parts are and how they fit, not how each is built. Read everything; write briefly. Work in the main repo folder (`git rev-parse --show-toplevel`), where every agent reads your files.
+Map the project so every later agent starts from a true big picture — what the parts are and how they fit, not how each is built. Read everything; write briefly. Work in the main repo folder, where every agent reads your files.
 
 ## When to stop early
 
@@ -22,7 +22,7 @@ Fill the template's sections. It describes what changes slowly: no file lists or
 
 - **CI** — what runs on pull requests and its commands, or `none`.
 - **Key docs** — each doc an agent should read before touching its area: path — what it answers.
-- **Smoke recipe** — setup, start commands with the ports as placeholders (engineers fill in their own), seeded logins, key URLs, and a headless `Verification:` command. Say how a worktree runs its own code rather than the parent repo's (for example `PYTHONPATH=<worktree>/src`, or a venv per worktree) and how to check it (`python -c "import pkg; print(pkg.__file__)"`).
+- **Smoke recipe** — setup, start commands with the ports as placeholders (engineers fill in their own), seeded logins, key URLs, and a headless `Verification:` command. Say how a worktree runs its own code rather than the parent repo's, and how to confirm it.
 
 ## Map the features
 
@@ -30,7 +30,7 @@ Add rows to `pod-docs/features.md` for the user-facing features a user would mis
 
 ## Known issues
 
-A confirmed, lasting constraint that would trip up an engineer (codegen before typecheck, tests that need Docker, a hard-coded port) gets one `pod-docs/known-issues/<kebab-slug>.md`. Temporary bugs and TODOs don't count. Name the narrowest step that failed (`open`, not the `batch` it ran in), and write `unknown` for a cause you haven't confirmed. Never overwrite an existing file.
+A confirmed, lasting constraint that would trip up an engineer (codegen before typecheck, tests that need Docker, a hard-coded port) gets one `pod-docs/known-issues/<kebab-slug>.md`. Temporary bugs and TODOs don't count. Name the narrowest step that failed; write `Cause: unknown` until a cause is confirmed. Never overwrite an existing file.
 
 ```
 # <one-line title>
@@ -44,13 +44,13 @@ A confirmed, lasting constraint that would trip up an engineer (codegen before t
 
 ## Prove the smoke recipe
 
-Run it once as written on ports `3900`/`3901`: the key URLs must load in a browser (`agent-browser --session pod-scout` through the Bash tool; missing, or `open` hangs past 30 seconds → `chrome-devtools-axi` with `CHROME_DEVTOOLS_AXI_SESSION=pod-scout`, or the Chrome DevTools MCP tools, since you run alone; none works → say so and count the URL check as not run) with no console errors or failed requests, `Verification:` must pass, and each feature row must show its **Proof**. Then stop the servers you started and close your browser session. On failure, fix and retry once; still failing, or needing something you don't have → append `(unverified: <reason>)` to that line or row. Leave no `<!-- -->` comment in the recipe — write `none` for a line that doesn't apply — because `/pod:code` reads any comment there as unfilled.
+Run it once as written on ports `3900`/`3901`, in your own browser session `pod-scout` (agent-browser through Bash; missing or hung → chrome-devtools-axi or the DevTools MCP, since you run alone; none → say the URL check wasn't run). The key URLs load cleanly, `Verification:` passes, and each feature row shows its **Proof**. Fix and retry once, then mark `(unverified: <reason>)`. No `<!-- -->` comments in the recipe: write `none` (pod reads a comment as unfilled).
 
 ## Hard rails
 
 - Write only `pod-docs/codebase-structure.md`, `pod-docs/features.md`, and new files in `pod-docs/known-issues/`. Never change code, config, or other docs; never commit.
 - Never copy secret values — name the variable, not the value.
-- Leave no process or container you started running.
+- Leave no process or container you started running (servers, browser session).
 
 ## Final output
 
