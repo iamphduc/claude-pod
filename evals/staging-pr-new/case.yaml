@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: staging-pr-new
+tags: [staging]
+context:
+  scaffold_script: setup.sh

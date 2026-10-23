@@ -2,6 +2,10 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.4.1 — 2026-10-23
+
+- The `pod-staging` PR that autopilot opens says what it holds. Its title is a conventional commit for what the plans built, such as `feat: friends list and invites (plan friends)`. Its body has a section per plan with the goal, the features, the one-way doors and decisions made for you, loose ends, and links to the plan's final PR and report. A later plan that lands before you merge updates the title and adds its section. The branch keeps its name.
+
 ## pod 0.4.0 · pod-flow 0.2.0 — 2026-10-22
 
 - Each merge to `main` is now a release. CI fails a PR that changes what a plugin ships without bumping its version and adding its section here, and the merge creates the tag and the GitHub release: `vX.Y.Z` for pod and `pod-flow-vX.Y.Z` for pod-flow.

@@ -124,7 +124,7 @@ Options: `--merge-target=<branch>` (default: your repo's default branch).
 
 Does the same as `/pod:code`, but merges each wave PR itself and moves on to the next sprint. It **stops and notifies you** when something looks risky: a failed check, an engineer who isn't confident, a change that's hard to undo, or a limit you set. If a question comes up, it notifies you and keeps going with a default. Running it means you agree to the auto-merges.
 
-Before it starts, it asks once where to merge. The recommended choice is a `pod-staging` branch: autopilot merges there and, at the end, opens a PR from `pod-staging` to your default branch. You merge that PR after a look, so nothing nobody read reaches `main` overnight. Pass `--merge-target=<branch>` to skip the question.
+Before it starts, it asks once where to merge. The recommended choice is a `pod-staging` branch: autopilot merges there and, at the end, opens a PR from `pod-staging` to your default branch. The PR's title says what the plans built, and its body has a section per plan: the goal, the features, the decisions made for you, loose ends, and links to the plan's PR and report. A later plan that lands before you merge adds its own section. You merge that PR after a look, so nothing nobody read reaches `main` overnight. Pass `--merge-target=<branch>` to skip the question.
 
 Limits: `--max-sprints=N`, `--max-waves=N` (default 20), `--max-runtime=Nh`, and `--max-width=N` for wider waves. CI is optional but recommended. With CI, every check must pass before a merge. The full rules are in [`skills/autopilot/policy.md`](skills/autopilot/policy.md).
 
@@ -233,7 +233,7 @@ claude plugin validate . && claude plugin validate ./pod-flow
 cd pod-flow && claude plugin test .
 ```
 
-Before a release, also run the eval cases in `evals/`. They run real Claude on small scratch repos (`/pod:init` on an empty and an old-layout repo, `/pod:idea`, queue entries mid-plan and at plan end, the reviewer dispatch from `/pod:code` and `/pod:fix`, and the `run app` reply to a hand-back) and check the files it writes, the dispatch it sends, or its answer. A reviewer dispatch and Bash aren't allowed to run, so no reviewer or app starts: those cases check only the dispatch text or the start command in the answer. They use your Claude login, so they aren't in CI:
+Before a release, also run the eval cases in `evals/`. They run real Claude on small scratch repos (`/pod:init` on an empty and an old-layout repo, `/pod:idea`, queue entries mid-plan and at plan end, the reviewer dispatch from `/pod:code` and `/pod:fix`, the `run app` reply to a hand-back, and autopilot's `pod-staging` PR, new and reused) and check the files it writes, the dispatch it sends, or its answer. A reviewer dispatch and Bash aren't allowed to run, so no reviewer or app starts: those cases check only the dispatch text or the start command in the answer. They use your Claude login, so they aren't in CI:
 
 ```
 claude plugin eval . --scaffold --allow-tools Write Edit --ablation none --runs 1
