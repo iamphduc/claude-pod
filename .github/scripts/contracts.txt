@@ -1,0 +1,189 @@
+# Strings that pod-flow, the evals, or another rule file read from pod's rule files.
+# One per line: <file>|<exact text>. Lines starting with # are comments.
+# Checked by .github/scripts/contracts.mjs. If you rename one on purpose, update every reader, then this list.
+# engineer
+agents/engineer.md|## Required dispatch context
+agents/engineer.md|fix-<slug>
+agents/engineer.md|.claude/worktrees/fix-<slug>/
+agents/engineer.md|teardown: defer
+agents/engineer.md|Door: two-way
+agents/engineer.md|Door: one-way — <what>, undo: <how>
+agents/engineer.md|Cleanup: deferred — <path>
+agents/engineer.md|pod-<slice-code>
+agents/engineer.md|NOTE for <slice-code>:
+agents/engineer.md|BLOCKED
+agents/engineer.md|SOLVED
+agents/engineer.md|- **Slice**
+agents/engineer.md|- **Concerns:**
+agents/engineer.md|- **Tests first:**
+agents/engineer.md|- **Edges:**
+agents/engineer.md|- **Repro**
+agents/engineer.md|- **Runtime verified:**
+agents/engineer.md|- **Not checked:**
+agents/engineer.md|- **Cleanup:**
+agents/engineer.md|- **Time lost:**
+agents/engineer.md|- **Confidence:**
+# reviewer
+agents/reviewer.md|## Required dispatch context
+agents/reviewer.md|- **kind**
+agents/reviewer.md|- **PR URL**
+agents/reviewer.md|- **parent-repo path**
+agents/reviewer.md|- **worktree path**
+agents/reviewer.md|- **dev ports**
+agents/reviewer.md|- **browser**
+agents/reviewer.md|- **round**
+agents/reviewer.md|plan slug
+agents/reviewer.md|Verdict: incomplete
+agents/reviewer.md|Review fixes
+agents/reviewer.md|Sync <merge-target> into <plan-slug>
+agents/reviewer.md|before hosting
+agents/reviewer.md|someday
+agents/reviewer.md|product choice
+agents/reviewer.md|- **PR:**
+agents/reviewer.md|- **Verdict:**
+agents/reviewer.md|- **Findings:**
+agents/reviewer.md|- **Dismissed:**
+agents/reviewer.md|- **Ran:**
+agents/reviewer.md|- **Coverage:**
+# fix skill
+skills/fix/SKILL.md|--merge-target=
+skills/fix/SKILL.md|--no-review
+skills/fix/SKILL.md|--model=
+skills/fix/SKILL.md|kind: fix
+skills/fix/SKILL.md|Review: pass
+skills/fix/SKILL.md|Review still failing
+skills/fix/SKILL.md|Review: skipped (--no-review)
+# code skill
+skills/code/SKILL.md|plan: <plan-slug>
+skills/code/SKILL.md|Plan <plan-slug> complete — final merge awaiting
+skills/code/SKILL.md|Reply 'run app' to start the app
+skills/code/SKILL.md|'stop app'
+skills/code/SKILL.md|Sprint <sprint-slug> complete. Reply 'continue' to start the next sprint.
+skills/code/SKILL.md|Plan <plan-slug> merged to <merge-target>. Done.
+skills/code/SKILL.md|review <pass | still failing>
+skills/code/SKILL.md|(wave <N>/<waves in the sprint>)
+skills/code/SKILL.md|Door: two-way
+skills/code/SKILL.md|<sprint-slug>-w<N>
+skills/code/SKILL.md|<plan-slug>-fix
+skills/code/SKILL.md|.claude/worktrees/
+skills/code/SKILL.md|## <date> — browser: <choice>
+skills/code/SKILL.md|Port base:
+skills/code/SKILL.md|pod-ports
+skills/code/SKILL.md|## Queue log
+skills/code/SKILL.md|final PR merged
+skills/code/SKILL.md|**Needs your decision**
+skills/code/SKILL.md|**Fix next**
+skills/code/SKILL.md|**Before hosting**
+skills/code/SKILL.md|**Someday**
+skills/code/SKILL.md|**Obsolete**
+skills/code/SKILL.md|(agent default — override anytime)
+skills/code/SKILL.md|written as field lines
+skills/code/SKILL.md|teardown: defer
+# autopilot
+skills/autopilot/policy.md|blocked-concern
+skills/autopilot/policy.md|plan-review-fail
+skills/autopilot/policy.md|auto-merge-fail
+skills/autopilot/policy.md|inter-wave-verify
+skills/autopilot/policy.md|safety-bound
+skills/autopilot/policy.md|escalation-valve
+skills/autopilot/policy.md|plan-complete
+skills/autopilot/policy.md|## <date> — merge target: <choice>
+skills/autopilot/policy.md|**Staging (recommended)**
+skills/autopilot/policy.md|(plan <slug>)
+skills/autopilot/policy.md|(plans <slug>, <slug>)
+skills/autopilot/policy.md|## <plan title> (<plan-slug>)
+skills/autopilot/policy.md|<!-- autopilot-run: started=<ISO8601> sprints=<N> waves=<N> -->
+skills/create-wave-prompts/SKILL.md|claude --agent pod:engineer
+skills/create-wave-prompts/SKILL.md|.claude/worktrees/
+# sprint-planner
+agents/sprint-planner.md|_From plan: pod-docs/plans/<plan-slug>.md · Slug: <sprint-slug> · Status: <active | archived> · Generated: <YYYY-MM-DD>_
+agents/sprint-planner.md|| Wave | Slice | Title | Branch | PR | Status | Confidence | Depends on |
+agents/sprint-planner.md|One-way door:
+agents/sprint-planner.md|B1
+agents/sprint-planner.md|<sprint-slug>-<slice-code>
+agents/sprint-planner.md|<sprint-slug>-w<N>
+agents/sprint-planner.md|127.0.0.1
+# plan
+skills/plan/template.md|# Plan:
+skills/plan/template.md|## How it fits together
+skills/plan/template.md|```mermaid
+skills/plan/template.md|| Sprint | Goal | Status | Depends on |
+skills/plan/template.md|## Look
+skills/plan/template.md|## Key decisions
+skills/plan/template.md|## Verification
+skills/plan/template.md|<slug>-look
+skills/plan/SKILL.md|<slug>-overview.html
+skills/plan/SKILL.md|pinned to a version
+skills/plan/SKILL.md|Does this match what you want built? Reply with changes, or `ok`.
+skills/plan/SKILL.md|<slug>-look.html
+skills/plan/SKILL.md|<slug>-look-<N>.html
+skills/plan/SKILL.md|Plan not written yet — reply to continue.
+skills/plan/SKILL.md|grill-me
+skills/ship/SKILL.md|reply `go` to start autopilot
+# init
+skills/init/SKILL.md|pod docs: <N>
+skills/init/SKILL.md|run /pod:init to update them to 2.
+skills/init/SKILL.md|ready
+skills/init/scaffold/pod-docs/README.md|pod docs: 2
+skills/init/scaffold/pod-docs/features.md|| Feature | User reaches it by | Drive | Proof |
+skills/init/scaffold/pod-docs/handoff-queue.md|**Resolution:**
+skills/init/scaffold/pod-docs/handoff-queue.md|default recorded
+# reporter
+agents/reporter.md|- **plan slug**
+agents/reporter.md|- **final PR**
+agents/reporter.md|- **dev ports**
+agents/reporter.md|## What it is
+agents/reporter.md|## How it works
+agents/reporter.md|## Why it's this way
+agents/reporter.md|## Watch out
+agents/reporter.md|## History
+agents/reporter.md|- **Report:**
+agents/reporter.md|- **Feature details:**
+agents/reporter.md|- **Gaps:**
+agents/reporter.md|## Queue log
+agents/reporter.md|How it fits together
+# researcher
+agents/researcher.md|- **topic**
+agents/researcher.md|- **path**
+agents/researcher.md|- **page**
+agents/researcher.md|- **mode**
+agents/researcher.md|- **focus**
+agents/researcher.md|- **depth**
+agents/researcher.md|## What exists
+agents/researcher.md|## Gaps and angles
+agents/researcher.md|## Best practices
+agents/researcher.md|## Ideas to consider
+agents/researcher.md|## Questions for the plan
+agents/researcher.md|## Sources
+agents/researcher.md|_Updated: <date>_
+agents/researcher.md|- **Suspect pages:**
+agents/researcher.md|no scripts
+# scout
+agents/scout.md|- **Smoke recipe** —
+agents/scout.md|Verification:
+agents/scout.md|(unverified: <reason>)
+agents/scout.md|3900
+agents/scout.md|pod-scout
+agents/scout.md|- **Brief:**
+agents/scout.md|- **Coverage:**
+agents/scout.md|- **Known issues:**
+agents/scout.md|- **Smoke recipe:**
+agents/scout.md|- **Features:**
+agents/scout.md|- **Left for the human:**
+# research, idea, teach
+skills/research/SKILL.md|pod-docs/research/<slug>.html
+skills/research/SKILL.md|<slug>-<N>
+skills/idea/SKILL.md|# Idea: <title>
+skills/idea/SKILL.md|Status: parked
+skills/idea/SKILL.md|## What would make it worth building
+skills/idea/SKILL.md|## Ideas page
+skills/idea/SKILL.md|## Bringing ideas back
+skills/idea/SKILL.md|pod-docs/ideas/index.html
+skills/teach/SKILL.md|pod-docs/teach/<slug>.html
+skills/teach/SKILL.md|`system`
+skills/teach/SKILL.md|`known`
+skills/teach/SKILL.md|`inferred`
+skills/teach/SKILL.md|`unknown`
+skills/teach/SKILL.md|pinned to a version
+skills/teach/SKILL.md|Explore
+skills/teach/SKILL.md|/pod:teach <topic>
