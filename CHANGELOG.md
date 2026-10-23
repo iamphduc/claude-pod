@@ -7,6 +7,7 @@ Newest first. The `pod` and `pod-flow` plugins share this file. Each heading nam
 - Everything in the **For you** part of `pod-docs/` now has an HTML page, with graphics over text. The `.md` files stay as the source the agents read.
 - Research: the researcher also writes `pod-docs/research/<slug>.html`, and `/pod:research` opens it. It has a card for each thing that exists, with how close it is to your idea and whether it's alive, short lists of gaps and practices, ideas from minimal to bold, and each question as a card with its options side by side. The page has no scripts and loads nothing, since web pages fed it.
 - Look options are saved per plan, as `pod-docs/design-drafts/<slug>-look.html`, so a second plan no longer writes over the first one's `look-directions.html`. Design drafts stay as the record of what you chose: pod never deletes them, and a plan update that changes the look or the overview writes a new numbered page (`<slug>-look-2.html`). Older projects keep their `look-directions.html`.
+- Updating a research report keeps the old one: it moves to `<slug>-1.md` and `<slug>-1.html` (then `-2`, and so on), and the newest stays at `<slug>.md` and `<slug>.html`. Before, an update replaced it.
 - Ideas: `pod-docs/ideas/index.html` shows every idea on a board, one column per status. pod rewrites it whenever an idea is saved or its status changes, and `/pod:idea` with no idea opens it.
 
 ## pod 0.5.0 — 2026-10-23
