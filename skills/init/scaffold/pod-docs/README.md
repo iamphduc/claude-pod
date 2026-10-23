@@ -7,8 +7,8 @@ The files [pod](https://github.com/iamphduc/claude-pod) keeps for this project. 
 ```
 pod-docs/
 │  For you: you read these and decide
-├── ideas/                  ideas saved for later (/pod:idea)
-├── research/               web research reports
+├── ideas/                  ideas saved for later (/pod:idea); open index.html
+├── research/               web research reports; open each .html
 ├── design-drafts/          look options and plan overviews to check
 ├── reports/                plan reports
 │

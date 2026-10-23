@@ -94,11 +94,11 @@ Options: `--no-research` skips research, `--deep` researches more, and `--max-*`
 
 ### `/pod:research <idea> [--deep]`: look before you build
 
-The **researcher** agent searches the web: what already exists, where it falls short, and how people build it. A narrow idea gets one researcher. A broad one gets up to 3 (`--deep`: up to 5), each looking at a different angle, working at the same time, and one more run combines their findings. Every claim links to its source. It ends with ideas and questions for your plan. The report is saved to `pod-docs/research/<slug>.md`. This works in any folder, even before `/pod:init`.
+The **researcher** agent searches the web: what already exists, where it falls short, and how people build it. A narrow idea gets one researcher. A broad one gets up to 3 (`--deep`: up to 5), each looking at a different angle, working at the same time, and one more run combines their findings. Every claim links to its source. It ends with ideas and questions for your plan. The report is saved to `pod-docs/research/<slug>.md` for the agents, and pod opens `pod-docs/research/<slug>.html` for you: cards for what exists, with how close each is to your idea, and each question with its options side by side. This works in any folder, even before `/pod:init`.
 
 ### `/pod:plan`: decide what to build
 
-pod interviews you about goals, scope, stack, and risks. Choose the **fast path** to accept its suggested answer wherever there's a safe default. If your project has a UI, you pick a **look** from three options shown in an HTML page (`pod-docs/design-drafts/look-directions.html`). The plan is saved to `pod-docs/plans/<slug>.md`.
+pod interviews you about goals, scope, stack, and risks. Choose the **fast path** to accept its suggested answer wherever there's a safe default. If your project has a UI, you pick a **look** from three options shown in an HTML page (`pod-docs/design-drafts/<slug>-look.html`). The plan is saved to `pod-docs/plans/<slug>.md`.
 
 Before any code, pod shows you an **overview** of what it will build: the parts and how they connect, the main flow step by step, and where the data lives, as diagrams in an HTML page (`pod-docs/design-drafts/<slug>-overview.html`). pod waits until you reply `ok` or send changes. The sprints follow the overview you approved, and the final report draws it again as built, marking any difference.
 
@@ -148,7 +148,7 @@ Writes an HTML report of a plan: key features, how the parts fit together as bui
 
 ### `/pod:idea [idea]`: save an idea for later
 
-Saves the idea to `pod-docs/ideas/<slug>.md`, with why it waits and what would make it worth building. Run it with no idea to list what's saved. When you later start `/pod:research`, `/pod:plan`, `/pod:ship`, or `/pod:fix` on something a saved idea touches, pod shows it and asks whether to build on it. At the end of `/pod:plan`, pod also offers to save what you left out of scope.
+Saves the idea to `pod-docs/ideas/<slug>.md`, with why it waits and what would make it worth building. Run it with no idea to list what's saved and open `pod-docs/ideas/index.html`, a board of every idea by status (parked, planned, built, dropped). pod updates the board whenever an idea changes. When you later start `/pod:research`, `/pod:plan`, `/pod:ship`, or `/pod:fix` on something a saved idea touches, pod shows it and asks whether to build on it. At the end of `/pod:plan`, pod also offers to save what you left out of scope.
 
 ## The agents
 
@@ -168,8 +168,8 @@ pod keeps its files in `pod-docs/`, apart from your own `docs/`. `pod-docs/READM
 ```
 pod-docs/
 │  For you: you read these and decide
-├── ideas/                  ideas saved for later (/pod:idea)
-├── research/               web research reports
+├── ideas/                  ideas saved for later (/pod:idea); open index.html
+├── research/               web research reports; open each .html
 ├── design-drafts/          look options and plan overviews to check
 ├── reports/                plan reports
 │
@@ -235,7 +235,7 @@ claude plugin validate . && claude plugin validate ./pod-flow
 cd pod-flow && claude plugin test .
 ```
 
-Before a release, also run the eval cases in `evals/`. They run real Claude on small scratch repos (`/pod:init` on an empty and an old-layout repo, `/pod:idea`, queue entries mid-plan and at plan end, the reviewer dispatch from `/pod:code` and `/pod:fix`, the `run app` reply to a hand-back, autopilot's `pod-staging` PR, new and reused, and the overview `/pod:plan` shows before any code) and check the files it writes, the dispatch it sends, or its answer. A reviewer dispatch and Bash aren't allowed to run, so no reviewer or app starts: those cases check only the dispatch text or the start command in the answer. They use your Claude login, so they aren't in CI:
+Before a release, also run the eval cases in `evals/`. They run real Claude on small scratch repos (`/pod:init` on an empty and an old-layout repo, `/pod:idea` and its board, the research page, queue entries mid-plan and at plan end, the reviewer dispatch from `/pod:code` and `/pod:fix`, the `run app` reply to a hand-back, autopilot's `pod-staging` PR, new and reused, and the overview `/pod:plan` shows before any code) and check the files it writes, the dispatch it sends, or its answer. A reviewer dispatch and Bash aren't allowed to run, so no reviewer or app starts: those cases check only the dispatch text or the start command in the answer. They use your Claude login, so they aren't in CI:
 
 ```
 claude plugin eval . --scaffold --allow-tools Write Edit --ablation none --runs 1
