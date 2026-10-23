@@ -23,7 +23,9 @@ Git and GitHub are the record here, not the board, because the human runs the wa
 
 ## Output
 
-1. **A header:** the wave and why it's current (`Wave 2 — wave 1's PR #14 is merged`), any rows you synced, its slices (flag any whose `One-way door:` isn't `none`), and any slice missing scope, files owned, or criteria. Then one `git worktree add <parent>/.claude/worktrees/<sprint-slug>-<slice-code>/ -b <branch> origin/<plan-slug>` per slice, to run **before** any session starts (sessions creating worktrees at once fight over one `.git`). Then the steps: one terminal per block at the project root, `claude --agent pod:engineer`, then `/model sonnet` if the slice's **Model:** is `sonnet`, and paste the block; when all are pushed, add each session's `Concerns` to `pod-docs/handoff-queue.md`, combine the wave on its wave head `<sprint-slug>-w<N>` into one PR to `<plan-slug>` (title and `Door:` line per `/pod:code`'s **Wave PR**), and re-run this command after it merges.
+1. **A header:** the wave and why it's current (`Wave 2 — wave 1's PR #14 is merged`), any rows you synced, its slices (flag any whose `One-way door:` isn't `none`), and any slice missing scope, files owned, or criteria.
+   - **Worktrees:** one per slice at `<parent>/.claude/worktrees/<sprint-slug>-<slice-code>/` off `origin/<plan-slug>`, all created before any session starts, because parallel sessions fight over one `.git`.
+   - **How to run:** one terminal per block at the project root, `claude --agent pod:engineer`, then `/model sonnet` if the slice's **Model:** is `sonnet`, and paste the block. When all are pushed, add each session's `Concerns` to `pod-docs/handoff-queue.md`, combine the wave on its wave head `<sprint-slug>-w<N>` into one PR to `<plan-slug>` (title and `Door:` line per `/pod:code`'s **Wave PR**), and re-run this command after it merges.
 2. **One fenced block per slice**, carrying the engineer's **Required dispatch context** from the sprint doc:
 
    ```
@@ -43,4 +45,4 @@ Git and GitHub are the record here, not the board, because the human runs the wa
    - browser:          <agent-browser | axi | none>
    ```
 
-   Print ports as numbers: B is the plan doc's `Port base:` (none → claim one per `/pod:code`'s **Preflight**) and *i* is the slice's row on the status board (base `3000`, row 1 → `3010`/`3011`), so no two sessions share a port and B/B+1 stay free for checking the wave head. `axi` → print `axi`. `devtools-mcp` → print `none`: hand-run sessions must not share the MCP browser; check the wave's pages yourself.
+   Print ports as numbers per `/pod:code`'s **Contracts** (base `3000`, row 1 → `3010`/`3011`); B/B+1 stay free for checking the wave head. `axi` → print `axi`; `devtools-mcp` → print `none` (check the wave's pages yourself).

@@ -12,7 +12,7 @@ A PR merges only if **all** hold:
 - **No one-way door:** a wave with a slice marked one-way → withhold and halt (gate 6); the human merges it. The final plan PR too, when any wave carried a one-way slice or the plan adds a migration: merging it to the merge-target can deploy them.
 - **Final plan PR only:** the reviewer's `pass`, on the first review or after the one fix pass. Still `fix` → gate 2.
 
-Merge with a merge commit, not squash: `gh pr merge --merge`, without `--delete-branch` — teardown deletes the branches. Then mark the wave `merged`/`done`. Any merge failure → gate 3.
+Merge with a merge commit (not squash) and leave the branches for teardown. Then mark the wave `merged`/`done`. Any merge failure → gate 3.
 
 ## Preflight (before `/pod:code`'s own)
 
@@ -20,7 +20,7 @@ No CI (`## CI` is `none`) isn't a halt: say once, at the start, that merges rest
 
 **Browser:** settle `/pod:code`'s browser check first — once the run is unattended, a question nobody answers stalls it.
 
-**Merge target:** no `--merge-target` given → reuse a `## <date> — merge target: <choice>` entry in `pod-docs/decisions.md`; none → ask once, with the browser check: **Staging (recommended)** — merges land on `pod-staging` and the human moves them to the default branch after looking, so unattended code never reaches it alone — or **Default branch**. Record it there under that title. With staging: no `pod-staging` on origin → cut it from origin's default branch and push it; it exists → merge origin's default branch into it first (a conflict → gate 3). Use it as the merge-target everywhere.
+**Merge target:** no `--merge-target` given → reuse a `## <date> — merge target: <choice>` entry in `pod-docs/decisions.md`; none → ask once, with the browser check: **Staging (recommended)** — merges land on `pod-staging` and the human moves them to the default branch after looking, so unattended code never reaches it alone — or **Default branch**. Record it there under that title. With staging, bring `pod-staging` on origin up to date with origin's default branch (create it if missing; a conflict → gate 3) and use it as the merge-target everywhere.
 
 ## The wave check is a gate
 
@@ -40,9 +40,9 @@ No CI (`## CI` is `none`) isn't a halt: say once, at the start, that merges rest
 
 **Staging PR (gate 7):** the human reads this PR, not the branch, so it says what `pod-staging` holds. Title: a conventional commit for what its plans built, ending `(plan <slug>)` or `(plans <slug>, <slug>)`, e.g. `feat: friends list and invites (plan friends)`. Body: one `## <plan title> (<plan-slug>)` section per plan on it, each with the goal in a sentence, the features it added or changed (from `pod-docs/features.md`), its one-way doors and the decisions made for the human, loose ends, and links to its final PR and report. Reusing an open PR → rewrite the title to cover every plan, add this plan's section, and keep the others.
 
-**Gate 1's one exception:** a `BLOCKED` whose only fix is a test fixture or doc that no other slice in the wave owns. Add the file to that engineer's files owned, resume the same engineer, and say so in your next message to the human.
+**Gate 1's one exception:** a `BLOCKED` fixed only by a test fixture or doc no other slice owns → give it to that engineer, resume it, and tell the human.
 
-**Every gate halts:** append a one-line queue entry from `orchestrator` naming the gate and the artifact, send a `PushNotification`, and end the turn. `BLOCKED` must be resolved before resuming; `PENDING` only needs acknowledging. A queue entry that only needs the human's decision is **not** a halt — notify and keep going on the value in use. `/pod:code`'s **Plan complete** step 5 writes its entry whatever the verdict (`review <pass | still failing>`); that is gate 7's entry, so don't write a second. A gate 2 halt adds its own.
+**Every gate halts:** append a one-line queue entry from `orchestrator` naming the gate and the artifact, send a `PushNotification`, and end the turn. `BLOCKED` must be resolved before resuming; `PENDING` only needs acknowledging. `/pod:code`'s **Plan complete** step 5 writes its entry whatever the verdict (`review <pass | still failing>`); that is gate 7's entry, so don't write a second. A gate 2 halt adds its own.
 
 ## Safety bounds
 

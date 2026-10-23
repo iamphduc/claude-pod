@@ -1,6 +1,6 @@
 # Plan: <plan name>
 
-_Generated: <YYYY-MM-DD> · Status: <active | archived> · Grilled-with: <grilling | pod>[ (fast)]_
+_Generated: <YYYY-MM-DD> · Status: <active | archived> · Grilled-with: <grilling | pod | grill-me + grilling | grill-me + pod>[ (fast)]_
 
 ## Goal
 <2–3 sentences: what we're accomplishing>
@@ -47,9 +47,7 @@ sequenceDiagram
 | <slug> | <one-line> | planned | — |
 | <slug> | <one-line> | planned | <previous slug> |
 
-Status values: `planned` / `active` / `done`. The orchestrator only flips its row's Status — it does not rewrite Goal/Depends-on retroactively.
-
-The `Depends on` column is the **only** cross-sprint dependency signal. Wave ordering and per-slice deps live inside the sprint doc and are opaque from here.
+Status: `planned` / `active` / `done`. `Depends on` is the only dependency between sprints.
 
 ## Look
 <`none — no UI`, or the direction the human picked in the interview:>
@@ -59,7 +57,7 @@ The `Depends on` column is the **only** cross-sprint dependency signal. Wave ord
 - **Layout:** <main screen's composition; how it stacks at phone width>
 - **Signature detail:** <the one thing someone will remember>
 - **Rules out:** <what this look is not — e.g. default browser controls, generic cards, purple gradients>
-- **Draft:** `pod-docs/design-drafts/<slug>-look.html` (direction <A/B/C> picked)
+- **Draft:** `pod-docs/design-drafts/<slug>-look.html` (newest, if numbered) (direction <A/B/C> picked)
 
 ## Key decisions
 - <decision and rationale; link to pod-docs/decisions.md entry if one exists or should be created>
