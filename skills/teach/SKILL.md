@@ -25,7 +25,7 @@ Teach the human a codebase so they understand it before they change it: what it 
 The human reads HTML. Write `pod-docs/teach/<slug>.html`: `<slug>` is `system` with no topic, else the topic in kebab-case. Create the folder if it's missing, and nothing else in `pod-docs/`. A page with that name exists → move it to `<slug>-<N>.html` (N the next free number, from 1) and keep it. Sections, in order:
 
 1. **In one line:** what it is, in plain words, tied to what the human asked.
-2. **The map:** a Mermaid diagram of the parts and how they connect, one arrow per connection, from the part that calls or sends. For a topic, its parts in color and the rest of the system grey, as context.
+2. **The map:** a Mermaid diagram of the parts and how they connect, one arrow per connection, from the part that calls or sends. For a topic, its parts in color and the rest of the system grey, as context. Keep it readable at the page's width without zooming: top to bottom when it runs wide, and group what doesn't matter here into one box.
 3. **How it works:** the main flow as a Mermaid sequence diagram. With more than three moving parts, build it up: a small version first, then the full one. Then one worked example with real values.
 4. **Where things live:** a table of part, path, and what it does.
 5. **Why it's this way:** a card per choice, with the reason, its label (`known`, `inferred`, or `unknown`), and its source.
