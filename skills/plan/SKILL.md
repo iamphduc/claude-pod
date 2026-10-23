@@ -11,7 +11,7 @@ Turn the human's idea into a strategic plan at `pod-docs/plans/<slug>.md` that t
 - **The human picks the look.** Never offer to pick for them; if they ask you to, pick and say which and why.
 - **Never overwrite a plan.** `pod-docs/plans/<slug>.md` exists → ask: update it (keep `_Generated:_`, add `_Updated:_`) or use a new slug.
 - **Small: at most 4 sprints; one is fine.** Split into sprints only where later work must be planned from what earlier work builds. Code is reviewed once, at plan end, so a bigger goal becomes several plans in a row — say so in Scope.
-- **Strategic, not tactical.** Sprints by goal and dependency; files and slices belong in sprint docs.
+- **Strategic, not tactical.** Sprints by goal and dependency; files and slices belong in sprint docs. The overview names folders and modules, not files.
 
 ## Before the interview
 
@@ -42,6 +42,8 @@ Record their choice in `## Look`, in their words plus the exact tokens, linked t
 
 ## Write the plan
 
-Use `${CLAUDE_PLUGIN_ROOT}/skills/plan/template.md`; `<slug>` is short kebab-case. Set the status of any parked idea it builds on. Then, once, offer to park what the human set aside for later (Scope's out-of-scope items, research ideas they passed on) with one multi-select `AskUserQuestion`; write each pick per `${CLAUDE_PLUGIN_ROOT}/skills/idea/SKILL.md`, without asking more. Header `Grilled-with:` is `grilling` or `pod`, plus ` (fast)` on the fast path, or `grill-me + <either>`.
+Use `${CLAUDE_PLUGIN_ROOT}/skills/plan/template.md`; `<slug>` is short kebab-case. Its **How it fits together** is the overview the human approves before any code: the parts and how they connect, the main flow step by step, and where the data lives, each as a Mermaid block. Mark each part new or changed, and name the existing folder or module it touches, so the human sees the shape before sprints are cut. Set the status of any parked idea it builds on. Then, once, offer to park what the human set aside for later (Scope's out-of-scope items, research ideas they passed on) with one multi-select `AskUserQuestion`; write each pick per `${CLAUDE_PLUGIN_ROOT}/skills/idea/SKILL.md`, without asking more. Header `Grilled-with:` is `grilling` or `pod`, plus ` (fast)` on the fast path, or `grill-me + <either>`.
 
-End with the slug and the next command: `/pod:init` first if pod isn't set up here yet (no `pod-docs/codebase-structure.md`, no `origin`, or no first commit), else `/pod:sprint <slug>` (or `/pod:autopilot`).
+**Overview check.** The human reads HTML, not Markdown: write `pod-docs/design-drafts/<slug>-overview.html`, one page drawing the plan's **How it fits together** from the same Mermaid blocks (Mermaid from a CDN, pinned to a version), with the parts table and the goal on top, and open it for them. End the turn with its path and *"Does this match what you want built? Reply with changes, or `ok`."* Apply any change to the plan and the page together, and ask again. `/pod:ship` asks this at its go check instead.
+
+After `ok`, end with the slug and the next command: `/pod:init` first if pod isn't set up here yet (no `pod-docs/codebase-structure.md`, no `origin`, or no first commit), else `/pod:sprint <slug>` (or `/pod:autopilot`).

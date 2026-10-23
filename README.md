@@ -100,6 +100,8 @@ The **researcher** agent searches the web: what already exists, where it falls s
 
 pod interviews you about goals, scope, stack, and risks. Choose the **fast path** to accept its suggested answer wherever there's a safe default. If your project has a UI, you pick a **look** from three options shown in an HTML page (`pod-docs/design-drafts/look-directions.html`). The plan is saved to `pod-docs/plans/<slug>.md`.
 
+Before any code, pod shows you an **overview** of what it will build: the parts and how they connect, the main flow step by step, and where the data lives, as diagrams in an HTML page (`pod-docs/design-drafts/<slug>-overview.html`). pod waits until you reply `ok` or send changes. The sprints follow the overview you approved, and the final report draws it again as built, marking any difference.
+
 *Tip:* install the `grilling` skill for a deeper interview:
 
 ```
@@ -142,7 +144,7 @@ Options: `--merge-target=<branch>`.
 
 ### `/pod:report [slug]`: plan report
 
-Writes an HTML report of a plan: key features, decisions, data structures, and how the agents worked together. At the end of a plan, the reporter also writes `pod-docs/feature-details/<feature>.md` for each feature the plan added or changed: how it works, why it's built that way, and what to watch out for. Later agents read these before they change a feature.
+Writes an HTML report of a plan: key features, how the parts fit together as built, decisions, data structures, and how the agents worked together. At the end of a plan, the reporter also writes `pod-docs/feature-details/<feature>.md` for each feature the plan added or changed: how it works, why it's built that way, and what to watch out for. Later agents read these before they change a feature.
 
 ### `/pod:idea [idea]`: save an idea for later
 
@@ -168,7 +170,7 @@ pod-docs/
 │  For you: you read these and decide
 ├── ideas/                  ideas saved for later (/pod:idea)
 ├── research/               web research reports
-├── design-drafts/          look options to choose from
+├── design-drafts/          look options and plan overviews to check
 ├── reports/                plan reports
 │
 │  Shared: you and the agents both read and write these
@@ -233,7 +235,7 @@ claude plugin validate . && claude plugin validate ./pod-flow
 cd pod-flow && claude plugin test .
 ```
 
-Before a release, also run the eval cases in `evals/`. They run real Claude on small scratch repos (`/pod:init` on an empty and an old-layout repo, `/pod:idea`, queue entries mid-plan and at plan end, the reviewer dispatch from `/pod:code` and `/pod:fix`, the `run app` reply to a hand-back, and autopilot's `pod-staging` PR, new and reused) and check the files it writes, the dispatch it sends, or its answer. A reviewer dispatch and Bash aren't allowed to run, so no reviewer or app starts: those cases check only the dispatch text or the start command in the answer. They use your Claude login, so they aren't in CI:
+Before a release, also run the eval cases in `evals/`. They run real Claude on small scratch repos (`/pod:init` on an empty and an old-layout repo, `/pod:idea`, queue entries mid-plan and at plan end, the reviewer dispatch from `/pod:code` and `/pod:fix`, the `run app` reply to a hand-back, autopilot's `pod-staging` PR, new and reused, and the overview `/pod:plan` shows before any code) and check the files it writes, the dispatch it sends, or its answer. A reviewer dispatch and Bash aren't allowed to run, so no reviewer or app starts: those cases check only the dispatch text or the start command in the answer. They use your Claude login, so they aren't in CI:
 
 ```
 claude plugin eval . --scaffold --allow-tools Write Edit --ablation none --runs 1

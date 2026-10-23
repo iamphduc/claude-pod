@@ -9,7 +9,7 @@ pod-docs/
 │  For you: you read these and decide
 ├── ideas/                  ideas saved for later (/pod:idea)
 ├── research/               web research reports
-├── design-drafts/          look options to choose from
+├── design-drafts/          look options and plan overviews to check
 ├── reports/                plan reports
 │
 │  Shared: you and the agents both read and write these
