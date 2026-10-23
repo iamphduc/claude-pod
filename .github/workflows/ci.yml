@@ -26,3 +26,28 @@ jobs:
       - name: Test pod-flow
         working-directory: pod-flow
         run: claude plugin test .
+
+  # A PR that changes what a plugin ships bumps its version and adds its changelog section.
+  version:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check the version bump
+        run: node .github/scripts/release.mjs check origin/${{ github.base_ref }}
+
+  # Each merge to main tags and publishes the plugin versions not released yet.
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish new versions
+        run: node .github/scripts/release.mjs publish
+        env:
+          GH_TOKEN: ${{ github.token }}
