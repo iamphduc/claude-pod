@@ -243,6 +243,12 @@ The cases grant no shell, so they run on native Windows too. Longer flows (`/pod
 
 To typecheck pod-flow, load it in a session once so Claude Code writes its types (`claude --plugin-dir ./pod-flow`), then run `npx tsc --noEmit -p .` from `pod-flow/`.
 
+Each merge to `main` that changes what a plugin ships is a release. pod ships `skills/`, `agents/`, and its `plugin.json`; pod-flow ships `pod-flow/hooks/` (not the tests), `pod-flow/types/`, and its `plugin.json`. In such a PR, bump that plugin's version in its `plugin.json` and add a section to `CHANGELOG.md` headed with each version it releases, such as `## pod 0.4.1 · pod-flow 0.2.1 — <date>`. CI fails the PR without them. The merge then creates the tag (`vX.Y.Z` for pod, `pod-flow-vX.Y.Z` for pod-flow) and the GitHub release, with that section as its notes. To check a branch before you push:
+
+```
+node .github/scripts/release.mjs check origin/main
+```
+
 The rule files in `agents/` and `skills/` have no tests. To try a rule change, run pod on a scratch repo with `claude --plugin-dir /path/to/claude-pod`.
 
 ## Credits
