@@ -6,7 +6,8 @@ Newest first. The `pod` and `pod-flow` plugins share this file. Each heading nam
 
 - pod's rule files are shorter and trust the agents more. Step-by-step procedures became goals with their reasons, rules said in several files now live in one, and fixes for single past runs became general rules. Every guardrail and every format that pod-flow or another file reads is unchanged.
 - The research report has a **Suspect pages** section, so `/pod:plan` can show you pages that tried to give instructions before the interview. Before, they appeared only in the researcher's chat summary and were lost when parts were merged.
-- The engineer and the reviewer list `axi` among their browser values, matching what `/pod:code` and `/pod:fix` send them.
+- The engineer, the reviewer, and the reporter list their browser values, including `axi`, matching what `/pod:code` and `/pod:fix` send them. The reporter takes `browser: none` as "no screenshots".
+- Rules that no longer matched pod were removed or corrected: a queue role for an agent that no longer exists, a PR status nothing writes, `blocked` slices described as final when `/pod:code` re-dispatches them, and who opens the `Review fixes` PR.
 - When `/pod:code` records a default for a decision you haven't made, the queue entry says `default recorded`, so pod-flow's checklist lists it under **Decided for you**. A wave PR with a one-way slice also adds a `one-way door` queue entry, so the door shows in pod-flow's **needs you** group and checklist.
 - With the Chrome DevTools MCP, `/pod:fix` now passes the reviewer `browser: none` plus your page results, instead of a browser mode it doesn't accept.
 
