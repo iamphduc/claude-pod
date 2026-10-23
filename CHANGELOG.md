@@ -2,6 +2,10 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.7.0 — 2026-10-23
+
+- New `/pod:teach [topic]` explains how a codebase works and why it's built that way, so you understand it before you change it. With no topic, it covers the whole system; with one, such as `billing`, only that feature and where it touches the rest. It reads the code, splitting a big area across a few read-only agents, and looks for reasons in git history, PRs, and docs, labeling each one known, inferred, or unknown. You get an HTML page, `pod-docs/teach/<topic>.html`, with a map of the parts, the main flow with a worked example, where things live, the reasons, what to watch out for, and topics to learn next. It changes no code and works in any repo, even before `/pod:init`. Adapted from pstack's `/teach`, `/how`, and `/why`.
+
 ## pod 0.6.0 — 2026-10-23
 
 - Everything in the **For you** part of `pod-docs/` now has an HTML page, with graphics over text. The `.md` files stay as the source the agents read.

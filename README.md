@@ -53,6 +53,7 @@ That's it. pod researches the idea, interviews you, writes the plan, sets pod up
 | Run each engineer myself in my own terminals | `/pod:create-wave-prompts` |
 | Get a report on a finished plan | `/pod:report` |
 | Save an idea for later | `/pod:idea <idea>` |
+| Learn how a codebase, or one feature of it, works and why | `/pod:teach [topic]` |
 
 ## How it works
 
@@ -150,6 +151,12 @@ Writes an HTML report of a plan: key features, how the parts fit together as bui
 
 Saves the idea to `pod-docs/ideas/<slug>.md`, with why it waits and what would make it worth building. Run it with no idea to list what's saved and open `pod-docs/ideas/index.html`, a board of every idea by status (parked, planned, built, dropped). pod updates the board whenever an idea changes. When you later start `/pod:research`, `/pod:plan`, `/pod:ship`, or `/pod:fix` on something a saved idea touches, pod shows it and asks whether to build on it. At the end of `/pod:plan`, pod also offers to save what you left out of scope.
 
+### `/pod:teach [topic]`: learn a codebase
+
+Explains how a codebase works and why it's built that way, so you understand it before you change it. With no topic, it covers the whole system; with one, such as `/pod:teach billing`, it covers only that feature and where it touches the rest. pod reads the code (splitting a big area across a few read-only agents) and looks for the reasons in git history, PRs, and the docs. Every reason is labeled **known** (with its source), **inferred**, or **unknown**.
+
+You get an HTML page, `pod-docs/teach/<topic>.html` (`system.html` with no topic): a map of the parts, the main flow as a diagram with a worked example, where things live, the reasons, what to watch out for, and topics to learn next. It changes no code and works in any repo, even before `/pod:init`. Running it again keeps the old page as `<topic>-1.html`.
+
 ## The agents
 
 | Agent | What it does |
@@ -172,6 +179,7 @@ pod-docs/
 ├── research/               web research reports; open each .html
 ├── design-drafts/          look options and plan overviews to check
 ├── reports/                plan reports
+├── teach/                  explanations of your code (/pod:teach)
 │
 │  Shared: you and the agents both read and write these
 ├── plans/                  plans; each keeps its resolved notes in a ## Queue log
@@ -261,6 +269,7 @@ Several of pod's checks come from **pstack**, a Cursor plugin by Lauren Tan. Fla
 - **Dismissed findings:** the reviewer lists what it checked and dropped, so you can overrule it (from `/interrogate`).
 - **Feature map:** `pod-docs/features.md` records how to prove each feature works on the running app (from `/create-verification-skill`).
 - **Contract friction:** engineers report a design that keeps fighting back instead of working around it (from `/architect`).
+- **Teach:** `/pod:teach` joins how the code works with why it's built that way, splits a big area across parallel readers, and labels each reason known, inferred, or unknown (from `/teach`, `/how`, and `/why`).
 
 ## License
 

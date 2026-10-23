@@ -11,6 +11,7 @@ pod-docs/
 ├── research/               web research reports; open each .html
 ├── design-drafts/          look options and plan overviews to check
 ├── reports/                plan reports
+├── teach/                  explanations of your code (/pod:teach)
 │
 │  Shared: you and the agents both read and write these
 ├── plans/                  plans; each keeps its resolved notes in a ## Queue log
