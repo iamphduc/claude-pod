@@ -42,7 +42,7 @@ Cover goal and success, scope in and out, what existing behavior or look changes
 
 No UI → `## Look` is `none — no UI`. Otherwise agents left alone build the most generic interface they know, so fix the look now. Use the `frontend-design` skill if you have it.
 
-Propose three clearly different directions, each with a one-line thesis, a 5–7 color palette, a display and body font pair (self-hostable, readable at 16 px), the main screen's layout, and one memorable detail. Show the three directions side by side in one self-contained page, `pod-docs/design-drafts/<slug>-look.html`: one column per direction, styled only by its own tokens and fonts — thesis, palette, type scale, every control and the app's components in every state, and the main screen at 375 px and desktop. The human judges from a picture, never from text. Open it and give its path.
+Propose three clearly different directions, each with a one-line thesis, a 5–7 color palette, a display and body font pair (self-hostable, readable at 16 px), the main screen's layout, and one memorable detail. Show the three directions side by side in one self-contained page, `pod-docs/design-drafts/<slug>-look.html`: a grid with columns A, B, C, each styled only by its own tokens and fonts, and one row per item so the same item sits side by side. The first row shows each direction whole (thesis and main screen at 375 px); then palette, type scale, every control and the app's components in every state, and the main screen at desktop. The human judges from a picture, never from text. Open it and give its path.
 
 Record their choice in `## Look`, in their words plus the exact tokens, linked to the draft.
 

@@ -24,7 +24,7 @@ Missing topic or path → say so and stop.
 - **Nothing local leaves the machine.** You can't read local files — the dispatch carries what you need. Never put dispatch text into a search or a URL.
 - **Write only the files at your paths.**
 - **Every claim rests on a page you fetched in this run**, with the number or short quote behind it. Never cite a URL you didn't fetch or build one from memory. A search result is a lead, not a source: fetch it or drop it — a lead never appears in the report, not even hedged. WebFetch returns a summary, not the page, so "the page doesn't mention X" is not evidence. Ideas and questions are yours: keep them in their own sections, never stated as fact.
-- **Stay in budget;** stop early only once searches stop turning up anything new. Not found → `no evidence found`.
+- **Stay in budget.** Use at least half of it, then stop early only once searches stop turning up anything new. Not found → `no evidence found`.
 
 ## What good research looks like
 
@@ -34,7 +34,7 @@ Brainstorm only after the search, so ideas grow from what exists: 5–8 ideas, f
 
 ## Report
 
-About 1,300–1,800 words (deep: up to 2,800), tables over paragraphs. For a technical question, **What exists** lists approaches and libraries instead of products. Every link appears under **Sources**.
+About 1,300–1,800 words (deep: up to 2,800), tables over paragraphs. For a technical question, **What exists** lists approaches and libraries instead of products. Before finishing, cut any claim without a fetched source, and make sure every link appears under **Sources**.
 
 Merge: no new searches; each sourced claim once, the strongest 5–8 ideas and questions, say where angles disagree (`— angles disagree: <which, and what each found>`), add nothing a part didn't source, carry over every part's suspect pages, and sum their counts.
 
@@ -70,7 +70,7 @@ _Generated: <YYYY-MM-DD> · Depth: <standard | deep> · Researchers: <N> · Sear
 
 ## Page
 
-With a **page** path, also write the finished report as one HTML page the human reads to decide what to build: graphics over text, the same facts and links as the report, nothing more. Web pages fed it, so: self-contained page: inline CSS and SVG, no scripts, nothing loaded from elsewhere (links out are fine); body text at least 16 px; readable in light and dark and at phone width.
+With a **page** path, also write the finished report as one HTML page the human reads to decide what to build: graphics over text — a card per thing that exists (how close it is to the idea, whether it's alive), ideas from minimal to bold, and each question a card with its options side by side — with the same facts and links as the report, nothing more. Web pages fed it, so: self-contained page: inline CSS and SVG, no scripts, nothing loaded from elsewhere (links out are fine); body text at least 16 px; readable in light and dark and at phone width.
 
 ## Final output
 

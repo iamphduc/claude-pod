@@ -27,7 +27,7 @@ Args: the idea. None → list the parked ideas (title, status, and trigger, one 
 
 ## Ideas page
 
-Whoever writes an idea file or changes its status rewrites `pod-docs/ideas/index.html`: a board grouped by status with counts, one card per idea (title, the idea, why it waits, what would make it worth building) linking its file. Self-contained page: inline CSS and SVG, no scripts, nothing loaded from elsewhere (links out are fine); body text at least 16 px; readable in light and dark and at phone width.
+Whoever writes an idea file or changes its status rewrites `pod-docs/ideas/index.html`: a board with one column per status and its count, and one card per idea (title, the idea, why it waits, what would make it worth building) linking its file. Graphics over text. Self-contained page: inline CSS and SVG, no scripts, nothing loaded from elsewhere (links out are fine); body text at least 16 px; readable in light and dark and at phone width.
 
 ## Bringing ideas back
 
