@@ -1,14 +1,15 @@
 # Changelog
 
-Newest first. The `pod` and `pod-flow` plugins share this file.
+Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
-## Unreleased
+## pod 0.4.0 · pod-flow 0.2.0 — 2026-10-22
 
+- Each merge to `main` is now a release. CI fails a PR that changes what a plugin ships without bumping its version and adding its section here, and the merge creates the tag and the GitHub release: `vX.Y.Z` for pod and `pod-flow-vX.Y.Z` for pod-flow.
 - Every queue entry written during a plan, including the plan-complete entry and autopilot's halt entries, has `plan: <slug>` in its header, so tools can tell which plan an entry belongs to. When a new plan starts, an older `plan <slug> complete` entry without the tag moves to that plan's Queue log instead of being deleted.
 - `/pod:code` and `/pod:fix` send the reviewer its context as labeled field lines (`- **PR URL:** <url>`, `- **plan slug:** <slug>`), using the names in the reviewer's Required dispatch context. Longer items, such as round-1 findings, go in a block under their label.
-- pod-flow's review list shows only the current plan's rounds. Before, reviews from `/pod:fix` and from earlier plans in the same session were mixed in, and their tokens counted toward the plan.
-- pod-flow opens with a **needs you** group: each pending queue entry addressed to you that asks something (a `BLOCKED`, a decision, a product choice, or a one-way door), so a question doesn't scroll away in the chat. The header counts them, and a narrow terminal tells each one once. "Someday" notes and answered entries stay out.
-- At a plan's hand-back, pod-flow shows a **Run app** button. It sends `run app` for you and turns into **Stop app**. Under it is a checklist you can tick. The important items come first: the plan's one-way doors, the decisions pod defaulted for you, and the features the plan added to `pod-docs/features.md`. The features it only changed follow under **also changed**. The list counts your ticks and folds once all are ticked. When pod-flow sees the PR merged with important items unticked, it adds one line to the chat naming them, and nothing more. After the merge, your `continue` folds the hand-back part to one line: `✓ plan done · checked 3/5`. The hand-back's reply words are now `run app` and `stop app` instead of `try` and `stop`.
+- pod-flow: its review list shows only the current plan's rounds. Before, reviews from `/pod:fix` and from earlier plans in the same session were mixed in, and their tokens counted toward the plan.
+- pod-flow: it opens with a **needs you** group: each pending queue entry addressed to you that asks something (a `BLOCKED`, a decision, a product choice, or a one-way door), so a question doesn't scroll away in the chat. The header counts them, and a narrow terminal tells each one once. "Someday" notes and answered entries stay out.
+- pod-flow: at a plan's hand-back, it shows a **Run app** button. It sends `run app` for you and turns into **Stop app**. Under it is a checklist you can tick. The important items come first: the plan's one-way doors, the decisions pod defaulted for you, and the features the plan added to `pod-docs/features.md`. The features it only changed follow under **also changed**. The list counts your ticks and folds once all are ticked. When pod-flow sees the PR merged with important items unticked, it adds one line to the chat naming them, and nothing more. After the merge, your `continue` folds the hand-back part to one line: `✓ plan done · checked 3/5`. The hand-back's reply words are now `run app` and `stop app` instead of `try` and `stop`.
 
 ## 0.3.0 — 2026-10-21
 
