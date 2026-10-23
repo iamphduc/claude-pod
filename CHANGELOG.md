@@ -2,6 +2,12 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.6.0 — 2026-10-23
+
+- Everything in the **For you** part of `pod-docs/` now has an HTML page, with graphics over text. The `.md` files stay as the source the agents read.
+- Research: the researcher also writes `pod-docs/research/<slug>.html`, and `/pod:research` opens it. It has a card for each thing that exists, with how close it is to your idea and whether it's alive, short lists of gaps and practices, ideas from minimal to bold, and each question as a card with its options side by side. The page has no scripts and loads nothing, since web pages fed it.
+- Ideas: `pod-docs/ideas/index.html` shows every idea on a board, one column per status. pod rewrites it whenever an idea is saved or its status changes, and `/pod:idea` with no idea opens it.
+
 ## pod 0.5.0 — 2026-10-23
 
 - Before any code, `/pod:plan` shows you an overview of what it will build. The plan gets a **How it fits together** section, with the parts (new or changed, and where they go), how they connect, the main flow step by step, and where the data lives, as Mermaid diagrams. pod draws them in an HTML page, `pod-docs/design-drafts/<slug>-overview.html`, opens it, and waits for your `ok` or your changes. `/pod:ship` asks at its go check.

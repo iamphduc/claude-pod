@@ -94,7 +94,7 @@ Options: `--no-research` skips research, `--deep` researches more, and `--max-*`
 
 ### `/pod:research <idea> [--deep]`: look before you build
 
-The **researcher** agent searches the web: what already exists, where it falls short, and how people build it. A narrow idea gets one researcher. A broad one gets up to 3 (`--deep`: up to 5), each looking at a different angle, working at the same time, and one more run combines their findings. Every claim links to its source. It ends with ideas and questions for your plan. The report is saved to `pod-docs/research/<slug>.md`. This works in any folder, even before `/pod:init`.
+The **researcher** agent searches the web: what already exists, where it falls short, and how people build it. A narrow idea gets one researcher. A broad one gets up to 3 (`--deep`: up to 5), each looking at a different angle, working at the same time, and one more run combines their findings. Every claim links to its source. It ends with ideas and questions for your plan. The report is saved to `pod-docs/research/<slug>.md` for the agents, and pod opens `pod-docs/research/<slug>.html` for you: cards for what exists, with how close each is to your idea, and each question with its options side by side. This works in any folder, even before `/pod:init`.
 
 ### `/pod:plan`: decide what to build
 
@@ -148,7 +148,7 @@ Writes an HTML report of a plan: key features, how the parts fit together as bui
 
 ### `/pod:idea [idea]`: save an idea for later
 
-Saves the idea to `pod-docs/ideas/<slug>.md`, with why it waits and what would make it worth building. Run it with no idea to list what's saved. When you later start `/pod:research`, `/pod:plan`, `/pod:ship`, or `/pod:fix` on something a saved idea touches, pod shows it and asks whether to build on it. At the end of `/pod:plan`, pod also offers to save what you left out of scope.
+Saves the idea to `pod-docs/ideas/<slug>.md`, with why it waits and what would make it worth building. Run it with no idea to list what's saved and open `pod-docs/ideas/index.html`, a board of every idea by status (parked, planned, built, dropped). pod updates the board whenever an idea changes. When you later start `/pod:research`, `/pod:plan`, `/pod:ship`, or `/pod:fix` on something a saved idea touches, pod shows it and asks whether to build on it. At the end of `/pod:plan`, pod also offers to save what you left out of scope.
 
 ## The agents
 
@@ -168,8 +168,8 @@ pod keeps its files in `pod-docs/`, apart from your own `docs/`. `pod-docs/READM
 ```
 pod-docs/
 │  For you: you read these and decide
-├── ideas/                  ideas saved for later (/pod:idea)
-├── research/               web research reports
+├── ideas/                  ideas saved for later (/pod:idea); open index.html
+├── research/               web research reports; open each .html
 ├── design-drafts/          look options and plan overviews to check
 ├── reports/                plan reports
 │
