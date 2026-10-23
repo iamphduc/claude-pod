@@ -2,6 +2,10 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod-flow 0.2.1 — 2026-10-23
+
+- pod-flow no longer reads a `skipped` PR cell on the sprint board, or shows a `SKIPPED` wave. pod stopped writing that value in 0.7.1, so nothing changes in a run.
+
 ## pod 0.7.1 — 2026-10-23
 
 - pod's rule files are shorter and trust the agents more. Step-by-step procedures became goals with their reasons, rules said in several files now live in one, and fixes for single past runs became general rules. Every guardrail and every format that pod-flow or another file reads is unchanged.

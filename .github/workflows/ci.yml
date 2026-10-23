@@ -23,6 +23,8 @@ jobs:
         run: |
           claude plugin validate .
           claude plugin validate ./pod-flow
+      - name: Check the contract strings
+        run: node .github/scripts/contracts.mjs
       - name: Test pod-flow
         working-directory: pod-flow
         run: claude plugin test .
