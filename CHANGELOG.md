@@ -2,6 +2,14 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.7.1 — 2026-10-23
+
+- pod's rule files are shorter and trust the agents more. Step-by-step procedures became goals with their reasons, rules said in several files now live in one, and fixes for single past runs became general rules. Every guardrail and every format that pod-flow or another file reads is unchanged.
+- The research report has a **Suspect pages** section, so `/pod:plan` can show you pages that tried to give instructions before the interview. Before, they appeared only in the researcher's chat summary and were lost when parts were merged.
+- The engineer and the reviewer list `axi` among their browser values, matching what `/pod:code` and `/pod:fix` send them.
+- When `/pod:code` records a default for a decision you haven't made, the queue entry says `default recorded`, so pod-flow's checklist lists it under **Decided for you**. A wave PR with a one-way slice also adds a `one-way door` queue entry, so the door shows in pod-flow's **needs you** group and checklist.
+- With the Chrome DevTools MCP, `/pod:fix` now passes the reviewer `browser: none` plus your page results, instead of a browser mode it doesn't accept.
+
 ## pod 0.7.0 — 2026-10-23
 
 - New `/pod:teach [topic]` explains how a codebase works and why it's built that way, so you understand it before you change it. With no topic, it covers the whole system; with one, such as `billing`, only that feature and where it touches the rest. It reads the code, splitting a big area across a few read-only agents, and looks for reasons in git history, PRs, and docs, labeling each one known, inferred, or unknown. You get an HTML page, `pod-docs/teach/<topic>.html`, with a map of the parts, the main flow with a worked example, where things live, the reasons, what to watch out for, and topics to learn next. It changes no code and works in any repo, even before `/pod:init`. Adapted from pstack's `/teach`, `/how`, and `/why`.

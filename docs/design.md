@@ -174,7 +174,7 @@ Rules only a **skill** needs sit next to that skill (`skills/autopilot/policy.md
 
 ## Why the rule files are short
 
-After the third run, every agent and skill file was cut to guardrails, contracts, and the goal with its reason — about 16,900 words down to 9,900. The rule for future edits, and the sources behind it, are in the README under "Editing pod's rules".
+After the third run, every agent and skill file was cut to guardrails, contracts, and the goal with its reason — about 16,900 words down to 9,900. New features grew them back, and a second pass in pod 0.7.1 cut the agents, skills, templates, autopilot policy, and init scaffold together from 16,972 words to about 15,200, leaving every parsed contract and guardrail in place. The rule for future edits, and the sources behind it, are in the README under "Editing pod's rules".
 
 ## Keep plans small
 
