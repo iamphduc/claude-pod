@@ -98,7 +98,7 @@ The **researcher** agent searches the web: what already exists, where it falls s
 
 ### `/pod:plan`: decide what to build
 
-pod interviews you about goals, scope, stack, and risks. Choose the **fast path** to accept its suggested answer wherever there's a safe default. If your project has a UI, you pick a **look** from three options shown in an HTML page (`pod-docs/design-drafts/look-directions.html`). The plan is saved to `pod-docs/plans/<slug>.md`.
+pod interviews you about goals, scope, stack, and risks. Choose the **fast path** to accept its suggested answer wherever there's a safe default. If your project has a UI, you pick a **look** from three options shown in an HTML page (`pod-docs/design-drafts/<slug>-look.html`). The plan is saved to `pod-docs/plans/<slug>.md`.
 
 Before any code, pod shows you an **overview** of what it will build: the parts and how they connect, the main flow step by step, and where the data lives, as diagrams in an HTML page (`pod-docs/design-drafts/<slug>-overview.html`). pod waits until you reply `ok` or send changes. The sprints follow the overview you approved, and the final report draws it again as built, marking any difference.
 
