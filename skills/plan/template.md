@@ -15,6 +15,31 @@ _Generated: <YYYY-MM-DD> · Status: <active | archived> · Grilled-with: <grilli
 **Out of scope:**
 - ...
 
+## How it fits together
+<the overview the human approved; the sprint-planner cuts slices along these parts>
+
+**Parts:**
+
+| Part | New or changed | Where (existing folder or module) | Does |
+|------|----------------|-----------------------------------|------|
+| <name> | new | <path> | <one line> |
+
+**How they connect:** <one arrow per connection, from the part that calls or sends; replies belong in the main flow>
+
+```mermaid
+flowchart LR
+  <part> -->|<what passes>| <part>
+```
+
+**Main flow:** <the core path, e.g. a user saves an API key>
+
+```mermaid
+sequenceDiagram
+  <actor or part>->><part>: <step>
+```
+
+**Data:** <what is stored, where, and who reads or writes it; a Mermaid `erDiagram` when there are more than two kinds>
+
 ## Sprint sequence
 
 | Sprint | Goal | Status | Depends on |

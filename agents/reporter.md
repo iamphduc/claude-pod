@@ -26,11 +26,12 @@ About 2,000 words; tables and short lines over paragraphs. Sections, in order:
 
 1. **At a glance** — the goal, what shipped, and the numbers: sprints, waves, slices, PRs, wall time, agent tokens as the Sprint summaries report them (saying what they measure), and the review verdict and rounds. It's written before the final merge: name the final PR by number and verdict, never as `open` or `merged`.
 2. **Key features** — what a user can do now, each tied to the plan's Verification criteria (met / not met / not checked). With a UI, one or two screenshots at desktop and 375 px, embedded as JPEG `data:` URIs no wider than 1200 px. To take them, add a detached worktree at the plan's head (`origin/<plan-slug>`, or the merge-target once merged) under `<parent-repo>/.claude/worktrees/<plan-slug>-report`, install and run the app there per the smoke recipe on your dev ports — the parent repo only holds docs, and the orchestrator's ports are its own — and drive it in your own browser session (`agent-browser --session pod-report` through the Bash tool; with `browser: axi`, `chrome-devtools-axi` with `CHROME_DEVTOOLS_AXI_SESSION=pod-report`). Then stop your servers, close that session, and `git worktree remove` it; refused → leave it and name it under **Gaps**, never force it. No working browser → no screenshots; say why under **Gaps**.
-3. **Key decisions** — one short card each: the decision, why, the alternatives, the consequence; who made it (human or agent); links to its `decisions.md` entry and any design draft.
-4. **Data structures** — each table, model, or type that matters (fields, where it lives, who uses it), the API as a table, and a small SVG diagram when there are more than three.
-5. **How the agents worked together** — one timeline row per wave: slices, what the engineers reported, what the orchestrator did, the PR. A short paragraph only where something happened (a wave fix, a stall, a halt, a human answer); then the review and fix pass. Mark every point the human stepped in.
-6. **What's left** — open queue entries as **Fix next / Before hosting / Someday**, one line each.
-7. **Sources** — the files, PRs, and commits used.
+3. **How it fits together, as built** — the plan's **How it fits together** redrawn from the code as inline SVG: the parts and how they connect, and the main flow, each part with the files that hold it. Mark each difference from the overview the human approved, with why, from the paper trail. The plan has none → draw it from the code alone and say so.
+4. **Key decisions** — one short card each: the decision, why, the alternatives, the consequence; who made it (human or agent); links to its `decisions.md` entry and any design draft.
+5. **Data structures** — each table, model, or type that matters (fields, where it lives, who uses it), the API as a table, and a small SVG diagram when there are more than three.
+6. **How the agents worked together** — one timeline row per wave: slices, what the engineers reported, what the orchestrator did, the PR. A short paragraph only where something happened (a wave fix, a stall, a halt, a human answer); then the review and fix pass. Mark every point the human stepped in.
+7. **What's left** — open queue entries as **Fix next / Before hosting / Someday**, one line each.
+8. **Sources** — the files, PRs, and commits used.
 
 Be accurate: quote agents only exactly, say plainly what you couldn't find, and label every estimate.
 
@@ -38,7 +39,7 @@ Before replying, make sure the file opens, every section is there, and it loads 
 
 ## Feature details
 
-Only with a **final PR**. For each feature whose `pod-docs/features.md` row this plan added or changed, write `pod-docs/feature-details/<feature-slug>.md` (create the folder if it's missing) so a later agent can learn how the feature works and why before it changes it, and link it from the row's **Feature** cell. Up to about 60 lines:
+Only with a **final PR**. For each feature whose `pod-docs/features.md` row this plan added or changed, write `pod-docs/feature-details/<feature-slug>.md` (create the folder if it's missing) so a later agent can learn how the feature works and why before it changes it, and link it from the row's **Feature** cell. Up to about 60 lines, or 90 with a diagram:
 
 ```
 # <Feature>
@@ -50,11 +51,11 @@ Only with a **final PR**. For each feature whose `pod-docs/features.md` row this
 ## History
 ```
 
-- **How it works:** the flow and the data that matter, in a few lines. Name a module or top-level folder only to help find the code.
+- **How it works:** the flow and the data that matter, in a few lines. Name a module or top-level folder only to help find the code. A feature with real logic (security, money, data rules, or a multi-step flow) also gets a Mermaid diagram of that flow, one worked example with real values, and the few files that hold the logic.
 - **Why it's this way:** decisions for this feature, each with the option turned down and the trade-off. A project-wide one → link its `decisions.md` entry, never copy it.
 - **Watch out:** rules that must hold, what looks wrong but isn't, and traps found during the build. A trap that spans features → link its `known-issues/` file.
 - **History:** one line per change, `<date> · <plan or fix> · what changed · <report or PR link>`. Keep earlier lines.
-- Describe the current state: an existing file → rewrite everything but **History**. Leave out what the code shows faster — file lists, signatures, code, test lists — and the sprint story, which the report has.
+- Describe the current state: an existing file → rewrite everything but **History**. Leave out what the code shows faster — other file lists, signatures, code, test lists — and the sprint story, which the report has.
 
 ## Final output
 

@@ -2,6 +2,13 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.5.0 — 2026-10-23
+
+- Before any code, `/pod:plan` shows you an overview of what it will build. The plan gets a **How it fits together** section, with the parts (new or changed, and where they go), how they connect, the main flow step by step, and where the data lives, as Mermaid diagrams. pod draws them in an HTML page, `pod-docs/design-drafts/<slug>-overview.html`, opens it, and waits for your `ok` or your changes. `/pod:ship` asks at its go check.
+- The sprint-planner cuts slices along the overview you approved, and stops if one has to differ.
+- The plan report has a new **How it fits together, as built** section, drawn from the code, that marks each difference from the overview.
+- Feature details for a feature with real logic (security, money, data rules, or a multi-step flow) add a diagram of the flow, one worked example, and the few files that hold the logic.
+
 ## pod 0.4.1 — 2026-10-23
 
 - The `pod-staging` PR that autopilot opens says what it holds. Its title is a conventional commit for what the plans built, such as `feat: friends list and invites (plan friends)`. Its body has a section per plan with the goal, the features, the one-way doors and decisions made for you, loose ends, and links to the plan's final PR and report. A later plan that lands before you merge updates the title and adds its section. The branch keeps its name.
