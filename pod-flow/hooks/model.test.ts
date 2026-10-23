@@ -273,7 +273,6 @@ test('a finished wave stays open when its sprint is done, or when it has a queue
 test('prState reads the board PR cell', () => {
   expect(prState('—')).toEqual({ state: 'none' })
   expect(prState('merged')).toEqual({ state: 'merged' })
-  expect(prState('skipped — verification failed')).toEqual({ state: 'skipped' })
   expect(prState('blocked')).toEqual({ state: 'blocked' })
   expect(prState('https://github.com/me/app/pull/12')).toEqual({ state: 'open', number: '12' })
   expect(prState('[#12](https://github.com/me/app/pull/12)')).toEqual({ state: 'open', number: '12' })
@@ -293,9 +292,8 @@ test('an open PR wins even when every slice is marked done', () => {
   expect(waveNote('https://github.com/me/app/pull/12', 'done')).toMatchObject({ status: 'running', note: 'PR #12 open · 2/2' })
 })
 
-test('a merged wave is done, and a skipped one is blocked', () => {
+test('a merged wave is done', () => {
   expect(waveNote('merged', 'done')).toMatchObject({ status: 'done', note: undefined })
-  expect(waveNote('skipped — verification failed')).toMatchObject({ status: 'blocked', note: 'skipped · 0/2' })
 })
 
 test('fit keeps the note and shortens the name when the row is too long', () => {

@@ -262,19 +262,18 @@ const SLICE_STATUS: Record<string, string> = {
   blocked: 'blocked',
 }
 
-/** What a board's PR cell says: nothing yet, a wave PR open, merged, skipped, or blocked. */
-export function prState(pr: string): { state: 'none' | 'open' | 'merged' | 'skipped' | 'blocked'; number?: string } {
+/** What a board's PR cell says: nothing yet, a wave PR open, merged, or blocked. */
+export function prState(pr: string): { state: 'none' | 'open' | 'merged' | 'blocked'; number?: string } {
   if (/merged/i.test(pr)) return { state: 'merged' }
-  if (/skipped/i.test(pr)) return { state: 'skipped' }
   if (/blocked/i.test(pr)) return { state: 'blocked' }
   if (/https?:\/\//i.test(pr)) return { state: 'open', number: /\/pull\/(\d+)/.exec(pr)?.[1] }
   return { state: 'none' }
 }
 
 /** A slice is finished when its status says so, or its PR cell says merged. */
-// A blocked or skipped status wins over a merged PR cell, so a wave never counts a ✗ slice as done.
+// A blocked status wins over a merged PR cell, so a wave never counts a ✗ slice as done.
 export const isDone = (row: Row) =>
-  row.status !== 'blocked' && row.status !== 'skipped' &&
+  row.status !== 'blocked' &&
   (row.status === 'done' || row.status === 'merged' || prState(row.pr).state === 'merged')
 
 /**
@@ -287,7 +286,6 @@ const waveStatus = (rows: Row[], sprint: string, liveSlices: Set<string>, isSett
     if (r.status === 'done' && isSettled) return { state: 'merged' as const }
     return prState(r.pr)
   })
-  if (prs.some(p => p.state === 'skipped')) return { status: 'blocked', tag: 'skipped' }
   const open = prs.find(p => p.state === 'open')
   if (open) return { status: 'running', tag: open.number ? `PR #${open.number} open` : 'PR open' }
   if (rows.every(isDone)) return { status: 'done' }
@@ -365,9 +363,9 @@ const DIVIDER = 30
 export const questionGlyph = (line: TreeLine) => (line.status === 'blocked' ? GLYPH.blocked : '?')
 
 /**
- * The run's turning points in the tree: a wave opens its PR, finishes or is skipped, a slice is blocked,
+ * The run's turning points in the tree: a wave opens its PR or finishes, a slice is blocked,
  * a sprint or the plan finishes, the run stops. Keyed so each is told once; the text leads with the tree's symbol,
- * and what needs the person (blocked, skipped, halted, waiting on you) leads with that in capitals.
+ * and what needs the person (blocked, halted, waiting on you) leads with that in capitals.
  */
 export function milestones(lines: TreeLine[]): Map<string, string> {
   const found = new Map<string, string>()
@@ -384,7 +382,6 @@ export function milestones(lines: TreeLine[]): Map<string, string> {
       const pr = /PR (#\d+ )?open/.exec(line.note ?? '')?.[0]
       if (pr) found.set(`${where} ${pr}`, `${GLYPH.pushed} ${where} · ${pr}`)
       if (line.status === 'done') found.set(`${where} done`, `${GLYPH.done} ${where} done`)
-      if (line.status === 'blocked' && line.note?.includes('skipped')) found.set(`${where} skipped`, `${GLYPH.blocked} SKIPPED · ${where}`)
     }
     if (line.kind === 'slice' && line.status === 'blocked') found.set(`${where} blocked`, `${GLYPH.blocked} BLOCKED · ${where}`)
     if (line.kind === 'question') found.set(`question ${line.text}`, [`${questionGlyph(line)} NEEDS YOU`, line.text, line.note].filter(Boolean).join(' · '))
