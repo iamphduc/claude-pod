@@ -122,6 +122,11 @@ skills/plan/SKILL.md|<slug>-look.html
 skills/plan/SKILL.md|<slug>-look-<N>.html
 skills/plan/SKILL.md|Plan not written yet — reply to continue.
 skills/plan/SKILL.md|grill-me
+skills/plan/SKILL.md|skills/plan/interview.md
+skills/plan/interview.md|❓ **Q1**
+skills/plan/interview.md|➡️
+skills/plan/interview.md|ok except Q3
+skills/plan/interview.md|Copyright (c) 2026 Matt Pocock
 skills/ship/SKILL.md|reply `go` to start autopilot
 # init
 skills/init/SKILL.md|pod docs: <N>
