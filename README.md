@@ -83,7 +83,7 @@ The first line runs inside Claude Code, the second in your terminal (also `claud
 
 ## Credits
 
-Several of pod's checks come from **pstack**, a Cursor plugin by Lauren Tan ([a deep dive](https://flaviocopes.com/pstack)). See [what pod borrows](docs/commands.md#credits).
+Several of pod's checks come from **pstack**, a Cursor plugin by Lauren Tan ([a deep dive](https://flaviocopes.com/pstack)). The `/pod:plan` interview is adapted from Matt Pocock's [`grilling`](https://github.com/mattpocock/skills) skill. See [what pod borrows](docs/commands.md#credits).
 
 ## License
 
