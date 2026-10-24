@@ -158,7 +158,12 @@ export type QueueEntry = {
   body: string
   isPending: boolean
   resolution?: string
+  /** What the human wrote back from Pod Board: ` **Answer (human):** <text>`, after the Resolution. */
+  answer?: string
 }
+
+/** Pod Board's answer marker. Counted only after `**Resolution:**`, so one quoted in a body is not an answer. */
+const ANSWER = /\s*\*\*Answer \(human\):\*\*\s*(.*)$/i
 
 /** The entries of the handoff queue: `- [date · TYPE · from → to · sprint: x · slice: y] body **Resolution:** …`. */
 export function parseQueue(queue: string): QueueEntry[] {
@@ -168,6 +173,9 @@ export function parseQueue(queue: string): QueueEntry[] {
     const head = (m[1] ?? '').split('·').map(part => part.trim())
     const field = (name: string) => head.find(h => h.toLowerCase().startsWith(`${name}:`))?.slice(name.length + 1).trim()
     const rest = m[2] ?? ''
+    const settled = /\*\*Resolution:\*\*(.*)$/i.exec(rest)?.[1] ?? ''
+    const answer = ANSWER.exec(settled)?.[1]?.trim()
+    const resolution = settled.replace(ANSWER, '')
     return [
       {
         type: (head[1] ?? '').toUpperCase(),
@@ -176,9 +184,10 @@ export function parseQueue(queue: string): QueueEntry[] {
         sprint: field('sprint'),
         slice: field('slice'),
         body: rest.replace(/\*\*Resolution:\*\*.*$/i, '').trim(),
-        isPending: /\*\*Resolution:\*\*\s*pending/i.test(rest),
+        isPending: /^\s*pending/i.test(resolution),
         // What it was settled with, its date left off: `default recorded: 1px grey; override anytime`.
-        resolution: /\*\*Resolution:\*\*\s*(?:\d{4}-\d\d-\d\d\s*[—-]\s*)?(.*)$/i.exec(rest)?.[1]?.trim() || undefined,
+        resolution: /^\s*(?:\d{4}-\d\d-\d\d\s*[—-]\s*)?(.*)$/.exec(resolution)?.[1]?.trim() || undefined,
+        answer: answer || undefined,
       },
     ]
   })
@@ -317,7 +326,8 @@ export function summarize(lines: TreeLine[]): string {
   }
   const working = lines.filter(l => (l.kind === 'slice' || l.kind === 'agent' || l.kind === 'round') && l.status === 'running').length
   const blocked = lines.filter(l => l.status === 'blocked' && l.kind !== 'wave' && l.kind !== 'concern' && l.kind !== 'question' && l.kind !== 'review' && l.kind !== 'halt').length
-  const questions = lines.filter(l => l.kind === 'question').length
+  // An answered question waits on pod now, not on you.
+  const questions = lines.filter(l => l.kind === 'question' && l.status !== 'done').length
   if (working > 0) parts.push(`${working} running`)
   if (blocked > 0) parts.push(`${blocked} blocked`)
   if (questions > 0) parts.push(`${questions} ${questions === 1 ? 'question' : 'questions'}`)
@@ -359,8 +369,8 @@ export function uncheckedReminder(lines: TreeLine[]): string | undefined {
 /** The divider over Run app in the text version, which has no width to fill. */
 const DIVIDER = 30
 
-/** A question waits with a `?`; a blocked one keeps its `✗`. */
-export const questionGlyph = (line: TreeLine) => (line.status === 'blocked' ? GLYPH.blocked : '?')
+/** A question waits with a `?`; a blocked one keeps its `✗`, and an answered one has a `✓`. */
+export const questionGlyph = (line: TreeLine) => (line.status === 'blocked' ? GLYPH.blocked : line.status === 'done' ? GLYPH.done : '?')
 
 /**
  * The run's turning points in the tree: a wave opens its PR or finishes, a slice is blocked,
@@ -384,7 +394,7 @@ export function milestones(lines: TreeLine[]): Map<string, string> {
       if (line.status === 'done') found.set(`${where} done`, `${GLYPH.done} ${where} done`)
     }
     if (line.kind === 'slice' && line.status === 'blocked') found.set(`${where} blocked`, `${GLYPH.blocked} BLOCKED · ${where}`)
-    if (line.kind === 'question') found.set(`question ${line.text}`, [`${questionGlyph(line)} NEEDS YOU`, line.text, line.note].filter(Boolean).join(' · '))
+    if (line.kind === 'question' && line.status !== 'done') found.set(`question ${line.text}`, [`${questionGlyph(line)} NEEDS YOU`, line.text, line.note].filter(Boolean).join(' · '))
     if (line.kind === 'halt') {
       // The action leads, so the line says what to do before why.
       const after = lines.slice(i + 1)
@@ -707,17 +717,23 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
   ]
 
   // First, what waits on you: in the chat, a question scrolls away under the run's own messages.
+  // One answered from Pod Board stays in view, marked answered, until pod applies it and fills in its Resolution.
   const questions = questionsFor(queue, plan)
   if (questions.length > 0) {
-    lines.push({ depth: 1, kind: 'ask', text: 'needs you', status: 'pushed', note: `${questions.length}` })
+    const waiting = questions.filter(e => !e.answer).length
+    lines.push(
+      waiting > 0
+        ? { depth: 1, kind: 'ask', text: 'needs you', status: 'pushed', note: `${waiting}` }
+        : { depth: 1, kind: 'ask', text: 'answered', status: 'done', note: `${questions.length}` },
+    )
     for (const entry of questions) {
       const from = entry.route.split('→')[0]?.trim()
       lines.push({
         depth: 2,
         kind: 'question',
         text: short(concernText(entry.body), 80),
-        status: entry.type === 'BLOCKED' ? 'blocked' : 'waiting',
-        note: [entry.slice, from].filter(Boolean).join(' · ') || undefined,
+        status: entry.answer ? 'done' : entry.type === 'BLOCKED' ? 'blocked' : 'waiting',
+        note: [entry.answer && 'answered', entry.slice, from].filter(Boolean).join(' · ') || undefined,
       })
     }
   }

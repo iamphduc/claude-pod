@@ -79,6 +79,8 @@ skills/code/SKILL.md|**Obsolete**
 skills/code/SKILL.md|(agent default — override anytime)
 skills/code/SKILL.md|written as field lines
 skills/code/SKILL.md|teardown: defer
+skills/code/SKILL.md|**Answer (human):**
+skills/code/SKILL.md|- **Answers:**
 # autopilot
 skills/autopilot/policy.md|blocked-concern
 skills/autopilot/policy.md|plan-review-fail
@@ -87,6 +89,7 @@ skills/autopilot/policy.md|inter-wave-verify
 skills/autopilot/policy.md|safety-bound
 skills/autopilot/policy.md|escalation-valve
 skills/autopilot/policy.md|plan-complete
+skills/autopilot/policy.md|**Answers**
 skills/autopilot/policy.md|## <date> — merge target: <choice>
 skills/autopilot/policy.md|**Staging (recommended)**
 skills/autopilot/policy.md|(plan <slug>)
@@ -128,6 +131,7 @@ skills/init/scaffold/pod-docs/README.md|pod docs: 2
 skills/init/scaffold/pod-docs/features.md|| Feature | User reaches it by | Drive | Proof |
 skills/init/scaffold/pod-docs/handoff-queue.md|**Resolution:**
 skills/init/scaffold/pod-docs/handoff-queue.md|default recorded
+skills/init/scaffold/pod-docs/handoff-queue.md|**Answer (human):**
 # reporter
 agents/reporter.md|- **plan slug**
 agents/reporter.md|- **final PR**

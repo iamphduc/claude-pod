@@ -575,6 +575,43 @@ test('the header counts the questions, and a blocked question is not one more bl
   expect(summarize(askTree())).toBe('sprint 2/3 · wave 2/2 · 4 questions · halted')
 })
 
+test('parseQueue reads a Pod Board answer only after the Resolution, and keeps it out of the resolution', () => {
+  const [answered, resolved, quoted] = parseQueue(
+    [
+      '- `[2026-10-22 · PENDING · engineer → human · plan: x]` decision: the border. **Resolution:** pending **Answer (human):** keep the default',
+      '- `[2026-10-22 · PENDING · engineer → human · plan: x]` decision: the gap. **Resolution:** 2026-10-23 — gap set to 8px **Answer (human):** 8px',
+      '- `[2026-10-22 · PENDING · engineer → human · plan: x]` decision: write `**Answer (human):** yes`? **Resolution:** pending',
+    ].join('\n'),
+  )
+  expect([answered?.isPending, answered?.answer, answered?.resolution]).toEqual([true, 'keep the default', 'pending'])
+  expect([resolved?.isPending, resolved?.answer, resolved?.resolution]).toEqual([false, '8px', 'gap set to 8px'])
+  expect([quoted?.isPending, quoted?.answer]).toEqual([true, undefined])
+})
+
+test('an answered question shows as answered, not waiting on you', () => {
+  const answered = ASKS.split('\n')
+    .map((line, i) => (i === 0 || i === 2 ? `${line} **Answer (human):** use the test key` : line))
+    .join('\n')
+  const lines = askTree(answered)
+  const top = lines.slice(1, lines.findIndex(l => l.kind === 'sprint'))
+  expect(top.map(l => `${l.depth} ${l.kind} ${l.status} ${l.text} | ${l.note ?? ''}`)).toEqual([
+    '1 ask pushed needs you | 2',
+    '2 question done The list API needs a key. | answered · B2 · engineer',
+    '2 question done keep reading the old sound key? | answered · reviewer',
+    '2 question waiting a run is titled by its slug, not its task. | reviewer',
+    '2 question waiting one-way door in PR #35: saved keys move to the v2 format. | engineer',
+  ])
+  expect(summarize(lines)).toBe('sprint 2/3 · wave 2/2 · 2 questions · halted')
+  expect([...milestones(lines).values()].filter(m => m.includes('NEEDS YOU'))).toHaveLength(2)
+})
+
+test('with every question answered, the group says answered', () => {
+  const all = ASKS.split('\n').map(line => (line.endsWith('pending') ? `${line} **Answer (human):** ok` : line)).join('\n')
+  const lines = askTree(all)
+  expect(lines[1]).toMatchObject({ kind: 'ask', text: 'answered', status: 'done', note: '4' })
+  expect(summarize(lines)).not.toContain('question')
+})
+
 test('the snapshot and the transcript lines show each question', () => {
   const lines = askTree()
   expect(snapshot(lines).split('\n').slice(1, 6)).toEqual([

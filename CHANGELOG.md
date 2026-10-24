@@ -2,6 +2,12 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.8.0 · pod-flow 0.3.0 — 2026-10-24
+
+- pod reads the answers you give from Pod Board. An entry addressed to you that has ` **Answer (human):** <text>` after `**Resolution:** pending` is your answer: `/pod:code` and `/pod:autopilot` apply it at the next wave start or resume, fill in the Resolution, and keep your answer on the line. The queue file now describes this format.
+- An answered `BLOCKED` resumes the run only after pod checks again that the problem is gone, such as a merge conflict or a failed smoke check. If it is still there, the entry stays pending and pod adds a new `BLOCKED` that says what still fails.
+- pod-flow shows an answered question with a ✓ and `answered`, and stops counting it as waiting on you. When every question is answered, the **needs you** group says **answered**.
+
 ## pod-flow 0.2.1 — 2026-10-23
 
 - pod-flow no longer reads a `skipped` PR cell on the sprint board, or shows a `SKIPPED` wave. pod stopped writing that value in 0.7.1, so nothing changes in a run.

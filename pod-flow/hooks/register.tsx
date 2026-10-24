@@ -354,7 +354,7 @@ export const register: Register = on => {
     const draw = (row: TreeLine, i: number) => {
       const glyph = row.isContinued ? ' ' : row.kind === 'concern' ? '⚠' : row.kind === 'hint' ? '➜' : row.kind === 'question' ? questionGlyph(row) : (GLYPH[row.status] ?? '·')
       // What you do next, or what waits on you: never dim.
-      const isForYou = row.kind === 'hint' || row.kind === 'question'
+      const isForYou = row.kind === 'hint' || (row.kind === 'question' && row.status !== 'done')
       if (row.kind === 'app' && row.status === 'done') {
         // The plan is done and you moved on: one quiet line, no button, no list.
         return <Text wrap="truncate-end" color={COLOR.done}>{[`${GLYPH.done} ${row.text}`, row.note].filter(Boolean).join(' · ')}</Text>
