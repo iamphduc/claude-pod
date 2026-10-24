@@ -2,6 +2,12 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.9.0 — 2026-10-24
+
+- `/pod:plan` ships its own interview, adapted from Matt Pocock's `grilling` skill (MIT), so you don't need to install anything. Each round asks every question pod can ask now, numbered, each with a recommended answer, and a question that depends on an open answer waits for a later round. pod looks up facts itself and asks you only for decisions.
+- Answer a round in plain words: `ok` takes every recommendation, `ok except Q3: <answer>` changes one, and `Q1 b, Q2 yes` answers by number. Before, without `grilling` installed, pod asked one question at a time.
+- New plans record `Grilled-with: pod` or `grill-me + pod`. Older plans keep their value.
+
 ## pod 0.8.0 · pod-flow 0.3.0 — 2026-10-24
 
 - pod reads the answers you give from Pod Board. An entry addressed to you that has ` **Answer (human):** <text>` after `**Resolution:** pending` is your answer: `/pod:code` and `/pod:autopilot` apply it at the next wave start or resume, fill in the Resolution, and keep your answer on the line. The queue file now describes this format.

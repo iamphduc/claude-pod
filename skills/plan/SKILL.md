@@ -35,7 +35,7 @@ Know what's already decided:
 
 Cover goal and success, scope in and out, what existing behavior or look changes, stack and constraints, trade-offs, and risks. Look facts up yourself; don't ask what's settled.
 
-- **`grilling` installed** → use it in its own format. Not installed → interview with `AskUserQuestion`, one decision per question, your recommendation first, and mention once that `npx skills add mattpocock/skills` (`grilling`) gives a deeper interview. The human already ran `/grill-me` → ask only what it left open.
+- **Rounds:** interview per `${CLAUDE_PLUGIN_ROOT}/skills/plan/interview.md`, in its format, even when the human has another grilling skill installed. The human already ran `/grill-me` → ask only what it left open.
 - **Fast path:** in the first round, offer to ask everything or only what has no safe default. On the fast path still ask whatever changes what gets built or how it looks, and list every default you took in Key decisions, marked `(default)`.
 
 ## Look

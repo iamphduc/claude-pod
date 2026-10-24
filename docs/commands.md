@@ -32,11 +32,7 @@ pod interviews you about goals, scope, stack, and risks. Choose the **fast path*
 
 Before any code, pod shows you an **overview** of what it will build: the parts and how they connect, the main flow step by step, and where the data lives, as diagrams in an HTML page (`pod-docs/design-drafts/<slug>-overview.html`). pod waits until you reply `ok` or send changes. The sprints follow the overview you approved, and the final report draws it again as built, marking any difference.
 
-*Tip:* install the `grilling` skill for a deeper interview:
-
-```
-npx -y skills add mattpocock/skills -g -s grilling -y
-```
+The interview goes in rounds. Each round asks every question pod can ask now, numbered, each with pod's recommended answer. Reply in plain words: `ok` takes every recommendation, `ok except Q3: <answer>` changes one, and `Q1 b, Q2 yes` answers by number. pod looks up facts itself and asks you only for decisions.
 
 ### `/pod:sprint [slug]`: split the next step into work
 
@@ -175,3 +171,4 @@ Several of pod's checks come from **pstack**, a Cursor plugin by Lauren Tan. Fla
 - **Contract friction:** engineers report a design that keeps fighting back instead of working around it (from `/architect`).
 - **Teach:** `/pod:teach` joins how the code works with why it's built that way, splits a big area across parallel readers, and labels each reason known, inferred, or unknown (from `/teach`, `/how`, and `/why`).
 
+The `/pod:plan` interview comes from Matt Pocock's **`grilling`** skill ([mattpocock/skills](https://github.com/mattpocock/skills), MIT): rounds of every question that can be asked now, each with a recommended answer, until no decision is left assumed. pod ships its own copy, `skills/plan/interview.md`, with the license, so you don't need to install anything.

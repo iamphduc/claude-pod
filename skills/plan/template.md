@@ -1,6 +1,6 @@
 # Plan: <plan name>
 
-_Generated: <YYYY-MM-DD> · Status: <active | archived> · Grilled-with: <grilling | pod | grill-me + grilling | grill-me + pod>[ (fast)]_
+_Generated: <YYYY-MM-DD> · Status: <active | archived> · Grilled-with: <pod | grill-me + pod>[ (fast)]_
 
 ## Goal
 <2–3 sentences: what we're accomplishing>
@@ -66,7 +66,7 @@ Status: `planned` / `active` / `done`. `Depends on` is the only dependency betwe
 - <risk: mitigation>
 
 ## Open questions
-- <unresolved after grilling; flag as risks for orchestrator>
+- <unresolved after the interview; flag as risks for orchestrator>
 
 ## Verification
 How we'll know the whole plan succeeded — top-level criteria only, not per-sprint. The end-of-plan reviewer checks each one against the final code, so make them checkable.
