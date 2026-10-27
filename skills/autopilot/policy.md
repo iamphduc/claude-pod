@@ -42,7 +42,7 @@ No CI (`## CI` is `none`) isn't a halt: say once, at the start, that merges rest
 
 **Gate 1's one exception:** a `BLOCKED` fixed only by a test fixture or doc no other slice owns → give it to that engineer, resume it, and tell the human.
 
-**Every gate halts:** append a one-line queue entry from `orchestrator` naming the gate and the artifact, send a `PushNotification`, and end the turn. `BLOCKED` must be resolved before resuming; `PENDING` only needs acknowledging. A Pod Board answer (`**Answer (human):**`) acknowledges either; an answered `BLOCKED` is resolved once `/pod:code`'s **Answers** rule applies it and finds the cause gone. `/pod:code`'s **Plan complete** step 5 writes its entry whatever the verdict (`review <pass | still failing>`); that is gate 7's entry, so don't write a second. A gate 2 halt adds its own.
+**Every gate halts:** append a one-line queue entry from `orchestrator`, of the table's queue type (never your own pick: a gate 3 is `BLOCKED` even when the fix is only "merge it after #27"), whose body starts `gate <N> (<name>): ` and then names the artifact, e.g. `gate 6 (escalation-valve): wave 2 PR <url> withheld, one-way door`. Pod Board tells a halt from a note by that start, so no other entry starts that way. Then send a `PushNotification` and end the turn. `BLOCKED` must be resolved before resuming; `PENDING` only needs acknowledging. A Pod Board answer (`**Answer (human):**`) acknowledges either; an answered `BLOCKED` is resolved once `/pod:code`'s **Answers** rule applies it and finds the cause gone. `/pod:code`'s **Plan complete** step 5 entry is a note, written before the final merge; gate 2 and gate 7 each add their own halt entry when they halt.
 
 ## Safety bounds
 
@@ -52,4 +52,4 @@ Hitting any → gate 5. Check them before each wave and after each sprint is arc
 - `--max-waves=<N>` — waves dispatched (default `20`).
 - `--max-runtime=<duration>` — wall clock, e.g. `4h` (default: unlimited).
 
-Resuming after a halt starts the clock and the counts again. Keep the count in a line `<!-- autopilot-run: started=<ISO8601> sprints=<N> waves=<N> -->` in the active sprint doc (the plan doc between sprints; carry it over when the sprint-planner writes a new doc).
+Resuming after a halt starts the clock and the counts again. Keep the count in a line `<!-- autopilot-run: started=<ISO8601> sprints=<N> waves=<N> -->` in the active sprint doc (the plan doc between sprints and after the last sprint is archived, until the run halts at gate 2 or 7; carry it over when the sprint-planner writes a new doc).

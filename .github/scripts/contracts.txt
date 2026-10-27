@@ -96,6 +96,7 @@ skills/autopilot/policy.md|(plan <slug>)
 skills/autopilot/policy.md|(plans <slug>, <slug>)
 skills/autopilot/policy.md|## <plan title> (<plan-slug>)
 skills/autopilot/policy.md|<!-- autopilot-run: started=<ISO8601> sprints=<N> waves=<N> -->
+skills/autopilot/policy.md|`gate <N> (<name>): `
 skills/create-wave-prompts/SKILL.md|claude --agent pod:engineer
 skills/create-wave-prompts/SKILL.md|.claude/worktrees/
 # sprint-planner
