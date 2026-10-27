@@ -7,7 +7,7 @@ Newest first. The `pod` and `pod-flow` plugins share this file. Each heading nam
 - Every autopilot halt adds a queue entry that starts `gate <N> (<name>): `, such as `gate 6 (escalation-valve): …`, and no other entry starts that way. Pod Board can tell a halt from a note by that start. Before, halts named the gate in different ways, and some never named it.
 - Gate 7 adds its own halt entry when it halts. The `plan <slug> complete` entry from **Plan complete** is now a note, because it's written before the final merge, which can still fail.
 - A halt's queue type always comes from the gate table. A gate 3 is `BLOCKED`, even when the only fix is to merge in a set order.
-- The `autopilot-run` line stays in the plan doc after the last sprint is archived, until the run halts at gate 2 or 7.
+- The `autopilot-run` line stays in the plan doc after the last sprint is archived, and stays there after the run halts at gate 2 or 7.
 
 ## pod 0.9.0 — 2026-10-24
 

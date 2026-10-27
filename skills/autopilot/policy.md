@@ -52,4 +52,4 @@ Hitting any → gate 5. Check them before each wave and after each sprint is arc
 - `--max-waves=<N>` — waves dispatched (default `20`).
 - `--max-runtime=<duration>` — wall clock, e.g. `4h` (default: unlimited).
 
-Resuming after a halt starts the clock and the counts again. Keep the count in a line `<!-- autopilot-run: started=<ISO8601> sprints=<N> waves=<N> -->` in the active sprint doc (the plan doc between sprints and after the last sprint is archived, until the run halts at gate 2 or 7; carry it over when the sprint-planner writes a new doc).
+Resuming after a halt starts the clock and the counts again. Keep the count in a line `<!-- autopilot-run: started=<ISO8601> sprints=<N> waves=<N> -->` in the active sprint doc (the plan doc between sprints and after the last sprint is archived, where it stays after a gate 2 or 7 halt; carry it over when the sprint-planner writes a new doc).
