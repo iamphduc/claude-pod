@@ -2,6 +2,13 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.9.1 — 2026-10-27
+
+- Every autopilot halt adds a queue entry that starts `gate <N> (<name>): `, such as `gate 6 (escalation-valve): …`, and no other entry starts that way. Pod Board can tell a halt from a note by that start. Before, halts named the gate in different ways, and some never named it.
+- Gate 7 adds its own halt entry when it halts. The `plan <slug> complete` entry from **Plan complete** is now a note, because it's written before the final merge, which can still fail.
+- A halt's queue type always comes from the gate table. A gate 3 is `BLOCKED`, even when the only fix is to merge in a set order.
+- The `autopilot-run` line stays in the plan doc after the last sprint is archived, and stays there after the run halts at gate 2 or 7.
+
 ## pod 0.9.0 — 2026-10-24
 
 - `/pod:plan` ships its own interview, adapted from Matt Pocock's `grilling` skill (MIT), so you don't need to install anything. Each round asks every question pod can ask now, numbered, each with a recommended answer, and a question that depends on an open answer waits for a later round. pod looks up facts itself and asks you only for decisions.

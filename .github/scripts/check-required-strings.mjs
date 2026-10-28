@@ -1,8 +1,8 @@
 // Fails when a string that pod-flow, the evals, or another rule file reads is missing from pod's rule files.
-//   node .github/scripts/contracts.mjs   run from the repo root; the list is contracts.txt next to this file.
+//   node .github/scripts/check-required-strings.mjs   run from the repo root; the list is required-strings.txt next to this file.
 import { existsSync, readFileSync } from 'node:fs'
 
-const list = readFileSync(new URL('contracts.txt', import.meta.url), 'utf8')
+const list = readFileSync(new URL('required-strings.txt', import.meta.url), 'utf8')
 const missing = []
 for (const line of list.split(/\r?\n/)) {
   if (!line.trim() || line.startsWith('#')) continue
@@ -13,7 +13,7 @@ for (const line of list.split(/\r?\n/)) {
 }
 
 if (missing.length) {
-  console.error(`${missing.length} contract string(s) missing:\n${missing.map(m => `  ${m}`).join('\n')}`)
+  console.error(`${missing.length} required string(s) missing:\n${missing.map(m => `  ${m}`).join('\n')}`)
   process.exit(1)
 }
-console.log('all contract strings present')
+console.log('all required strings present')

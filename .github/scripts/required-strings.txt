@@ -1,6 +1,6 @@
 # Strings that pod-flow, the evals, or another rule file read from pod's rule files.
 # One per line: <file>|<exact text>. Lines starting with # are comments.
-# Checked by .github/scripts/contracts.mjs. If you rename one on purpose, update every reader, then this list.
+# Checked by .github/scripts/check-required-strings.mjs. If you rename one on purpose, update every reader, then this list.
 # engineer
 agents/engineer.md|## Required dispatch context
 agents/engineer.md|fix-<slug>
@@ -96,6 +96,7 @@ skills/autopilot/policy.md|(plan <slug>)
 skills/autopilot/policy.md|(plans <slug>, <slug>)
 skills/autopilot/policy.md|## <plan title> (<plan-slug>)
 skills/autopilot/policy.md|<!-- autopilot-run: started=<ISO8601> sprints=<N> waves=<N> -->
+skills/autopilot/policy.md|`gate <N> (<name>): `
 skills/create-wave-prompts/SKILL.md|claude --agent pod:engineer
 skills/create-wave-prompts/SKILL.md|.claude/worktrees/
 # sprint-planner
