@@ -559,7 +559,7 @@ test("the tree opens with the questions waiting on you: this plan's, not notes, 
     '2 question blocked The list API needs a key. | B2 · engineer',
     '2 question waiting keep reading the old sound key? | reviewer',
     '2 question waiting a run is titled by its slug, not its task. | reviewer',
-    '2 question waiting one-way door in PR #35: saved keys move to the v2 format. | engineer',
+    '2 question waiting PR #35: saved keys move to the v2 format | engineer',
   ])
   // The halt keeps its own line at the end.
   expect(lines.filter(l => l.kind === 'halt')).toHaveLength(1)
@@ -599,7 +599,7 @@ test('an answered question shows as answered, not waiting on you', () => {
     '2 question done The list API needs a key. | answered · B2 · engineer',
     '2 question done keep reading the old sound key? | answered · reviewer',
     '2 question waiting a run is titled by its slug, not its task. | reviewer',
-    '2 question waiting one-way door in PR #35: saved keys move to the v2 format. | engineer',
+    '2 question waiting PR #35: saved keys move to the v2 format | engineer',
   ])
   expect(summarize(lines)).toBe('sprint 2/3 · wave 2/2 · 2 questions · halted')
   expect([...milestones(lines).values()].filter(m => m.includes('NEEDS YOU'))).toHaveLength(2)
@@ -619,7 +619,7 @@ test('the snapshot and the transcript lines show each question', () => {
     '├─ ✗ The list API needs a key.  B2 · engineer',
     '├─ ? keep reading the old sound key?  reviewer',
     '├─ ? a run is titled by its slug, not its task.  reviewer',
-    '└─ ? one-way door in PR #35: saved keys move to the v2 format.  engineer',
+    '└─ ? PR #35: saved keys move to the v2 format  engineer',
   ])
   expect([...milestones(lines).values()]).toContain('? NEEDS YOU · keep reading the old sound key? · reviewer')
 })
@@ -672,8 +672,8 @@ test('at the hand-back, the checklist puts one-way doors, decisions made for you
   expect(lines[at - 1]).toMatchObject({ kind: 'hint', text: 'merge PR #58' })
   expect(lines.slice(at).map(l => `${l.kind} ${l.status} ${l.isImportant ? '!' : '-'} ${l.text} | ${l.note ?? ''}`)).toEqual([
     'app waiting - Run app | check these (1/4)',
-    'check waiting ! one-way door in PR #35: saved keys move to the v2 format. | ',
-    'check waiting ! Decided for you: the input border. | default recorded: 1px grey; override anytime',
+    'check waiting ! PR #35: saved keys move to the v2 format | ',
+    'check waiting ! Decided: the input border | 1px grey',
     'check done ! Saved keys | Settings → API keys',
     'also  - also changed | ',
     'check waiting - Sign in | the login page, or a magic link',
@@ -681,6 +681,54 @@ test('at the hand-back, the checklist puts one-way doors, decisions made for you
   expect(appTree({ isAppRunning: true }).find(l => l.kind === 'app')?.text).toBe('Stop app')
   // The checklist says what to look at; its ticks are not one more done or blocked row.
   expect(summarize(lines)).toBe(summarize(appTree({ ticked: [] })))
+})
+
+test('a one-way door reads short as PR #N, and opens whole with how to undo it', () => {
+  expect(appTree().find(l => l.kind === 'check' && /#35/.test(l.text))).toMatchObject({
+    text: 'PR #35: saved keys move to the v2 format',
+    detail: 'one-way door in PR #35: saved keys move to the v2 format. Undo: restore the copy.',
+  })
+  const bare = parseQueue('- `[2026-10-08 · PENDING · engineer → human · plan: long-runs]` one-way door in PR #36: old rows are dropped. **Resolution:** pending')
+  expect(appTree({ queue: [...parseQueue(HAND_BACK_QUEUE), ...bare] }).find(l => l.kind === 'check' && /#36/.test(l.text))).toMatchObject({ text: 'PR #36: old rows are dropped', detail: 'one-way door in PR #36: old rows are dropped.' })
+})
+
+test("a door in /pod:code's format reads PR #N and opens with its undo once; one with no number reads One-way", () => {
+  const queue = parseQueue(
+    [
+      '- `[2026-10-30 · PENDING · orchestrator → human · plan: long-runs]` one-way door in PR #74 — saved books move to the v2 storage format, undo: restore the backup **Resolution:** pending',
+      '- `[2026-10-30 · PENDING · orchestrator → human · plan: long-runs]` one-way door — old cache keys are deleted, undo: none **Resolution:** pending',
+    ].join('\n'),
+  )
+  const lines = appTree({ queue: [...parseQueue(HAND_BACK_QUEUE), ...queue] })
+  expect(lines.filter(l => l.kind === 'check' && !/#35/.test(l.text) && /^(PR|One-way)/.test(l.text)).map(l => [l.text, l.detail])).toEqual([
+    ['PR #74: saved books move to the v2 storage format', 'one-way door in PR #74 — saved books move to the v2 storage format. Undo: restore the backup.'],
+    ['One-way: old cache keys are deleted', 'one-way door — old cache keys are deleted. Undo: none.'],
+  ])
+  // Under needs you, the same short form.
+  expect(lines.filter(l => l.kind === 'question' && /#74|cache/.test(l.text)).map(l => l.text)).toEqual([
+    'PR #74: saved books move to the v2 storage format',
+    'One-way: old cache keys are deleted',
+  ])
+})
+
+test('a door entry as the queue-door-entry eval run wrote it reads short and opens with its whole undo', () => {
+  const queue = parseQueue(
+    "- `[2026-10-31 · PENDING · orchestrator → human · plan: long-runs · sprint: one · slice: A1]` one-way door in PR #74 — saved books move to the v2 format and older builds can't read them, undo: restore `books.v1.json`, the backup the migration writes **Resolution:** pending",
+  )
+  expect(appTree({ queue, checks: [] }).find(l => l.kind === 'check')).toMatchObject({
+    text: "PR #74: saved books move to the v2 format and older builds can't read them",
+    detail: "one-way door in PR #74 — saved books move to the v2 format and older builds can't read them. Undo: restore books.v1.json, the backup the migration writes.",
+  })
+})
+
+test('a long decision made for you reads as its first clause and the default alone', () => {
+  const queue = parseQueue(
+    "- `[2026-10-30 · PENDING · engineer → human · plan: long-runs · sprint: ui · slice: L2]` needs your decision: a chapter's time link has a 36 px tap area, not the 44 px of design.md's Tap targets rule; 44 px would overlap the title row. **Resolution:** 2026-10-30 — default recorded: 36 px; override anytime ([decision](decisions.md#2026-10-30--chapter-time-link))",
+  )
+  expect(appTree({ queue: [...parseQueue(HAND_BACK_QUEUE), ...queue], checks: [] }).find(l => l.text.includes('36 px'))).toMatchObject({
+    text: "Decided: a chapter's time link has a 36 px tap area",
+    note: '36 px',
+  })
 })
 
 test('a merged hand-back keeps the run-app line; a gate halt or no halt has none', () => {
@@ -694,7 +742,7 @@ test('a merged hand-back keeps the run-app line; a gate halt or no halt has none
   expect(appTree({ checks: [{ feature: 'Sign in', reach: '', isNew: false }], queue: [] }).some(l => l.kind === 'also')).toBe(false)
 })
 
-const ALL = ['one-way door in PR #35: saved keys move to the v2 format.', 'Decided for you: the input border.', 'Saved keys', 'Sign in']
+const ALL = ['PR #35: saved keys move to the v2 format', 'Decided: the input border', 'Saved keys', 'Sign in']
 
 test('the run-app line counts the ticks, and folds the list once all are ticked', () => {
   const done = appTree({ ticked: ALL })
@@ -715,7 +763,7 @@ test('after the merge and your continue, the hand-back part is one line', () => 
 
 test('the merge reminder names the important checks left, and says nothing when they are ticked', () => {
   expect(uncheckedReminder(appTree({ ticked: ['Saved keys'] }))).toBe(
-    '☐ Merged with 2 important checks not ticked: one-way door in PR #35: saved keys move…; Decided for you: the input border.',
+    '☐ Merged with 2 important checks not ticked: PR #35: saved keys move to the v2 format; Decided: the input border.',
   )
   // Only what is not important left: nothing to say.
   expect(uncheckedReminder(appTree({ ticked: ALL.slice(0, 3) }))).toBeUndefined()
@@ -726,9 +774,9 @@ test('the snapshot says how to run the app without a button, and lists the check
   expect(snapshot(appTree({ ticked: ['Saved keys'] })).split('\n').slice(-10)).toEqual([
     '─'.repeat(30),
     "○ Run app  reply 'run app'",
-    '☐ one-way door in PR #35: saved keys move to the v2 format.',
-    '☐ Decided for you: the input border.',
-    '  default recorded: 1px grey; override anytime',
+    '☐ PR #35: saved keys move to the v2 format',
+    '☐ Decided: the input border',
+    '  1px grey',
     '☑ Saved keys',
     '  Settings → API keys',
     'also changed:',

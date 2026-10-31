@@ -59,6 +59,7 @@ skills/code/SKILL.md|Plan <plan-slug> complete — final merge awaiting
 skills/code/SKILL.md|Reply 'run app' to start the app
 skills/code/SKILL.md|'stop app'
 skills/code/SKILL.md|Sprint <sprint-slug> complete. Reply 'continue' to start the next sprint.
+skills/code/SKILL.md|one-way door in PR #<n> — <what>, undo: <how>
 skills/code/SKILL.md|Plan <plan-slug> merged to <merge-target>. Done.
 skills/code/SKILL.md|review <pass | still failing>
 skills/code/SKILL.md|(wave <N>/<waves in the sprint>)

@@ -33,7 +33,7 @@ cd pod-flow && claude plugin test .
 
 `check-required-strings.mjs` checks that the rule files still contain each string listed in `.github/scripts/required-strings.txt`: the formats pod-flow, the evals, and other rule files read. It catches a trim that drops a contract. A string it can't check is a promised behavior; after a trim, also check that each one the README, `docs/commands.md`, `docs/design.md`, and the changelog describe still has its rule.
 
-Before a release, also run the eval cases in `evals/`. They run real Claude on small scratch repos (`/pod:init` on an empty and an old-layout repo, `/pod:idea` and its board, the research page, queue entries mid-plan and at plan end, autopilot's halt entries, answers from Pod Board applied at a wave start, kept blocked when they don't fix the cause, and ignored once resolved, the `/pod:plan` interview's first round, the reviewer dispatch from `/pod:code` and `/pod:fix`, the `run app` reply to a hand-back, autopilot's `pod-staging` PR, new and reused, the overview `/pod:plan` shows before any code, and `/pod:teach` on a whole system and on one feature) and check the files it writes, the dispatch it sends, or its answer. A reviewer dispatch and Bash aren't allowed to run, so no reviewer or app starts: those cases check only the dispatch text or the start command in the answer. They use your Claude login, so they aren't in CI:
+Before a release, also run the eval cases in `evals/`. They run real Claude on small scratch repos (`/pod:init` on an empty and an old-layout repo, `/pod:idea` and its board, the research page, queue entries mid-plan and at plan end, the one-way door entry at a wave hand-back, autopilot's halt entries, answers from Pod Board applied at a wave start, kept blocked when they don't fix the cause, and ignored once resolved, the `/pod:plan` interview's first round, the reviewer dispatch from `/pod:code` and `/pod:fix`, the `run app` reply to a hand-back, autopilot's `pod-staging` PR, new and reused, the overview `/pod:plan` shows before any code, and `/pod:teach` on a whole system and on one feature) and check the files it writes, the dispatch it sends, or its answer. A reviewer dispatch and Bash aren't allowed to run, so no reviewer or app starts: those cases check only the dispatch text or the start command in the answer. They use your Claude login, so they aren't in CI:
 
 ```
 claude plugin eval . --scaffold --allow-tools Write Edit --ablation none --runs 1
@@ -41,7 +41,7 @@ claude plugin eval . --scaffold --allow-tools Write Edit --ablation none --runs 
 
 The cases grant no shell, so they run on native Windows too. Longer flows (`/pod:ship`, `/pod:code`, autopilot) still need a manual run in a throwaway repo.
 
-To typecheck pod-flow, load it in a session once so Claude Code writes its types (`claude --plugin-dir ./pod-flow`), then run `npx tsc --noEmit -p .` from `pod-flow/`.
+To typecheck pod-flow, load it in a session once so Claude Code writes its types (`claude --plugin-dir ./pod-flow`), then run `npx -p typescript tsc --noEmit -p .` from `pod-flow/`.
 
 The rule files in `agents/` and `skills/` have no tests. To try a rule change, run pod on a scratch repo with `claude --plugin-dir /path/to/claude-pod`.
 
