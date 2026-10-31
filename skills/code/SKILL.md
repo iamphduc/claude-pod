@@ -27,7 +27,7 @@ Args: the plan slug (none → ask, listing plans not `Status: archived`) and `--
 - **Wave PR:** from the wave head to `<plan-slug>`, titled as a conventional commit for what the wave adds, ending `(wave <N>/<waves in the sprint>)`, e.g. `feat(reports): record who edited a published report (wave 1/2)`. The body opens with `Door: two-way`, or `Door: one-way — <what>, undo: <how>` per one-way slice, then each slice with its `NOTE`s, stray paths, any wave fix, and the Look check line.
 - **Queue entries:** every entry you write during the plan, from any role, has `plan: <plan-slug>` in its header, per the queue's `Format:` line.
 - **Look check:** if users see any change, check every touched page at desktop and 375 px (emulate it) against the plan's `## Look`. A width you didn't reach is not ✓. Report it as `Look check: <each width you actually reached> ✓ · close-ups: <what> · colors: <match, or the off-Look values> · <defects, or none>`, or why it was skipped.
-- **Hand back for merge:** the PR link, its CI status (`passing`, `failing: <names>`, `pending`, or `no CI checks — nothing but the agents checked this`), and "reply `continue`", then end the turn. A one-way door comes first, and for a one-way slice, add a queue entry `PENDING · orchestrator → human` whose body starts `one-way door — <what>, undo: <how>`.
+- **Hand back for merge:** the PR link, its CI status (`passing`, `failing: <names>`, `pending`, or `no CI checks — nothing but the agents checked this`), and "reply `continue`", then end the turn. A one-way door comes first, and for a one-way slice, add a queue entry `PENDING · orchestrator → human` whose body starts `one-way door in PR #<n> — <what>, undo: <how>`, with the wave PR's number.
 
 ## The wave loop
 
