@@ -329,6 +329,54 @@ const handBack = (pull: number) => ({
   'pod-docs/handoff-queue.md': `- \`[2026-10-09 · PENDING · orchestrator → human · plan: demo]\` plan demo complete — final PR https://github.com/me/demo/pull/${pull}, review pass **Resolution:** pending`,
 })
 
+test('in a narrow pane, a cut check opens whole from its text and ticks from its box', async ($, on) => {
+  const files = handBack(8)
+  files['pod-docs/handoff-queue.md'] =
+    "- `[2026-10-08 · PENDING · engineer → human · plan: demo · sprint: one · slice: A1]` needs your decision: older v1/v2 summaries that contain a literal x now render bold. **Resolution:** 2026-10-08 — default recorded: older summaries render bold; override anytime\n" +
+    files['pod-docs/handoff-queue.md']
+  world(on, [], true, [], files)
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 44 } as never })
+  const key = 'open:Decided: older v1/v2 summaries that contain a literal x now render bold'
+  // One line: a long default is cut before the decision it belongs to.
+  const text = async () => (await pane.find({ key }))?.text
+  expect(await text()).toBe('Decided: older v1/v2 su…  older summari…')
+  expect(await pane.find({ type: 'Button', text: /^☐$/ })).toBeDefined()
+  // The text opens the whole sentence and its default, and closes it again; it never ticks.
+  await pane.press({ key })
+  expect(await text()).toBe('Decided: older v1/v2 summaries that contain a literal x now render bold. Default: older summaries render bold.')
+  await pane.press({ key })
+  expect(await text()).toBe('Decided: older v1/v2 su…  older summari…')
+  expect(await pane.find({ type: 'Button', text: /^☑$/ })).toBeUndefined()
+  // The box ticks: the only check, so the list folds.
+  await pane.press({ key: 'check:Decided: older v1/v2 summaries that contain a literal x now render bold' })
+  expect(await pane.find({ type: 'Button', text: /^▸ ✓ all 1 checked$/ })).toBeDefined()
+})
+
+test('at the hand-back, a short pane drops the finished sprints and keeps the rest; neither pane cuts the rows', async ($, on) => {
+  const files = {
+    ...handBack(8),
+    'pod-docs/plans/demo.md': PLAN.replace('| one | First | active | — |', '| zero | Before | done | — |\n| one | First | active | zero |'),
+    'pod-docs/sprints/zero.md': SPRINT.replace('# Sprint: One', '# Sprint: Zero').replace('Slug: one · Status: active', 'Slug: zero · Status: done').replace('| one-A1 | — | pending |', '| zero-A1 | #3 | done |'),
+  }
+  world(on, [], true, [], files)
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  const mount = (bodyRows: number) =>
+    $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 80, scroll: { offset: 0, bodyRows } } as never })
+  const short = await mount(4)
+  expect(await short.find({ type: 'Button', text: /^▸ zero/ })).toBeUndefined()
+  // A sprint not done stays: only the finished ones give way.
+  expect(await short.find({ type: 'Text', text: /^● one/ })).toBeDefined()
+  expect(await short.find({ type: 'Text', text: /◐ waiting/ })).toBeDefined()
+  expect(await short.find({ type: 'Button', text: /^Run app$/ })).toBeDefined()
+  // The pane scrolls what it can't show: no row is cut for it.
+  expect(await short.find({ type: 'Text', text: /more lines/ })).toBeUndefined()
+  await short.unmount()
+  const tall = await mount(40)
+  expect(await tall.find({ type: 'Button', text: /^▸ zero/ })).toBeDefined()
+  expect(await tall.find({ type: 'Button', text: /^Run app$/ })).toBeDefined()
+})
+
 test('a hand-back whose PR has merged shows it merged, with nothing left to do', async ($, on) => {
   const asked: string[][] = []
   world(on, [], true, [], handBack(9))
@@ -436,12 +484,13 @@ test('at the hand-back, Run app sends your reply and turns into Stop app, and ea
   await run($, 'text')
   expect(asked.filter(a => a === 'gh pr diff')).toHaveLength(1)
   const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 100 } as never })
-  // A primary button, not a plain row; each feature whole on its line, how to reach it below, wrapped.
+  // A primary button, not a plain row; each check on one line, how to reach it after the name.
   expect(await pane.find({ type: 'Button', text: /^Run app$/ })).toMatchObject({ props: { variant: 'primary' } })
   expect(await pane.find({ type: 'Text', text: /^ {2}then check these \(0\/1\):$/ })).toBeDefined()
   // A plain list, no tree lines.
-  expect(await pane.find({ type: 'Button', text: /^☐ Saved keys$/ })).toBeDefined()
-  expect(await pane.find({ type: 'Text', text: /^Settings → API keys$/ })).toMatchObject({ props: { wrap: 'wrap' } })
+  expect(await pane.find({ type: 'Button', text: /^☐$/ })).toBeDefined()
+  // A row shown whole has nothing to open: its text ticks too.
+  expect((await pane.find({ key: 'open:Saved keys' }))?.text).toBe('Saved keys  Settings → API keys')
 
   await pane.press({ key: 'run-app' })
   expect(sent).toEqual([{ text: 'run app', asUser: true }])
@@ -456,7 +505,9 @@ test('at the hand-back, Run app sends your reply and turns into Stop app, and ea
   expect(await pane.find({ type: 'Button', text: /^▸ ✓ all 1 checked$/ })).toBeDefined()
   await pane.press({ key: 'checks' })
   expect(await pane.find({ type: 'Button', text: /^▾ ✓ all 1 checked$/ })).toBeDefined()
-  expect(await pane.find({ type: 'Button', text: /^☑ Saved keys$/ })).toBeDefined()
+  expect(await pane.find({ type: 'Button', text: /^☑$/ })).toBeDefined()
+  await pane.press({ key: 'open:Saved keys' })
+  expect(await pane.find({ type: 'Button', text: /^☐$/ })).toBeDefined()
   // A tick is yours alone: nothing goes to the chat.
   expect(sent).toHaveLength(2)
 })

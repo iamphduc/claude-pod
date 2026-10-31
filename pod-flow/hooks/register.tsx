@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Dispatch, TreeLine } from '../types'
-import { buildTree, changedFeatures, fit, foldKey, GLYPH, header, isFoldable, latestHalt, mainCheckout, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, pullOf, questionGlyph, snapshot, turnTokens, uncheckedReminder, visibleLines } from './model'
+import { buildTree, changedFeatures, fit, foldKey, GLYPH, header, isFoldable, latestHalt, mainCheckout, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, pullOf, questionGlyph, short, snapshot, turnTokens, uncheckedReminder, visibleLines } from './model'
 import type { FeatureCheck, PlanDoc, SprintDoc } from './model'
 
 const PANE = 'pod-flow'
@@ -16,6 +16,9 @@ const spawns = atom({ plugin: 'pod-flow', key: 'spawns' } as const, {} as Record
 const tokens = atom({ plugin: 'pod-flow', key: 'tokens' } as const, {} as Record<string, number>)
 const planShown = atom({ plugin: 'pod-flow', key: 'planShown' } as const, '')
 const NO_PLAN = 'No plan in pod-docs/plans yet.'
+
+/** A check's whole text, as it opens: the full sentence, or the name and how to reach it. */
+const checkText = (row: TreeLine) => row.detail ?? [row.text, row.note].filter(Boolean).join(' · ')
 const emptyNote = atom({ plugin: 'pod-flow', key: 'emptyNote' } as const, NO_PLAN)
 // The hand-back's checklist: what you ticked, and whether you pressed Run app. Yours alone, never in pod's docs.
 const ticked = atom({ plugin: 'pod-flow', key: 'ticked' } as const, [] as string[])
@@ -335,21 +338,28 @@ export const register: Register = on => {
     const width = Math.max(20, e.props.bodyColumns - 2)
     const summary = header(all, width)
     // The plan is the header, the tree's root: its rows start at the sprints.
-    const rows = visibleLines(all, open).filter(l => l.kind !== 'plan')
-    const stems = prefixes(rows)
-    const room = Math.max(1, (e.viewport?.rows ?? 30) - 5)
+    const tree = visibleLines(all, open).filter(l => l.kind !== 'plan')
+    // The pane's own rows, less the header's one.
+    const room = Math.max(1, (e.props.scroll?.bodyRows ?? (e.viewport?.rows ?? 30) - 4) - 1)
     // A blank line before each tree sets it apart from the header and the tree above. It takes a row of the room too.
     // Run app gets a divider in place of the gap: the run is over, the part below is yours.
-    const isGap = (i: number) => rows[i]!.depth <= 1 && !rows[i]!.isContinued && (rows[i]!.kind !== 'app' || rows[i]!.status === 'done')
-    let shown = 0
-    for (let used = 0; shown < rows.length; shown++) {
-      // A check's how-to-reach line takes a row of its own, more when it wraps.
-      const extra = rows[shown]!.kind === 'check' && rows[shown]!.note ? Math.ceil(rows[shown]!.note!.length / Math.max(10, width - 8)) : 0
-      // Run app: its divider above, its gap below, and the fold line once all are ticked.
-      const app = rows[shown]!.kind === 'app' && rows[shown]!.status !== 'done' ? (rows[shown]!.detail ? 3 : 2) : 0
-      used += (isGap(shown) ? 2 : 1) + extra + app
-      if (used > room) break
-    }
+    const isGapRow = (row: TreeLine) => row.depth <= 1 && !row.isContinued && (row.kind !== 'app' || row.status === 'done')
+    // Run app: its divider above, its gap below, and the fold line once all are ticked.
+    const height = (row: TreeLine) => (isGapRow(row) ? 2 : 1) + (row.kind === 'app' && row.status !== 'done' ? (row.detail ? 3 : 2) : 0) + openRows(row)
+    // An open check takes the rows its whole text wraps to.
+    const openRows = (row: TreeLine) =>
+      row.kind === 'check' && open.includes(`check-open ${row.text}`) ? Math.ceil(checkText(row).length / Math.max(10, width - 2)) - 1 : 0
+    const fits = (list: TreeLine[]) => list.reduce((used, row) => used + height(row), 0) <= room
+    // The pane scrolls, but its window starts at the top: at the hand-back, when all of it won't fit,
+    // the finished sprints give way, so the checklist shows without a scroll. What needs you stays.
+    let isDoneSprint = false
+    const withoutDone = tree.filter(l => {
+      if (l.depth <= 1) isDoneSprint = l.kind === 'sprint' && l.status === 'done'
+      return !isDoneSprint
+    })
+    const rows = !fits(tree) && tree.some(l => l.kind === 'app') ? withoutDone : tree
+    const stems = prefixes(rows)
+    const isGap = (i: number) => isGapRow(rows[i]!)
 
     const draw = (row: TreeLine, i: number) => {
       const glyph = row.isContinued ? ' ' : row.kind === 'concern' ? '⚠' : row.kind === 'hint' ? '➜' : row.kind === 'question' ? questionGlyph(row) : (GLYPH[row.status] ?? '·')
@@ -389,15 +399,23 @@ export const register: Register = on => {
           await refresh($)
         }
         const box = row.status === 'done' ? '☑' : '☐'
-        // A plain list under the button, no tree: the name whole, how to reach it below, wrapped.
+        const isDone = row.status === 'done'
+        // A plain list under the button, no tree: one line each, the name cut to fit, how to reach it after.
+        const line = fit(row.text, row.note && short(row.note, Math.max(8, Math.floor(width / 3))), width - 2)
+        // The box ticks. The text opens a cut row whole, wrapped; a row already whole ticks too.
+        const isOpenable = line.includes('…') || (row.detail !== undefined && row.detail !== row.text)
+        const key = `check-open ${row.text}`
+        const isOpen = isOpenable && open.includes(key)
+        const toggle = () => update($, expanded, list => (list.includes(key) ? list.filter(s => s !== key) : [...list, key]))
         return (
-          <Box flexDirection="column">
-            <Button key={`check:${row.text}`} plain dimColor={row.status === 'done'} label={`${box} ${row.text}`} onPress={tick} />
-            {row.note && (
-              <Box marginLeft={2}>
-                <Text wrap="wrap" dimColor>{row.note}</Text>
-              </Box>
-            )}
+          // A gap that never shrinks, and the text in a column of its own: wrapped, it stays under itself, not the box.
+          <Box flexDirection="row" columnGap={1}>
+            <Box flexShrink={0}>
+              <Button key={`check:${row.text}`} plain dimColor={isDone} label={box} onPress={tick} />
+            </Box>
+            <Box flexShrink={1}>
+              <Button key={`open:${row.text}`} plain dimColor={isDone} label={isOpen ? checkText(row) : line} onPress={isOpenable ? toggle : tick} />
+            </Box>
           </Box>
         )
       }
@@ -430,8 +448,8 @@ export const register: Register = on => {
       <Box flexDirection="column">
         {summary && <Text wrap="truncate-end" weight="semibold">{summary}</Text>}
         {rows.length === 0 && <Text dimColor>{note}</Text>}
-        {rows.slice(0, shown).map((row, i) => (isGap(i) ? <Box marginTop={1}>{draw(row, i)}</Box> : draw(row, i)))}
-        {rows.length > shown && <Text dimColor>… {rows.length - shown} more lines</Text>}
+        {/* All of it: a tree taller than the pane scrolls, by the wheel or the arrows while the pane has focus. */}
+        {rows.map((row, i) => (isGap(i) ? <Box marginTop={1}>{draw(row, i)}</Box> : draw(row, i)))}
       </Box>
     )
   })

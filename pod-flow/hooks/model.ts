@@ -303,7 +303,7 @@ const waveStatus = (rows: Row[], sprint: string, liveSlices: Set<string>, isSett
   return { status: 'waiting' }
 }
 
-const short = (text: string, max: number) => (text.length > max ? `${text.slice(0, max - 1)}…` : text)
+export const short = (text: string, max: number) => (text.length > max ? `${text.slice(0, max - 1)}…` : text)
 
 /** One line of overall progress: where the run is, and what needs a look. */
 export function summarize(lines: TreeLine[]): string {
@@ -655,18 +655,52 @@ export function changedFeatures(diff: string): FeatureCheck[] {
  * What only the person can judge before the merge, first: the plan's one-way doors, the decisions pod defaulted
  * for them, and the features it added. The features it only changed come after.
  */
-function checklist(queue: QueueEntry[], plan: PlanDoc, checks: FeatureCheck[]): { text: string; note?: string; isImportant: boolean }[] {
+function checklist(queue: QueueEntry[], plan: PlanDoc, checks: FeatureCheck[]): { text: string; note?: string; detail?: string; isImportant: boolean }[] {
   const mine = queue.filter(e => isForPlan(e, plan) && e.plan)
   const doors = mine
     .filter(e => /one-way door/i.test(e.body))
-    .map(e => concernText(e.body))
-    .map(text => ({ text: /^one-way door/i.test(text) ? text : `One-way door: ${text}`, isImportant: true }))
+    .map(e => {
+      const first = concernText(e.body)
+      const whole = withoutUndo(/^one-way door/i.test(first) ? first : `One-way door: ${first}`)
+      // Short, as `Decided:` is: `PR #74: …`. The open row says it whole, with how to undo it,
+      // what you weigh before you merge a door.
+      const undo = undoOf(e.body)
+      return { text: shortDoor(whole), detail: `${whole}.${undo ? ` Undo: ${undo}.` : ''}`, isImportant: true }
+    })
   const decided = mine
     .filter(e => !e.isPending && /default recorded/i.test(e.resolution ?? ''))
-    .map(e => ({ text: `Decided for you: ${concernText(e.body)}`, note: e.resolution, isImportant: true }))
+    // One line each: the decision's first clause, and the default alone. The whole sentence opens under it.
+    .map(e => {
+      const value = defaultOf(e.resolution ?? '')
+      const detail = [`Decided: ${concernText(e.body)}`, value && `Default: ${value}.`].filter(Boolean).join(' ')
+      return { text: `Decided: ${firstClause(concernText(e.body))}`, note: value, detail, isImportant: true }
+    })
   const features = checks.map(c => ({ text: c.feature, note: c.reach || undefined, isImportant: c.isNew }))
   return [...doors, ...decided, ...features.filter(f => f.isImportant), ...features.filter(f => !f.isImportant)]
 }
+
+/** A sentence up to its first `;`, `(` or comma: the reason after it is too long for one line. */
+const firstClause = (text: string) => text.split(/\s*[;(]|,\s/)[0]!.replace(/[.\s]+$/, '')
+
+/** A door's sentence up to its `, undo: <how>`, with no end stop. */
+const withoutUndo = (text: string) => text.split(/,?\s*\bundo:/i)[0]!.replace(/[.\s]+$/, '')
+
+/**
+ * A door named by its PR, as you know it: `one-way door in PR #74 — <what>, undo: <how>` reads
+ * `PR #74: <what>`. One with no PR number reads `One-way: <what>`. The older `in PR #74: <what>` too.
+ */
+const shortDoor = (text: string) => {
+  const m = /^one-way door(?: in PR (#\d+))?\s*[—–:-]\s*(.*)$/i.exec(withoutUndo(text))
+  return m ? `${m[1] ? `PR ${m[1]}` : 'One-way'}: ${m[2]}` : text
+}
+
+/** The sentence after a door's `Undo:`, plain: `restore the backup`. */
+const undoOf = (body: string) =>
+  /\bUndo:\s*(.+?)(?:\.(?:\s|$)|$)/i.exec(body.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[*`]/g, ''))?.[1]?.trim() || undefined
+
+/** The value from `default recorded: 36 px; override anytime ([decision](…))`: `36 px`. */
+const defaultOf = (resolution: string) =>
+  concernText(/default recorded:\s*([^;]*)/i.exec(resolution)?.[1] ?? '').replace(/[.\s]+$/, '') || undefined
 
 /** The pull request a halt or hand-back links to, by its number. */
 export const pullOf = (text: string) => /https?:\/\/[^\s,;)]+?\/pull\/(\d+)/.exec(text)
@@ -731,7 +765,7 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
       lines.push({
         depth: 2,
         kind: 'question',
-        text: short(concernText(entry.body), 80),
+        text: short(shortDoor(concernText(entry.body)), 80),
         status: entry.answer ? 'done' : entry.type === 'BLOCKED' ? 'blocked' : 'waiting',
         note: [entry.answer && 'answered', entry.slice, from].filter(Boolean).join(' · ') || undefined,
       })
@@ -795,7 +829,7 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
           lines.push({
             depth: 4,
             kind: 'concern',
-            text: short(concernText(entry.body), 80),
+            text: short(shortDoor(concernText(entry.body)), 80),
             status: entry.type === 'BLOCKED' ? 'blocked' : 'waiting',
             sprint: sprint.slug,
           })
@@ -855,7 +889,7 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
             ...items.flatMap((c, n): TreeLine[] => [
               // The first that isn't important gets a label over it.
               ...(hasAlso && !c.isImportant && items[n - 1]?.isImportant ? [{ depth: 2, kind: 'also' as const, text: 'also changed', status: '' }] : []),
-              { depth: 2, kind: 'check', text: c.text, status: ticked.includes(c.text) ? 'done' : 'waiting', note: c.note, isImportant: c.isImportant || undefined },
+              { depth: 2, kind: 'check', text: c.text, status: ticked.includes(c.text) ? 'done' : 'waiting', note: c.note, detail: c.detail, isImportant: c.isImportant || undefined },
             ]),
           ]
     if (isHandBack && pull && merged.includes(Number(pull[1]))) {
