@@ -2,6 +2,12 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.9.2 · pod-flow 0.3.1 — 2026-10-31
+
+- `/pod:code` writes the one-way door queue entry as `one-way door in PR #<n> — <what>, undo: <how>`, with the wave PR's number. pod-flow shows it as `PR #74: <what>`, in the checklist and under **needs you**. An older entry with no number shows as `One-way: <what>`.
+- Each check at the hand-back takes one line. A decision made for you shows its first clause and the default, such as `☐ Decided: a chapter's time link has a 36 px tap area  36 px`. Press the box to tick a check. Press the text of a cut check to open the whole sentence, and press it again to close it. An open one-way door also shows how to undo it. A check that is not cut ticks from its text too.
+- The pane no longer cuts its rows at `… N more lines`. A tree taller than the pane scrolls: use the mouse wheel, or the arrow keys while the pane has focus (press ctrl+x tab). At the hand-back, when the tree does not fit, the finished sprints are left out, so the checklist shows without a scroll. A long default is cut before the decision it belongs to.
+
 ## pod 0.9.1 — 2026-10-27
 
 - Every autopilot halt adds a queue entry that starts `gate <N> (<name>): `, such as `gate 6 (escalation-valve): …`, and no other entry starts that way. Pod Board can tell a halt from a note by that start. Before, halts named the gate in different ways, and some never named it.
