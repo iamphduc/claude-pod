@@ -2,6 +2,12 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.10.0 · pod-flow 0.3.2 — 2026-11-05
+
+- **Breaking:** `/pod:fix` is now `/pod:task`. The command takes any one-off change outside a plan, not only bug fixes. There is no `/pod:fix` alias: type `/pod:task <task>`.
+- The engineer's branch and worktree are now `task-<slug>`, and the reviewer takes `kind: task`.
+- pod-flow: comments and tests use the new name. Nothing in the pane changes.
+
 ## pod 0.9.2 · pod-flow 0.3.1 — 2026-10-31
 
 - `/pod:code` writes the one-way door queue entry as `one-way door in PR #<n> — <what>, undo: <how>`, with the wave PR's number. pod-flow shows it as `PR #74: <what>`, in the checklist and under **needs you**. An older entry with no number shows as `One-way: <what>`.
