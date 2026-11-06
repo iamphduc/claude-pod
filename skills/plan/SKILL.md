@@ -17,7 +17,7 @@ Turn the human's idea into a strategic plan at `pod-docs/plans/<slug>.md` that t
 
 **Docs version** first: check it per `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md`.
 
-**Size check** (skip if `/pod:ship` already asked). The idea is one change one engineer can build and test in one go (a few files, no new shared contract, look decision, or new screen, not a one-way door, and for a bug a known cause) → ask once: *"This looks like one change. Run it as `/pod:fix` (one engineer, review, PR) instead of a plan?"* Yes → run `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md` first if pod isn't set up (per `/pod:init`), then `${CLAUDE_PLUGIN_ROOT}/skills/fix/SKILL.md` with the idea as the task, and stop.
+**Size check** (skip if `/pod:ship` already asked). The idea is one change one engineer can build and test in one go (a few files, no new shared contract, look decision, or new screen, not a one-way door, and for a bug a known cause) → ask once: *"This looks like one change. Run it as `/pod:task` (one engineer, review, PR) instead of a plan?"* Yes → run `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md` first if pod isn't set up (per `/pod:init`), then `${CLAUDE_PLUGIN_ROOT}/skills/task/SKILL.md` with the idea as the task, and stop.
 
 Know what's already decided:
 

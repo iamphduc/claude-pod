@@ -76,7 +76,7 @@ test('starting /pod:autopilot opens the pane', async ($, on) => {
 test('another skill leaves the pane closed', async ($, on) => {
   const opened: string[] = []
   world(on, opened)
-  await $.skill.prompt({ skill: 'pod:fix', text: 'fix it' })
+  await $.skill.prompt({ skill: 'pod:task', text: 'fix it' })
   expect(opened).toEqual([])
 })
 
@@ -226,11 +226,11 @@ test("a new run on a new plan leaves out the last run's rounds and tokens, and a
   await $.skill.prompt({ skill: 'pod:ship', text: 'next idea' })
   expect((await run($, 'text')).text).not.toContain('review')
   await review('plan slug: next · round: 1')
-  // A reviewer that names no plan, as /pod:fix sends: not a round of this plan's review.
-  await review('kind: fix · round: 2')
+  // A reviewer that names no plan, as /pod:task sends: not a round of this plan's review.
+  await review('kind: task · round: 2')
   const { text } = await run($, 'text')
   expect(text).toContain('review · 1 round')
-  // This run's two reviewers, 3.2k each; the fix review counts for the plan, not as a round.
+  // This run's two reviewers, 3.2k each; the task review counts for the plan, not as a round.
   expect(text).toContain('Next · sprint 1/1 · 6.4k tokens')
 })
 

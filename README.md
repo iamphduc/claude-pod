@@ -37,7 +37,7 @@ pod researches the idea, interviews you, shows you an overview of what it will b
 | Just look into an idea first | `/pod:research <idea>` |
 | Make a plan, then control each step myself | `/pod:plan`, then `/pod:sprint`, then `/pod:code` |
 | Run an existing plan without me | `/pod:autopilot` |
-| Make one small change, outside any plan | `/pod:fix <task>` |
+| Make one small change, outside any plan | `/pod:task <task>` |
 | Learn how a codebase, or one feature of it, works and why | `/pod:teach [topic]` |
 | Save an idea for later | `/pod:idea <idea>` |
 | Get a report on a finished plan | `/pod:report` |

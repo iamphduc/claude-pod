@@ -18,7 +18,7 @@ Creates pod's files in `pod-docs/` and never overwrites one that already exists.
 
 ### `/pod:ship <idea>`: everything in one go
 
-Runs research → plan → init (only if needed) → autopilot, so you never retype the idea. If the idea is one small change, it first offers to run it as `/pod:fix` instead (so does `/pod:plan`). You still answer the plan interview. Before autopilot starts, it shows you the plan and waits for `go`, because autopilot merges without you. If it stops partway, run `/pod:ship` again and it picks up where it left off.
+Runs research → plan → init (only if needed) → autopilot, so you never retype the idea. If the idea is one small change, it first offers to run it as `/pod:task` instead (so does `/pod:plan`). You still answer the plan interview. Before autopilot starts, it shows you the plan and waits for `go`, because autopilot merges without you. If it stops partway, run `/pod:ship` again and it picks up where it left off.
 
 Options: `--no-research` skips research, `--deep` researches more, and `--max-*` sets autopilot's limits.
 
@@ -58,9 +58,11 @@ Limits: `--max-sprints=N`, `--max-waves=N` (default 20), `--max-runtime=Nh`, and
 
 Run one plan per session: after a plan completes, run `/clear` before the next `/pod:autopilot`. State lives on disk, so nothing is lost, and the next plan starts with a fresh context.
 
-### `/pod:fix <task>`: one change, outside any plan
+### `/pod:task <task>`: one change, outside any plan
 
 One engineer builds the change test-first, the reviewer checks it, and you merge the PR. It branches off `main` (or `--merge-target=<branch>`), never off a plan branch. Add `--no-review` for trivial changes. Small, contained fixes run on Sonnet, the rest on Opus; `--model=sonnet|opus` picks one yourself.
+
+Every pod PR, this one included, opens with a review guide: the steps in the order they were built, each linked to its own diff and marked `Read` or `Skim`. The proof (tests, checks, browser rows) is folded below it. See [PR bodies](design.md#pr-bodies).
 
 ### `/pod:create-wave-prompts [sprint] [wave]`: run engineers yourself
 
@@ -74,7 +76,7 @@ Writes an HTML report of a plan: key features, how the parts fit together as bui
 
 ### `/pod:idea [idea]`: save an idea for later
 
-Saves the idea to `pod-docs/ideas/<slug>.md`, with why it waits and what would make it worth building. Run it with no idea to list what's saved and open `pod-docs/ideas/index.html`, a board of every idea by status (parked, planned, built, dropped). pod updates the board whenever an idea changes. When you later start `/pod:research`, `/pod:plan`, `/pod:ship`, or `/pod:fix` on something a saved idea touches, pod shows it and asks whether to build on it. At the end of `/pod:plan`, pod also offers to save what you left out of scope.
+Saves the idea to `pod-docs/ideas/<slug>.md`, with why it waits and what would make it worth building. Run it with no idea to list what's saved and open `pod-docs/ideas/index.html`, a board of every idea by status (parked, planned, built, dropped). pod updates the board whenever an idea changes. When you later start `/pod:research`, `/pod:plan`, `/pod:ship`, or `/pod:task` on something a saved idea touches, pod shows it and asks whether to build on it. At the end of `/pod:plan`, pod also offers to save what you left out of scope.
 
 ### `/pod:teach [topic]`: learn a codebase
 
@@ -110,7 +112,7 @@ For apps with a UI, agents check pages with [`agent-browser`](https://github.com
 | **researcher** | Searches the web for an idea and links every claim. Never touches code |
 | **sprint-planner** | Splits the next part of the plan into slices and waves |
 | **engineer** | Builds one slice in its own copy of the repo, test-first, then checks it in the browser |
-| **reviewer** | Reviews the final plan PR and every `/pod:fix` PR. Never edits code |
+| **reviewer** | Reviews the final plan PR and every `/pod:task` PR. Never edits code |
 | **reporter** | Writes the HTML report of a finished plan, and the feature details of what it built |
 
 ## What pod keeps in your repo
@@ -165,7 +167,7 @@ Updating never touches your `pod-docs/` files. When a new version changes their 
 
 Several of pod's checks come from **pstack**, a Cursor plugin by Lauren Tan. Flavio Copes explains it in [A deep dive into pstack](https://flaviocopes.com/pstack). pod borrows these ideas, adapted to its own flow:
 
-- **Reproduce before fixing:** `/pod:fix` reproduces a bug and names its cause before changing code (from pstack's Bug fix playbook).
+- **Reproduce before fixing:** `/pod:task` reproduces a bug and names its cause before changing code (from pstack's Bug fix playbook).
 - **Dismissed findings:** the reviewer lists what it checked and dropped, so you can overrule it (from `/interrogate`).
 - **Feature map:** `pod-docs/features.md` records how to prove each feature works on the running app (from `/create-verification-skill`).
 - **Contract friction:** engineers report a design that keeps fighting back instead of working around it (from `/architect`).

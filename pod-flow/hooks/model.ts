@@ -241,7 +241,7 @@ const WAVE_FIX = /^(.+)-w(\d+)-fix$/
 /** A plan review round, the plan's fix pass, or a wave's fix, told by the agent's type and branch. */
 export function roundOf(d: Dispatch | undefined, planSlug: string): { text: string; sprint?: string; wave?: number } | undefined {
   if (!d) return undefined
-  // A reviewer that names no plan is a /pod:fix review, not a round of this one.
+  // A reviewer that names no plan is a /pod:task review, not a round of this one.
   if (/(^|:)reviewer$/.test(d.type)) return d.plan === planSlug ? { text: `round ${d.round ?? 1}` } : undefined
   const branch = d.branch ?? ''
   if (branch === `${planSlug}-fix`) return { text: 'fix pass' }

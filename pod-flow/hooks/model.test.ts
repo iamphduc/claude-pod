@@ -833,11 +833,11 @@ test('review and fix rounds sit under a review node in order, and stay after the
   expect(summarize(lines)).toContain('1 running')
 })
 
-test("the review shows only this plan's rounds, not a fix review or an earlier run's", () => {
-  // As seen in a long session: reviews from /pod:fix and an earlier plan, mixed in by start time.
+test("the review shows only this plan's rounds, not a task review or an earlier run's", () => {
+  // As seen in a long session: reviews from /pod:task and an earlier plan, mixed in by start time.
   const spawns = {
-    fixReview: { type: 'pod:reviewer', description: 'Review fix', branch: 'fix-login', startedAt: 0 },
-    fixReview2: { type: 'pod:reviewer', description: 'Review fix again', branch: 'fix-login', round: 2, startedAt: 1 },
+    fixReview: { type: 'pod:reviewer', description: 'Review fix', branch: 'task-login', startedAt: 0 },
+    fixReview2: { type: 'pod:reviewer', description: 'Review fix again', branch: 'task-login', round: 2, startedAt: 1 },
     oldR1: { type: 'pod:reviewer', description: 'Review plan', plan: 'old-plan', startedAt: 2, runPlan: 'old-plan' },
     oldNoSlug: { type: 'pod:reviewer', description: 'Review plan', round: 2, startedAt: 3, runPlan: 'old-plan' },
     oldFix: { type: 'pod:engineer', description: 'Review fixes', branch: 'long-runs-fix', startedAt: 4, runPlan: 'old-plan' },
@@ -849,7 +849,7 @@ test("the review shows only this plan's rounds, not a fix review or an earlier r
   const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [], spawns, live: [], tokens })
   const review = lines.slice(lines.findIndex(l => l.kind === 'review'))
   expect(review.map(l => `${l.depth} ${l.text} ${l.note ?? ''}`.trim())).toEqual(['1 review 300k tokens', '2 round 1', '2 fix pass', '2 round 2'])
-  // Agents of another run add nothing; the fix reviews were in this run, so the plan counts them, not the review.
+  // Agents of another run add nothing; the task reviews were in this run, so the plan counts them, not the review.
   expect(lines[0]?.note).toBe('500k tokens')
 })
 

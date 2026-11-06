@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# A project set up for pod, with a /pod:fix whose engineer has opened its PR.
+# A project set up for pod, with a /pod:task whose engineer has opened its PR.
 set -e
 git init -q -b main
 mkdir -p pod-docs/plans pod-docs/sprints/archive src

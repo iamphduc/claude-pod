@@ -3,8 +3,8 @@
 # Checked by .github/scripts/check-required-strings.mjs. If you rename one on purpose, update every reader, then this list.
 # engineer
 agents/engineer.md|## Required dispatch context
-agents/engineer.md|fix-<slug>
-agents/engineer.md|.claude/worktrees/fix-<slug>/
+agents/engineer.md|task-<slug>
+agents/engineer.md|.claude/worktrees/task-<slug>/
 agents/engineer.md|teardown: defer
 agents/engineer.md|Door: two-way
 agents/engineer.md|Door: one-way — <what>, undo: <how>
@@ -45,14 +45,32 @@ agents/reviewer.md|- **Findings:**
 agents/reviewer.md|- **Dismissed:**
 agents/reviewer.md|- **Ran:**
 agents/reviewer.md|- **Coverage:**
-# fix skill
-skills/fix/SKILL.md|--merge-target=
-skills/fix/SKILL.md|--no-review
-skills/fix/SKILL.md|--model=
-skills/fix/SKILL.md|kind: fix
-skills/fix/SKILL.md|Review: pass
-skills/fix/SKILL.md|Review still failing
-skills/fix/SKILL.md|Review: skipped (--no-review)
+# PR template
+skills/code/pr-template.md|Door: two-way
+skills/code/pr-template.md|## Review guide
+skills/code/pr-template.md|## Risks
+skills/code/pr-template.md|<details><summary>Proof</summary>
+skills/code/pr-template.md|**`Read`**
+skills/code/pr-template.md|**`Skim`**
+skills/code/pr-template.md|**`Done`**
+skills/code/pr-template.md|## <plan title> (<plan-slug>)
+skills/code/SKILL.md|skills/code/pr-template.md
+skills/code/SKILL.md|git merge --ff-only
+skills/task/SKILL.md|skills/code/pr-template.md
+skills/autopilot/policy.md|skills/code/pr-template.md
+agents/reviewer.md|**The PR body.**
+agents/reviewer.md|**Red check.**
+agents/engineer.md|One change per commit
+agents/engineer.md|never a `docs` commit of their own
+skills/task/SKILL.md|**Queue commit:**
+# task skill
+skills/task/SKILL.md|--merge-target=
+skills/task/SKILL.md|--no-review
+skills/task/SKILL.md|--model=
+skills/task/SKILL.md|kind: task
+skills/task/SKILL.md|Review: pass
+skills/task/SKILL.md|Review still failing
+skills/task/SKILL.md|Review: skipped (--no-review)
 # code skill
 skills/code/SKILL.md|plan: <plan-slug>
 skills/code/SKILL.md|Plan <plan-slug> complete — final merge awaiting

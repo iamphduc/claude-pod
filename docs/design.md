@@ -12,7 +12,7 @@ Why pod checks work where it does, what each check covers, and what we chose not
 - **The plan branch keeps up with `main`.** At the start of each sprint, anything new on `main` is merged into the plan branch and smoke-tested, so conflicts show up small and early.
 - **CI is optional, and a real gate when it's there.** With CI, autopilot needs every check to pass and won't treat "no checks" as a pass; `/pod:init` and `/pod:plan` offer a minimal workflow but don't require it.
 - **Test first, real TDD.** Every success criterion names a test; engineers write it, watch it fail, then make it pass, and the tests decide when they're done. The reviewer checks the tests are honest and reviews what they don't cover.
-- **`/pod:fix` PRs get the same reviewer.** They go straight to `main` with no plan around them, so each one is reviewed before it merges.
+- **`/pod:task` PRs get the same reviewer.** They go straight to `main` with no plan around them, so each one is reviewed before it merges.
 
 ## The flow
 
@@ -49,10 +49,10 @@ Why pod checks work where it does, what each check covers, and what we chose not
 | Stall watch | orchestrator | every 15 min while agents run | an agent hung in one tool call |
 | CI | GitHub Actions (or your CI) | every PR | the project's own build/test/lint, secrets committed by mistake — run by something other than the agent that wrote the code |
 | Mechanical merge checks | autopilot | every PR | red CI (or no checks on a repo that has CI), merge conflicts, open threads |
-| Sync with `main` | orchestrator | every sprint start | the plan drifting from `main` (merge conflicts, a `/pod:fix` the plan breaks) |
+| Sync with `main` | orchestrator | every sprint start | the plan drifting from `main` (merge conflicts, a `/pod:task` the plan breaks) |
 | Low-confidence stop | autopilot | every wave | an engineer said it isn't sure |
 | **Code review** | **pod:reviewer** | **end of plan** | bugs, security, unmet goals, missing tests, one wave breaking another, duplicated code — plus a re-run of the tests and scripted smoke checks on the final code |
-| **Code review** | **pod:reviewer** | **every `/pod:fix` PR** | the task not done (or overdone), bugs, security, missing tests |
+| **Code review** | **pod:reviewer** | **every `/pod:task` PR** | the task not done (or overdone), bugs, security, missing tests |
 
 ## Why no reviewer per wave
 
@@ -107,38 +107,50 @@ One review pass, one fix pass, then merge — no endless loops ([Tembo](https://
 4. The reviewer re-checks **only those fixes** (round 2).
 5. Pass → merge the final PR. Still failing → it comes to you marked `review still failing` (autopilot halts at gate 2). You decide: fix by hand, merge as is, or re-plan.
 
-## Reviewing `/pod:fix` PRs
+## Reviewing `/pod:task` PRs
 
-A `/pod:fix` change skips the whole plan machinery — no sprint doc, no smoke test on a combined wave, no end-of-plan review — and lands straight on `main`. So it gets its own review, with the same reviewer and the same rules, in a lighter shape:
+A `/pod:task` change skips the whole plan machinery — no sprint doc, no smoke test on a combined wave, no end-of-plan review — and lands straight on `main`. So it gets its own review, with the same reviewer and the same rules, in a lighter shape:
 
-- **One pass, no pieces.** A fix is one small diff, so there's no per-wave or whole-plan pass. The reviewer checks it against the **task** as you gave it: done, not overdone, no bugs, no security holes, a test for the fixed behavior.
+- **One pass, no pieces.** A task is one small diff, so there's no per-wave or whole-plan pass. The reviewer checks it against the **task** as you gave it: done, not overdone, no bugs, no security holes, a test for the new or fixed behavior.
 - **Reproduce first, fix the cause.** For a bug, the engineer reproduces it on the path the user hit before touching code, names the cause, and re-runs the same steps after the fix; the reviewer checks the diff fixes that cause, not just the symptom. A fix for the symptom passes its test and the bug comes back by another path ([pstack's Bug fix playbook](https://flaviocopes.com/pstack) makes the same demand).
 - **Same fix pass.** Blocking findings go back to the **same engineer**, in its retained worktree; the PR updates in place; the reviewer re-checks just those fixes once.
 - **Then it's yours.** The PR comes back with the verdict — `Review still failing` if the fix pass didn't clear it — and you merge.
-- **Skip it on purpose: `/pod:fix --no-review <task>`.** For a typo or a one-line config value, a review costs more than it's worth, and you look at every fix PR before merging anyway. The skip is a flag you choose, never automatic by diff size: small isn't the same as safe — a one-line auth change is tiny and dangerous.
+- **Skip it on purpose: `/pod:task --no-review <task>`.** For a typo or a one-line config value, a review costs more than it's worth, and you look at every task PR before merging anyway. The skip is a flag you choose, never automatic by diff size: small isn't the same as safe — a one-line auth change is tiny and dangerous.
+
+## PR bodies
+
+Every PR pod opens has the same body (`skills/code/pr-template.md`), in two layers. The top layer is for your merge choice: what changes and why, a **review guide**, and the risks. The folded **Proof** holds what the agents must show: the repro, each test's red and green commits, the checks run, and the browser rows.
+
+- **The review guide is the story of the change.** It lists the steps in the order they were built, and each step links to only its own diff: a commit, a slice's merge, or a fix. You read the PR step by step instead of as one wall of diff. Reviewing in commit order is the core of [Reviewer First Pull Requests](https://www.5xx.engineer/2025/02/13/rfprs.html), and Warp's agent skill puts the guide right after the summary ([write-pr-description](https://github.com/warpdotdev/common-skills/blob/8792394ff1b655e0af451b8fabb68ef0cfcbd208/.agents/skills/write-pr-description/SKILL.md)).
+- **Weights say where to spend your attention.** `Read` marks logic, data, contracts, one-way doors, and security. `Skim` marks tests, renames, and docs. `Done` marks waves reviewed earlier. You read less, but you read the right parts.
+- **The reviewer reads everything anyway.** The author of the code also writes the guide, so the guide could steer you past a bug. The reviewer checks the guide against the diff, and a `Skim` step that holds logic is a `FIX`.
+- **One change per commit.** The guide only works if each commit is one step, so engineers commit renames and moves on their own ([Prat](https://dev.to/nicooprat/how-to-write-reviewer-friendly-pull-requests-16aj)).
+- **Skills write the body, agents don't.** Agents keep every rule in their own file, so the template sits with `/pod:code`. The engineer reports its proof in its **Final output**, and `/pod:task` writes the body from it.
+- **Proof, not prose.** The proof section asks for exact commands and results, as [React's template](https://raw.githubusercontent.com/facebook/react/main/.github/PULL_REQUEST_TEMPLATE.md) does. A study of 33.6k agent PRs found that structured bodies went with faster reviews, while long text did not help ([Watanabe et al.](https://arxiv.org/html/2602.17084v1)).
+- **The body describes the end state.** After a fix pass or a review, the body is written again, never appended to ([Google](https://google.github.io/eng-practices/review/developer/cl-descriptions.html)).
 
 ## Test first
 
 Success criteria used to be prose, and the reviewer judged them by reading code. Now they're tests, written first:
 
 - **The sprint-planner names a test per criterion** — `[test] <behavior> — <file> › <test name>` — and puts the test files in the slice's **Files owned**. `[manual]` is kept for what a test genuinely can't check, like visual layout, and those get checked in the browser.
-- **Engineers do real TDD.** Red: write the named tests and watch them fail on an assertion — a missing module or a type error doesn't count, because the test body never ran — then commit the tests with throwing stubs and nothing else. Green: the least code that passes them. Refactor with the tests green. Any extra logic no criterion covers gets its own test first too. Engineers never weaken a test to make it pass.
+- **Engineers do real TDD.** Red: write the named tests, put throwing stubs where the code will go, and watch the tests fail on an assertion — a missing module or a type error doesn't count, because the test body never ran. Green: the least code that passes them. Each criterion's test and code go in one commit. Refactor with the tests green. Any extra logic no criterion covers gets its own test first too. Engineers never weaken a test to make it pass.
 - **The tests decide "done".** An engineer doesn't judge its own work by reading it; a slice is done when its criteria's tests pass along with the rest of the suite.
-- **The commit order is the evidence.** Each slice's `test(<area>):` commit lands before its implementation, so the reviewer can see test-first happened.
+- **The reviewer re-runs red.** It runs each new test against the code before its commit. A test that passes there tests nothing. This used to be a separate `test(<area>):` commit before the code, and the commit order was the evidence. But that order shows only when a test was committed, not that it fails without the code, and it doubled the test and code commits.
 - **No test runner → set one up first.** The sprint-planner makes that the sprint's first, solo slice; a feature slice never invents one.
 
 This is how spec-driven setups work — the written spec drives what gets built and checked ([GitHub Spec Kit](https://github.com/github/spec-kit)) — carried one step further, into tests that run.
 
 **What the reviewer does with it.** Tests an agent writes for its own code can be honest and still miss things, so the reviewer does two jobs:
 
-1. **Check the tests are honest** — each criterion's test exists, asserts the behavior (not the implementation, no mocking the unit under test), would fail if the behavior broke, and came first.
+1. **Check the tests are honest** — each criterion's test exists, asserts the behavior (not the implementation, no mocking the unit under test), and fails against the code before it.
 2. **Review what the tests don't cover** — branches, error paths, and inputs no test exercises; code special-cased to pass the tests' values; logic nobody asked for; bugs at the seams between slices; security, which tests rarely check.
 
-One cost: the red test commits enter the plan branch's history, so a plain `git bisect` can land on one. Use `git bisect --first-parent`, which steps wave by wave.
+Every commit passes its tests, so a plain `git bisect` works. The costs: the reviewer runs each checked test once more, and a test for a new module can only fail on import at the parent, so the engineer's red output has to show the assertion. In a plan, the reviewer re-runs red for `Read` steps and doubtful tests, not every criterion.
 
 ## Keeping the plan branch in sync with `main`
 
-The plan branch lives for the whole plan. Meanwhile `main` keeps moving — a `/pod:fix` lands, or you commit something yourself. Without syncing, all of that meets the plan for the first time at the final PR: the worst moment for a conflict, and the plan's code was never tested against it.
+The plan branch lives for the whole plan. Meanwhile `main` keeps moving — a `/pod:task` lands, or you commit something yourself. Without syncing, all of that meets the plan for the first time at the final PR: the worst moment for a conflict, and the plan's code was never tested against it.
 
 Real-world practice is to keep branches short-lived and merged often, because drift grows with time ([Atlassian](https://www.atlassian.com/continuous-delivery/continuous-integration/trunk-based-development)). pod's plan branch can't be as short-lived as a trunk-based branch, so it does the next best thing: **at the start of every sprint** (after the first), the orchestrator merges `origin/main` into the plan branch in its own worktree, runs the smoke test on the result, and pushes. A conflict or a failing smoke test stops the run while the drift is still one sprint's worth. It merges rather than rebases, so no one ever force-pushes the plan branch.
 
@@ -146,11 +158,11 @@ Real-world practice is to keep branches short-lived and merged often, because dr
 
 The smoke recipe proves the app starts; it doesn't say how to prove a given feature still works, so each agent worked that out again, and an older feature was only re-checked if a test happened to cover it. `pod-docs/features.md` keeps one row per user-facing feature: how a user reaches it, how an agent drives the running app, and what observable state proves it works — the feature map from pstack's verification skill ([flaviocopes.com/pstack](https://flaviocopes.com/pstack)).
 
-- **Who writes it.** The scout starts it at init and drives each row once. The orchestrator adds rows at each wave check, where it drives the new features anyway, so parallel slices never edit the same file. A `/pod:fix` engineer edits the row in its own branch.
-- **Who runs it.** Engineers and the wave check drive the rows a change touches. At plan end the reviewer drives every row, old ones included — a regression pass. A `/pod:fix` reviewer drives only the rows whose feature runs a file the diff changes, or every row when the diff changes what every page uses: a small fix shouldn't wait on the whole app, and it still gets the full test run and CI.
+- **Who writes it.** The scout starts it at init and drives each row once. The orchestrator adds rows at each wave check, where it drives the new features anyway, so parallel slices never edit the same file. A `/pod:task` engineer edits the row in its own branch.
+- **Who runs it.** Engineers and the wave check drive the rows a change touches. At plan end the reviewer drives every row, old ones included — a regression pass. A `/pod:task` reviewer drives only the rows whose feature runs a file the diff changes, or every row when the diff changes what every page uses: a small task shouldn't wait on the whole app, and it still gets the full test run and CI.
 - **What the first run taught.** On a browser-only chess app, 6 of the scout's 10 rows were "run this test file" (told to prefer commands because the reviewer had no browser), and the reviewer drove 1 row — the only one a command could reach. A test file repeats `Verification:` and proves nothing about the running app, so a drive must act on the app; and the reviewer now drives browser rows itself, judging text and state but never looks. The sprint-planner had also put `docs/features.md` in one slice's files, which would force two feature slices into separate waves; it now leaves the file to the orchestrator.
 - **It can't hide a bug.** A failing row is a bug unless a plan changed that feature on purpose. Editing the row to make it pass is never the fix.
-- **How and why live next to it.** `features.md` says how to prove a feature works; `pod-docs/feature-details/<slug>.md` says how it works and why it's built that way, so a later plan doesn't dig through archived sprint docs. The reporter writes them at plan end, because it already reads the whole paper trail there and nothing else is writing; a `/pod:fix` engineer adds a History line in its own branch. Each file stays short and records what the code can't show — the why and the traps — because docs that restate the code go stale and mislead ([Böckeler on spec-driven tools](https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html), [Nygard — ADRs](https://www.cognitect.com/blog/2011/11/15/documenting-architecture-decisions), [Gloaguen et al.](https://arxiv.org/abs/2602.11988)). No backfill, and no docs version bump: the folder appears when the first plan ends, and notes written from code alone would only repeat it.
+- **How and why live next to it.** `features.md` says how to prove a feature works; `pod-docs/feature-details/<slug>.md` says how it works and why it's built that way, so a later plan doesn't dig through archived sprint docs. The reporter writes them at plan end, because it already reads the whole paper trail there and nothing else is writing; a `/pod:task` engineer adds a History line in its own branch. Each file stays short and records what the code can't show — the why and the traps — because docs that restate the code go stale and mislead ([Böckeler on spec-driven tools](https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html), [Nygard — ADRs](https://www.cognitect.com/blog/2011/11/15/documenting-architecture-decisions), [Gloaguen et al.](https://arxiv.org/abs/2602.11988)). No backfill, and no docs version bump: the folder appears when the first plan ends, and notes written from code alone would only repeat it.
 - **Not a separate skill.** pstack writes a project-local `verify-<app>` skill. pod's agents already read the brief and docs, so a table in `pod-docs/` gives them the same thing without another file to keep in sync.
 
 ## CI as a gate
@@ -260,7 +272,7 @@ pod switched to `agent-browser` from chrome-devtools-axi (commit 5e0954b). Each 
 - **pod probes the browser, not its version.** On Windows, `agent-browser open` hangs when PowerShell captures its output after a close ([agent-browser #1407](https://github.com/vercel-labs/agent-browser/issues/1407)), while `--version` still works. A chess-web sprint lost about 5 minutes per slice to it. So pod's commands go through the Bash tool, and the Preflight opens and closes a blank page twice, each call under a 30-second limit.
 - **When the probe fails, pod asks once.** You can install `agent-browser`, use chrome-devtools-axi, use the Chrome DevTools MCP, or stop. axi still gives each agent its own browser (`CHROME_DEVTOOLS_AXI_SESSION`), so engineers keep checking their own pages; it is second because of the startup cost above. Installing it with `npm i -g` and pointing `CHROME_DEVTOOLS_AXI_MCP_PATH` at a global `chrome-devtools-mcp` cuts most of that cost. pod saves the answer as `## <date> — browser: <choice>` in `pod-docs/decisions.md`. `/pod:ship` asks at its go check, before the run is unattended.
 - **With the MCP, only the orchestrator opens the browser.** An MCP server is one browser shared by the whole session. Engineers and the reviewer get `browser: none`. The orchestrator drives the page checks at each wave check and hands the results to the reviewer as browser rows.
-- **A `/pod:fix` engineer uses the MCP itself.** It works alone, so nothing else shares the browser.
+- **A `/pod:task` engineer uses the MCP itself.** It works alone, so nothing else shares the browser.
 - **The cost is fewer checks.** Engineers can't check their own pages, so UI slices top out at `medium` Confidence.
 
 ## Choices we made on purpose
@@ -277,7 +289,7 @@ pod switched to `agent-browser` from chrome-devtools-axi (commit 5e0954b). Each 
 - **The reviewer never fixes code itself.** Its value is independence: a fix it committed would reach `main` unreviewed. Fixes go to an engineer, and the reviewer re-checks them.
 - **No coding-standards file or `/retro` yet.** Conventions live in the brief's Stack & conventions, and growing instruction files tend to cost more than they help. Revisit when one project runs several plans and the same review findings keep coming back.
 - **pod's files live in `pod-docs/`, with a version.** Many projects keep their own docs, or a published docs site, in `docs/`, so pod's queue, sprints, and drafts move to a folder that is only pod's. `pod-docs/README.md` carries `pod docs: <N>`; a project with pod's files in `docs/` and no such line is version 1. Every skill checks the version and stops when it's old, so a layout change never happens partway through a run; only `/pod:init` upgrades, after showing what will move. Each future layout change adds one upgrade step to `/pod:init` and never deletes the human's files.
-- **Parked ideas come back only inside pod commands.** `/pod:research`, `/pod:plan`, and `/pod:fix` check `pod-docs/ideas/` against the new work. A line in the project's `CLAUDE.md` could bring them up in any chat, but pod is opt-in: such a line would have every agent, pod's own included, stop to mention pod.
+- **Parked ideas come back only inside pod commands.** `/pod:research`, `/pod:plan`, and `/pod:task` check `pod-docs/ideas/` against the new work. A line in the project's `CLAUDE.md` could bring them up in any chat, but pod is opt-in: such a line would have every agent, pod's own included, stop to mention pod.
 - **Each plan keeps its own queue log.** When the next plan starts, its resolved queue entries move to a `## Queue log` at the end of its plan doc. One shared archive file grew with every plan and nothing read it; a per-plan log stays the size of its plan, and `/pod:report` can still find an old plan's entries.
 
 ## Sources

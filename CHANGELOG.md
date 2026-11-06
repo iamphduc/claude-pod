@@ -2,6 +2,21 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.10.0 · pod-flow 0.3.2 — 2026-11-05
+
+- **Breaking:** `/pod:fix` is now `/pod:task`. The command takes any one-off change outside a plan, not only bug fixes. There is no `/pod:fix` alias: type `/pod:task <task>`.
+- The engineer's branch and worktree are now `task-<slug>`, and the reviewer takes `kind: task`.
+- pod-flow: comments and tests use the new name. Nothing in the pane changes.
+- Every pod PR uses one body from `skills/code/pr-template.md`: the Door line, what and why, a **Review guide**, **Risks**, and a folded **Proof**. The guide lists the steps in the order they were built: commits, slices, fixes, or waves. Each step links to only its own diff and is marked `Read`, `Skim`, or `Done`.
+- The proof holds what the agents show: the repro for a bug, each test's red and green commits, the checks run, the browser rows, and the review verdict. The body is written again after a fix pass or a review.
+- `/pod:task` writes the task PR's body from the engineer's report. Engineers keep one change per commit, with renames and moves in their own commit.
+- The reviewer checks the PR body against the diff. A `Skim` step that holds logic, a change missing from the guide, or a proof claim its run contradicts is a `FIX`.
+- Fewer commits. An engineer puts the docs that record a change (its `features.md` row, its feature's History) in that change's commit, not in a `docs` commit of its own. `/pod:task` writes its queue entries in one `docs(queue)` commit before the hand-back. In one project, docs commits were 27% of all commits, most of them from task branches.
+- The reviewer's task check fits any task, not only bugs. A test must pin the behavior the task asks for, committed before the code. The repro and the cause check apply to bugs only.
+- Engineers commit each criterion's test with its code, in one commit, instead of a `test` commit before a `feat` commit. They still watch the test fail first and report its red output. This halves the test and code commits, and every commit passes its tests.
+- The reviewer proves red itself with a **Red check**: it runs the commit's tests against the code before it, in a separate worktree. A test that passes there is a `FIX`. It checks every criterion of a task PR, and in a plan the `Read` steps and any test it doubts. A test it can't run is `not checked`, never proven.
+- A wave with one slice fast-forwards its wave head to the slice (`git merge --ff-only`), so it has no empty merge commit. A wave with two or more slices still merges each one. In three projects, a third to half of all waves had one slice.
+
 ## pod 0.9.2 · pod-flow 0.3.1 — 2026-10-31
 
 - `/pod:code` writes the one-way door queue entry as `one-way door in PR #<n> — <what>, undo: <how>`, with the wave PR's number. pod-flow shows it as `PR #74: <what>`, in the checklist and under **needs you**. An older entry with no number shows as `One-way: <what>`.
