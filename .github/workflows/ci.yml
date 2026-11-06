@@ -25,6 +25,8 @@ jobs:
           claude plugin validate ./pod-flow
       - name: Check the required strings
         run: node .github/scripts/check-required-strings.mjs
+      - name: Check the agent file shape
+        run: node .github/scripts/check-agent-shape.mjs
       - name: Test pod-flow
         working-directory: pod-flow
         run: claude plugin test .
