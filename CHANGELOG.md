@@ -2,6 +2,11 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.10.2 — 2026-11-06
+
+- The scout gives goals and guardrails, not procedure: its six prose sections are two, **Map** and **Prove the smoke recipe**, with eight named rules, per `docs/templates/agent.md`. Rules the brief template or the Final output already state are gone. The known-issues shape and the smoke-run strings do not change. The first of six agent conversions, one per PR.
+- Test runs on two sample apps added three rules. A bug the scout finds goes under **Left for the human**, not into `known-issues/`. Smoke-recipe ports are placeholders, never numbers. The scout stops only what it started, and reports a taken port instead of freeing it.
+
 ## pod 0.10.1 — 2026-11-06
 
 - Every agent file has the same skeleton: frontmatter, a goal paragraph, `## Required dispatch context`, `## Guardrails`, the work, and `## Final output`. The skeleton is `docs/templates/agent.md`, next to a starting shape for new skills, `docs/templates/skill.md`. CI checks each agent for the three contract headings.

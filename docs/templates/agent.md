@@ -20,9 +20,13 @@ A required field missing → stop and say which.
 
 - <What it never does.>
 
-## <Work section, named for the job>
+## Work
+
+### <Part, named for what it produces>
 
 - **<Rule name>:** <the goal or constraint> → <the result, or what to do when it fails>.
+
+<!-- `### <Part>` is optional: a small agent lists its rules right under `## Work`. A format other files depend on goes in a code block under its rule. -->
 
 ## Final output
 

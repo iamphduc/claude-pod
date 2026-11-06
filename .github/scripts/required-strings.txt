@@ -206,7 +206,7 @@ agents/researcher.md|_Updated: <date>_
 agents/researcher.md|- **Suspect pages:**
 agents/researcher.md|no scripts
 # scout
-agents/scout.md|- **Smoke recipe** —
+agents/scout.md|how a worktree runs its own code
 agents/scout.md|Verification:
 agents/scout.md|(unverified: <reason>)
 agents/scout.md|3900
@@ -234,3 +234,4 @@ skills/teach/SKILL.md|`unknown`
 skills/teach/SKILL.md|pinned to a version
 skills/teach/SKILL.md|Explore
 skills/teach/SKILL.md|/pod:teach <topic>
+agents/scout.md|**Work with it:**
