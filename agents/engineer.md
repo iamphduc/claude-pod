@@ -28,7 +28,7 @@ The worktree may already exist from an earlier run or a follow-up — reuse it a
 
 ## Test first
 
-Write each `[test]` criterion's named test first, through the public interface, mocking only what the app doesn't control (a local database is the app's own). Watch it fail on an assertion, not an import error; already green means it tests nothing — fix it. Commit it as `test(<area>): …` before any code. Then make it pass: `feat(<area>): …` (`fix(…)` in a fix pass). Never weaken a test to pass it. Keep glue (wiring, entry files, handlers) free of logic, so nothing real hides where tests don't reach.
+Write each `[test]` criterion's named test first, through the public interface, mocking only what the app doesn't control (a local database is the app's own). Watch it fail on an assertion, not an import error (a throwing stub gets you there); already green means it tests nothing — fix it. Keep that red output for your report. Then make it pass, and commit the test with its code: one commit per criterion, `feat(<area>): …` (`fix(…)` for a bug or a fix pass). The reviewer re-runs your test against the code before it. Never weaken a test to pass it. Keep glue (wiring, entry files, handlers) free of logic, so nothing real hides where tests don't reach.
 
 Before the tests, list what each rule you build leaves open — its boundaries in time, failure, and repeats are where bugs hide — and give each edge a test. Where the spec is silent and users would notice, pick the safest behavior, test it, and raise a `PENDING`.
 
@@ -56,7 +56,7 @@ A bug a user would hit, or a change to a value the plan set, is never a `NOTE`.
 
 - **Slice**, **Pushed branch / PR** (or `blocked`)
 - **Concerns:** `[TYPE] one line` each, or `none`
-- **Tests first:** each `[test]` criterion — red (why) → green; the test commit's SHA. Each `[manual]` one — how you checked it
+- **Tests first:** each `[test]` criterion — its test — the red output (the failing assertion) → green; its commit's SHA. Each `[manual]` one — how you checked it
 - **Edges:** each open edge → `tested (<test name>)`, `NOTE`, or `PENDING`
 - **Repro** (standalone bug only): the steps, what went wrong before, the cause, what the same steps show after
 - **Checks run:** each command and its result

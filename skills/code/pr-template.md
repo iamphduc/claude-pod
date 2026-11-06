@@ -48,7 +48,7 @@ A step that touches a one-way door or security is always `Read`. Name what to ch
 
 | PR | Proof |
 |---|---|
-| Task | **Repro** (a bug: the steps, before, cause, after) · **Tests first**: each criterion — its test — red, with why and the test commit — green commit · **Checks run** with results · **Browser rows** driven · **Review**: verdict and round, or `skipped (--no-review)` |
+| Task | **Repro** (a bug: the steps, before, cause, after) · **Tests first**: each criterion — its test — the red output — its commit · **Checks run** with results · **Browser rows** driven · **Review**: verdict, round, and its red checks, or `skipped (--no-review)` |
 | Wave | Per slice: **Tests first** as above, its `NOTE`s, stray paths · then the **wave check**: checks run, browser rows, the Look check line, the wave fix · **Sent to the queue**: each entry, one line |
 | `Review fixes` | Each `FIX` finding → its fix commit → the check that now passes · checks run |
 | Final plan | **Review**: verdict and round · the regression pass: rows driven and results · a link to each wave PR, which holds its own proof |

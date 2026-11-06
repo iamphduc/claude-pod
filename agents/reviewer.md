@@ -36,8 +36,10 @@ Ground truth is in the parent repo (docs there may be uncommitted): the plan's *
 
 **Run it.** In the worktree, per the `## Smoke recipe`, on your dev ports: the full verification (tests, typecheck, lint, build), every scripted check, and `pod-docs/features.md` rows. **plan:** every row — older features too, since a later change can break them. **task:** every row whose feature the diff could reach (shared code or config → every row). A failing check is a `FIX` with the command and output. Couldn't run them → say so under **Ran** and never say it works.
 
+**Red check.** Engineers commit each test with its code, so prove red yourself: in a second detached worktree at that commit's parent, add only the commit's test files and run them. Fails on an assertion → proven. Fails only because the module is new → proven if the engineer's red output shows an assertion failing. Passes → hollow, a `FIX`. Won't install or run there → try the wave head before the step; still not → `not checked` under **Ran**, never proven. Check every criterion of a task PR; in a plan, the criteria of `Read` steps and any test you doubt.
+
 **Plan: wave by wave, then whole.** Review quality drops past a few hundred lines, so read each wave's own merge diff — first-parent, oldest first; skip docs-only, `Sync <merge-target> into <plan-slug>`, and `Review fixes` commits — against its sprint doc. In each wave look for:
-- **Dishonest tests** — each `[test]` criterion's test exists, would fail if the behavior broke, goes through the public interface, mocks nothing the app controls (a local database included), and isn't weaker than the criterion. Missing or hollow → `FIX`. For logic-heavy slices, read the tests, don't just match names.
+- **Dishonest tests** — each `[test]` criterion's test exists, fails without its code (**Red check**), goes through the public interface, mocks nothing the app controls (a local database included), and isn't weaker than the criterion. Missing or hollow → `FIX`. For logic-heavy slices, read the tests, don't just match names.
 - **What the tests miss** — uncovered branches, error paths, and inputs; code special-cased to pass.
 - **Bugs**, especially at the seams where one slice consumes what another produces; **security**; `[manual]` criteria — the engineer said how each was checked, and the code plausibly does it.
 
@@ -45,7 +47,7 @@ Then the whole plan diff, only for: Goal and Verification hold; a later wave bre
 
 **The PR body.** The human reads the diff by its **Review guide**, so check the guide against the diff: every change sits in a step, each step's link opens that step, and a `Skim` step holds no logic, data, public contract, one-way door, or security. A step marked wrong, a change left out, or a claim under **Proof** that your run contradicts is a `FIX` at `PR body`.
 
-**Task PR (`kind: task`):** one pass over the PR diff against the **task** — a test pins the behavior the task asks for and was committed before the code (missing or hollow → `FIX`, out of order → `PENDING`); for a bug, that test reproduces it, and the diff fixes the cause the engineer's **Repro** names, not just the symptom; the whole task and nothing more (extras are `PENDING` unless they break something); what the test doesn't pin down, including callers; security. Findings use `task` as their location.
+**Task PR (`kind: task`):** one pass over the PR diff against the **task** — a test pins the behavior the task asks for and passes the **Red check** (missing or hollow → `FIX`); for a bug, that test reproduces it, and the diff fixes the cause the engineer's **Repro** names, not just the symptom; the whole task and nothing more (extras are `PENDING` unless they break something); what the test doesn't pin down, including callers; security. Findings use `task` as their location.
 
 ## Findings
 
@@ -56,7 +58,7 @@ Keep a finding only if you can point at it: `file:line`, what goes wrong, what i
 - **`FIX`** (blocks the merge) — a real bug, a security hole, an unmet goal or criterion, a failing check, a missing or hollow test, untested logic that could plausibly be wrong. Rank: security → correctness → unmet goal → test gaps.
 - **`PENDING`** (goes to the human, never blocks) — tagged `now` (a risk you couldn't reproduce, or a product choice), `before hosting` (limits, scale), or `someday` (tidy-ups), ending with why it isn't a `FIX`: `no repro — <what you tried>`, `product choice`, or `hardening — <what it needs>`.
 
-Style preferences are neither. Process notes (a test committed late) go under **Coverage**.
+Style preferences are neither. Process notes (a red output missing from the report) go under **Coverage**.
 
 A suspicion you checked and dropped goes under **Dismissed**, with why: the human can only overrule a call they can see.
 

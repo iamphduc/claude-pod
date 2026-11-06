@@ -134,19 +134,19 @@ Every PR pod opens has the same body (`skills/code/pr-template.md`), in two laye
 Success criteria used to be prose, and the reviewer judged them by reading code. Now they're tests, written first:
 
 - **The sprint-planner names a test per criterion** — `[test] <behavior> — <file> › <test name>` — and puts the test files in the slice's **Files owned**. `[manual]` is kept for what a test genuinely can't check, like visual layout, and those get checked in the browser.
-- **Engineers do real TDD.** Red: write the named tests and watch them fail on an assertion — a missing module or a type error doesn't count, because the test body never ran — then commit the tests with throwing stubs and nothing else. Green: the least code that passes them. Refactor with the tests green. Any extra logic no criterion covers gets its own test first too. Engineers never weaken a test to make it pass.
+- **Engineers do real TDD.** Red: write the named tests, put throwing stubs where the code will go, and watch the tests fail on an assertion — a missing module or a type error doesn't count, because the test body never ran. Green: the least code that passes them. Each criterion's test and code go in one commit. Refactor with the tests green. Any extra logic no criterion covers gets its own test first too. Engineers never weaken a test to make it pass.
 - **The tests decide "done".** An engineer doesn't judge its own work by reading it; a slice is done when its criteria's tests pass along with the rest of the suite.
-- **The commit order is the evidence.** Each slice's `test(<area>):` commit lands before its implementation, so the reviewer can see test-first happened.
+- **The reviewer re-runs red.** It runs each new test against the code before its commit. A test that passes there tests nothing. This used to be a separate `test(<area>):` commit before the code, and the commit order was the evidence. But that order shows only when a test was committed, not that it fails without the code, and it doubled the test and code commits.
 - **No test runner → set one up first.** The sprint-planner makes that the sprint's first, solo slice; a feature slice never invents one.
 
 This is how spec-driven setups work — the written spec drives what gets built and checked ([GitHub Spec Kit](https://github.com/github/spec-kit)) — carried one step further, into tests that run.
 
 **What the reviewer does with it.** Tests an agent writes for its own code can be honest and still miss things, so the reviewer does two jobs:
 
-1. **Check the tests are honest** — each criterion's test exists, asserts the behavior (not the implementation, no mocking the unit under test), would fail if the behavior broke, and came first.
+1. **Check the tests are honest** — each criterion's test exists, asserts the behavior (not the implementation, no mocking the unit under test), and fails against the code before it.
 2. **Review what the tests don't cover** — branches, error paths, and inputs no test exercises; code special-cased to pass the tests' values; logic nobody asked for; bugs at the seams between slices; security, which tests rarely check.
 
-One cost: the red test commits enter the plan branch's history, so a plain `git bisect` can land on one. Use `git bisect --first-parent`, which steps wave by wave.
+Every commit passes its tests, so a plain `git bisect` works. The costs: the reviewer runs each checked test once more, and a test for a new module can only fail on import at the parent, so the engineer's red output has to show the assertion. In a plan, the reviewer re-runs red for `Read` steps and doubtful tests, not every criterion.
 
 ## Keeping the plan branch in sync with `main`
 

@@ -13,6 +13,8 @@ Newest first. The `pod` and `pod-flow` plugins share this file. Each heading nam
 - The reviewer checks the PR body against the diff. A `Skim` step that holds logic, a change missing from the guide, or a proof claim its run contradicts is a `FIX`.
 - Fewer commits. An engineer puts the docs that record a change (its `features.md` row, its feature's History) in that change's commit, not in a `docs` commit of its own. `/pod:task` writes its queue entries in one `docs(queue)` commit before the hand-back. In one project, docs commits were 27% of all commits, most of them from task branches.
 - The reviewer's task check fits any task, not only bugs. A test must pin the behavior the task asks for, committed before the code. The repro and the cause check apply to bugs only.
+- Engineers commit each criterion's test with its code, in one commit, instead of a `test` commit before a `feat` commit. They still watch the test fail first and report its red output. This halves the test and code commits, and every commit passes its tests.
+- The reviewer proves red itself with a **Red check**: it runs the commit's tests against the code before it, in a separate worktree. A test that passes there is a `FIX`. It checks every criterion of a task PR, and in a plan the `Read` steps and any test it doubts. A test it can't run is `not checked`, never proven.
 
 ## pod 0.9.2 · pod-flow 0.3.1 — 2026-10-31
 

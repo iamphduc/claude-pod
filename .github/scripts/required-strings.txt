@@ -58,6 +58,7 @@ skills/code/SKILL.md|skills/code/pr-template.md
 skills/task/SKILL.md|skills/code/pr-template.md
 skills/autopilot/policy.md|skills/code/pr-template.md
 agents/reviewer.md|**The PR body.**
+agents/reviewer.md|**Red check.**
 agents/engineer.md|One change per commit
 agents/engineer.md|never a `docs` commit of their own
 skills/task/SKILL.md|**Queue commit:**
