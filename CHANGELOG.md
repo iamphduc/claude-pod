@@ -12,6 +12,7 @@ Newest first. The `pod` and `pod-flow` plugins share this file. Each heading nam
 - `/pod:task` writes the task PR's body from the engineer's report. Engineers keep one change per commit, with renames and moves in their own commit.
 - The reviewer checks the PR body against the diff. A `Skim` step that holds logic, a change missing from the guide, or a proof claim its run contradicts is a `FIX`.
 - Fewer commits. An engineer puts the docs that record a change (its `features.md` row, its feature's History) in that change's commit, not in a `docs` commit of its own. `/pod:task` writes its queue entries in one `docs(queue)` commit before the hand-back. In one project, docs commits were 27% of all commits, most of them from task branches.
+- The reviewer's task check fits any task, not only bugs. A test must pin the behavior the task asks for, committed before the code. The repro and the cause check apply to bugs only.
 
 ## pod 0.9.2 · pod-flow 0.3.1 — 2026-10-31
 

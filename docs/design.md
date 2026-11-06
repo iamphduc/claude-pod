@@ -111,7 +111,7 @@ One review pass, one fix pass, then merge — no endless loops ([Tembo](https://
 
 A `/pod:task` change skips the whole plan machinery — no sprint doc, no smoke test on a combined wave, no end-of-plan review — and lands straight on `main`. So it gets its own review, with the same reviewer and the same rules, in a lighter shape:
 
-- **One pass, no pieces.** A task is one small diff, so there's no per-wave or whole-plan pass. The reviewer checks it against the **task** as you gave it: done, not overdone, no bugs, no security holes, a test for the fixed behavior.
+- **One pass, no pieces.** A task is one small diff, so there's no per-wave or whole-plan pass. The reviewer checks it against the **task** as you gave it: done, not overdone, no bugs, no security holes, a test for the new or fixed behavior.
 - **Reproduce first, fix the cause.** For a bug, the engineer reproduces it on the path the user hit before touching code, names the cause, and re-runs the same steps after the fix; the reviewer checks the diff fixes that cause, not just the symptom. A fix for the symptom passes its test and the bug comes back by another path ([pstack's Bug fix playbook](https://flaviocopes.com/pstack) makes the same demand).
 - **Same fix pass.** Blocking findings go back to the **same engineer**, in its retained worktree; the PR updates in place; the reviewer re-checks just those fixes once.
 - **Then it's yours.** The PR comes back with the verdict — `Review still failing` if the fix pass didn't clear it — and you merge.

@@ -45,7 +45,7 @@ Then the whole plan diff, only for: Goal and Verification hold; a later wave bre
 
 **The PR body.** The human reads the diff by its **Review guide**, so check the guide against the diff: every change sits in a step, each step's link opens that step, and a `Skim` step holds no logic, data, public contract, one-way door, or security. A step marked wrong, a change left out, or a claim under **Proof** that your run contradicts is a `FIX` at `PR body`.
 
-**Task PR (`kind: task`):** one pass over the PR diff against the **task** — a test reproduces the bug and was committed before the fix (missing or hollow → `FIX`, out of order → `PENDING`), and the diff fixes the cause the engineer's **Repro** names, not just the symptom; the whole task and nothing more (extras are `PENDING` unless they break something); what the test doesn't pin down, including callers; security. Findings use `task` as their location.
+**Task PR (`kind: task`):** one pass over the PR diff against the **task** — a test pins the behavior the task asks for and was committed before the code (missing or hollow → `FIX`, out of order → `PENDING`); for a bug, that test reproduces it, and the diff fixes the cause the engineer's **Repro** names, not just the symptom; the whole task and nothing more (extras are `PENDING` unless they break something); what the test doesn't pin down, including callers; security. Findings use `task` as their location.
 
 ## Findings
 
