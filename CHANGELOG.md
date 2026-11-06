@@ -4,7 +4,7 @@ Newest first. The `pod` and `pod-flow` plugins share this file. Each heading nam
 
 ## pod 0.10.1 — 2026-11-06
 
-- Every agent file has the same skeleton: frontmatter, a goal paragraph, `## Required dispatch context`, `## Guardrails`, the work, and `## Final output`. The skeleton is `templates/agent.md`, next to a starting shape for new skills, `templates/skill.md`. CI checks each agent for the three contract headings.
+- Every agent file has the same skeleton: frontmatter, a goal paragraph, `## Required dispatch context`, `## Guardrails`, the work, and `## Final output`. The skeleton is `docs/templates/agent.md`, next to a starting shape for new skills, `docs/templates/skill.md`. CI checks each agent for the three contract headings.
 - The engineer's `Rules` are split into `Guardrails` and `How you build`. The scout's `Hard rails` and the reviewer's `Report` take the shared names. The reporter gets a `Guardrails` section, the scout a dispatch context, and the sprint-planner all three contract sections. No agent's behavior changes.
 
 ## pod 0.10.0 · pod-flow 0.3.2 — 2026-11-05
