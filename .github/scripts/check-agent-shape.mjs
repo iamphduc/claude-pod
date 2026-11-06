@@ -5,8 +5,7 @@ import { readFileSync } from 'node:fs'
 // Agents converted to the template shape. Each plan-A PR adds its agent. When all six are in, check every agents/*.md.
 const CONVERTED = ['scout']
 
-const FIXED = ['Required dispatch context', 'Guardrails']
-const LAST = 'Final output'
+const SECTIONS = ['Required dispatch context', 'Guardrails', 'Work', 'Final output']
 
 function check(file) {
   const errors = []
@@ -30,6 +29,10 @@ function check(file) {
     const n = i + 1
     if (/^\s*```/.test(line)) fence = !fence
     if (!fence && line.startsWith('## ')) { sections.push({ name: line.slice(3).trim(), line: n, body: [] }); continue }
+    if (!fence && line.startsWith('### ')) {
+      if (sections.at(-1)?.name !== 'Work') fail(n, 'a `### <part>` subsection goes only under `## Work`')
+      continue
+    }
     if (!line.trim() || /^<!--.*-->$/.test(line.trim())) continue
     if (sections.length) sections.at(-1).body.push({ text: line, n, fenced: fence || /^\s*```/.test(line) })
     else if (goal === null) goal = n
@@ -37,11 +40,11 @@ function check(file) {
   }
   if (goal === null) fail(end + 2, 'no goal paragraph after the frontmatter')
 
-  // Section order: the two fixed sections first, at least one work section, Final output last.
+  // The same four sections in every agent, in this order.
   const names = sections.map(s => s.name)
-  FIXED.forEach((name, i) => { if (names[i] !== name) fail(sections[i]?.line ?? end + 2, `section ${i + 1} is \`## ${name}\``) })
-  if (names.at(-1) !== LAST) fail(sections.at(-1)?.line ?? end + 2, `the last section is \`## ${LAST}\``)
-  if (sections.length < FIXED.length + 2) fail(end + 2, 'no work section between `## Guardrails` and `## Final output`')
+  if (names.join('|') !== SECTIONS.join('|')) {
+    fail(sections[0]?.line ?? end + 2, `the sections are ${SECTIONS.map(x => `\`## ${x}\``).join(', ')}, in that order; found ${names.map(x => `\`## ${x}\``).join(', ') || 'none'}`)
+  }
 
   for (const s of sections) {
     const top = s.body.filter(b => !b.fenced && !/^\s/.test(b.text))
@@ -52,10 +55,11 @@ function check(file) {
         if (!bullet && !/missing → stop/.test(text)) fail(n, 'the only line that is not a field is the stop line: "… missing → stop …"')
       } else if (s.name === 'Guardrails') {
         if (!bullet) fail(n, 'a guardrail is a bullet, not prose')
-      } else if (s.name === LAST) {
+      } else if (s.name === 'Final output') {
         if (!/^- \*\*[^*]+:\*\*/.test(text)) fail(n, 'an output field is `- **<field>:** <what the dispatcher reads back>`')
       } else if (!bullet) {
-        fail(n, `\`## ${s.name}\` has prose: a work section holds only rules (a format goes in a code block under its rule)`)
+        // Any other section is checked as work, so a misnamed one still gets its rules checked.
+        fail(n, `\`## ${s.name}\` has prose: \`## Work\` holds only rules (a format goes in a code block under its rule)`)
       } else if (!/^- \*\*[^*]+:\*\* .*→/.test(text)) {
         fail(n, 'a rule is `- **<Rule name>:** <goal or constraint> → <result>`')
       }

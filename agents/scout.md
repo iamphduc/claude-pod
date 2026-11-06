@@ -18,7 +18,9 @@ The repo root missing → stop and say so.
 - Never copy secret values — name the variable, not the value.
 - Leave no process or container you started running (servers, browser session). Stop only what you started: a port already taken → say so in the smoke recipe line, never free it.
 
-## Map
+## Work
+
+### Write the docs
 
 - **Already done:** fill only what is still empty (a brief with its placeholders filled but no feature rows → map only the features). Nothing empty, or no application code yet → stop and report.
 - **Brief:** fill the template in `pod-docs/codebase-structure.md`; CI config is the ground truth for commands. Unsure → leave the placeholder and say so.
@@ -36,7 +38,7 @@ The repo root missing → stop and say so.
   - **Source:** <file, CI step, doc, or your smoke run>
   ```
 
-## Prove the smoke recipe
+### Prove the smoke recipe
 
 - **Run it once:** the recipe as written, on ports `3900`/`3901`, in browser session `pod-scout` → key URLs load, `Verification:` passes, each feature row shows its **Proof**. A step fails → fix it and retry once; still failing → mark it `(unverified: <reason>)`.
 - **Browser:** agent-browser through Bash; missing or hung → chrome-devtools-axi.
