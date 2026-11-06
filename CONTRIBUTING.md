@@ -21,6 +21,15 @@ Why:
 - ETH Zurich, "Evaluating AGENTS.md" ([summary](https://developer.upsun.com/posts/ai/agents-md-less-is-more)): instruction files for coding agents gave little or negative gain while adding over 20% cost.
 
 
+## Templates
+
+Start a new rule file from `docs/templates/`. People read these files; no agent loads them.
+
+- **`docs/templates/agent.md`**: every file in `agents/` has this skeleton. The fixed parts are the three kinds of lines above: the goal, the guardrails, and the contracts (`## Required dispatch context`, `## Guardrails`, `## Final output`). Use these heading names exactly: skills and evals find the contracts by them, and CI checks that each agent has all three. The work sections are named for the job, but they stay structured: one bullet per rule, `**<Rule name>:** <goal or constraint> → <result>`. Give goals and constraints, not numbered procedures: the agent picks the order. When an order matters, say it inside the rule ("before …"). Only the goal is a paragraph.
+- **`docs/templates/skill.md`**: a starting shape for a new command: the goal and args, `## Guardrails`, the work, and `## Hand back`. Skills differ more than agents, so CI doesn't check it, and existing skills keep their shape.
+
+An agent's body is its whole system prompt, so it never points to another file for a rule it needs (see "Where rules live" in [`docs/design.md`](docs/design.md)). Before you add an agent, check that the work needs one: a command whose work fits in the main session stays a skill.
+
 ## Checking a change
 
 Run these from the repo root before you open a PR. CI runs them on every PR.

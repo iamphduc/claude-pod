@@ -2,6 +2,11 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.10.1 — 2026-11-06
+
+- Every agent file has the same skeleton: frontmatter, a goal paragraph, `## Required dispatch context`, `## Guardrails`, the work, and `## Final output`. The skeleton is `docs/templates/agent.md`, next to a starting shape for new skills, `docs/templates/skill.md`. CI checks each agent for the three contract headings.
+- The engineer's `Rules` are split into `Guardrails` and `How you build`. The scout's `Hard rails` and the reviewer's `Report` take the shared names. The reporter gets a `Guardrails` section, the scout a dispatch context, and the sprint-planner all three contract sections. The engineer's dispatch context is a bullet list, the scout stops when its repo root is missing, and the reporter runs on `sonnet`. No other behavior changes.
+
 ## pod 0.10.0 · pod-flow 0.3.2 — 2026-11-05
 
 - **Breaking:** `/pod:fix` is now `/pod:task`. The command takes any one-off change outside a plan, not only bug fixes. There is no `/pod:fix` alias: type `/pod:task <task>`.

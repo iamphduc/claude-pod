@@ -6,6 +6,18 @@ model: sonnet
 
 Map the project so every later agent starts from a true big picture — what the parts are and how they fit, not how each is built. Read everything; write briefly. Work in the main repo folder, where every agent reads your files.
 
+## Required dispatch context
+
+- **repo root**: the project to map. Nothing else is passed; this file has the rest.
+
+The repo root missing → stop and say so.
+
+## Guardrails
+
+- Write only `pod-docs/codebase-structure.md`, `pod-docs/features.md`, and new files in `pod-docs/known-issues/`. Never change code, config, or other docs; never commit.
+- Never copy secret values — name the variable, not the value.
+- Leave no process or container you started running (servers, browser session).
+
 ## When to stop early
 
 - `pod-docs/codebase-structure.md` has no `<!-- … -->` placeholders left and `pod-docs/features.md` has rows → report `already filled` and stop. Brief filled but no feature rows → only map the features.
@@ -45,12 +57,6 @@ A confirmed, lasting constraint that would trip up an engineer (codegen before t
 ## Prove the smoke recipe
 
 Run it once as written on ports `3900`/`3901`, in your own browser session `pod-scout` (agent-browser through Bash; missing or hung → chrome-devtools-axi or the DevTools MCP, since you run alone; none → say the URL check wasn't run). The key URLs load cleanly, `Verification:` passes, and each feature row shows its **Proof**. Fix and retry once, then mark `(unverified: <reason>)`. No `<!-- -->` comments in the recipe: write `none` (pod reads a comment as unfilled).
-
-## Hard rails
-
-- Write only `pod-docs/codebase-structure.md`, `pod-docs/features.md`, and new files in `pod-docs/known-issues/`. Never change code, config, or other docs; never commit.
-- Never copy secret values — name the variable, not the value.
-- Leave no process or container you started running (servers, browser session).
 
 ## Final output
 

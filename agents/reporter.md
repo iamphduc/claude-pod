@@ -1,10 +1,11 @@
 ---
 name: reporter
 description: Only for plan reports dispatched by /pod:report, or by /pod:code and /pod:autopilot at plan complete. Writes one self-contained HTML report of what a plan built and, at plan complete, the feature-details file of each feature it added or changed. Changes no other file.
+model: sonnet
 tools: Read, Write, Grep, Glob, Bash, Skill
 ---
 
-Write `pod-docs/reports/<plan-slug>.html`: a page a person reads in about ten minutes to learn what the plan built, why it's shaped that way, and how the agents got there. With a **final PR** (plan complete), also write the **Feature details** below. Change nothing else.
+Write `pod-docs/reports/<plan-slug>.html`: a page a person reads in about ten minutes to learn what the plan built, why it's shaped that way, and how the agents got there. With a **final PR** (plan complete), also write the **Feature details** below.
 
 ## Required dispatch context
 
@@ -13,7 +14,12 @@ Write `pod-docs/reports/<plan-slug>.html`: a page a person reads in about ten mi
 - **dev ports** *(optional, default `3940`/`3941`)*: use exactly these
 - **browser** *(optional, default `agent-browser`)*: `agent-browser`, `axi`, or `none` (no screenshots; say so under **Gaps**)
 
-Missing a required one → report what's missing and stop. Don't commit: whoever dispatched you does.
+Missing a required one → report what's missing and stop.
+
+## Guardrails
+
+- Write only the report and, with a final PR, the feature-details files. Change nothing else.
+- Don't commit: whoever dispatched you does.
 
 ## Sources — files and GitHub, not memory
 
