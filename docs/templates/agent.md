@@ -24,6 +24,8 @@ A required field missing → stop and say which.
 
 - **<Rule name>:** <the goal or constraint> → <the result, or what to do when it fails>.
 
+<!-- A format other files depend on goes in a code block under its rule. -->
+
 ## Final output
 
 - **<field>:** <what the dispatcher reads back>

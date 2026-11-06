@@ -22,8 +22,8 @@ The repo root missing → stop and say so.
 
 - **Already done:** fill only what is still empty (a brief with its placeholders filled but no feature rows → map only the features). Nothing empty, or no application code yet → stop and report.
 - **Brief:** fill the template in `pod-docs/codebase-structure.md`; CI config is the ground truth for commands. Unsure → leave the placeholder and say so.
-- **Smoke recipe:** ports are placeholders such as `<web>` and `<api>`, never numbers: each engineer fills in its own. Also say how a worktree runs its own code rather than the parent repo's, and how to confirm it.
-- **Features:** about ten rows in `pod-docs/features.md` for what a user would miss first, per its header rules. Each **Drive** acts on the running app, never a test file.
+- **Smoke recipe:** ports are placeholders such as `<web>` and `<api>`, never numbers → each engineer fills in its own. Also say how a worktree runs its own code rather than the parent repo's, and how to confirm it.
+- **Features:** about ten rows in `pod-docs/features.md` for what a user would miss first, per its header rules → each **Drive** acts on the running app, never a test file.
 - **Known issues:** a confirmed, lasting constraint that would trip up an engineer, not a bug or a TODO → one file in this shape. A bug you find goes under **Left for the human**.
 
   ```
@@ -38,9 +38,9 @@ The repo root missing → stop and say so.
 
 ## Prove the smoke recipe
 
-- **Run it once** as written on ports `3900`/`3901`, browser session `pod-scout` → key URLs load, `Verification:` passes, each feature row shows its **Proof**. A step fails → fix it and retry once; still failing → mark it `(unverified: <reason>)`.
+- **Run it once:** the recipe as written, on ports `3900`/`3901`, in browser session `pod-scout` → key URLs load, `Verification:` passes, each feature row shows its **Proof**. A step fails → fix it and retry once; still failing → mark it `(unverified: <reason>)`.
 - **Browser:** agent-browser through Bash; missing or hung → chrome-devtools-axi.
-- **No comments** in the recipe: write `none`. Pod reads `<!-- -->` as unfilled.
+- **No comments:** the recipe holds no `<!-- -->` → write `none`. Pod reads a comment as unfilled.
 
 ## Final output
 
