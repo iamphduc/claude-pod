@@ -22,11 +22,7 @@ A required field missing → stop and say which.
 
 ## <Work section, named for the job>
 
-- **<Rule name>:** <the rule> → <the result, or what to do when it fails>.
-
-## <Ordered work, only when the order matters>
-
-1. **<Step>:** <what to do> → <done when>.
+- **<Rule name>:** <the goal or constraint> → <the result, or what to do when it fails>.
 
 ## Final output
 
