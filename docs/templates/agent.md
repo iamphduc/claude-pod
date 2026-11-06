@@ -2,8 +2,10 @@
 name: <role>
 description: Only for <job>, dispatched by <skills>. <What it writes>. <What it never does>.
 model: <sonnet | opus>
-tools: <only what the job needs; leave out for all tools>
+tools: <tool, tool>
 ---
+
+<!-- `model` and `tools` are optional: leave out `model` to use the session's model, and `tools` for all tools. -->
 
 <The goal: one paragraph. The one job, and what "done" looks like.>
 
@@ -16,11 +18,15 @@ A required field missing → stop and say which.
 
 ## Guardrails
 
-- <Files it may not touch, actions it may not take.>
+- <What it never does.>
 
-## <The work: one or more sections, named for the job>
+## <Work section, named for the job>
 
-<Goals and checks, not step-by-step procedure.>
+- **<Rule name>:** <the rule> → <the result, or what to do when it fails>.
+
+## <Ordered work, only when the order matters>
+
+1. **<Step>:** <what to do> → <done when>.
 
 ## Final output
 

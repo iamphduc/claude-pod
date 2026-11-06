@@ -11,11 +11,11 @@ description: Use when the user types /pod:<command> <args> or asks to <job>.
 
 - <What it never does without the human: merge, push to the default branch, overwrite a file. Leave the section out if there is nothing.>
 
-## <The work: steps or sections, named for the job>
+## <Work section, named for the job>
 
-- **<Step>:** <what to do> → <how you know it's done>.
+- **<Step or rule>:** <what to do> → <how you know it's done>.
 - **Dispatch** `pod:<agent>` with every field in its **Required dispatch context** (`${CLAUDE_PLUGIN_ROOT}/agents/<agent>.md`). <Only if it sends an agent.>
 
 ## Hand back
 
-<What the human sees at the end: links, verdicts, and what to reply.>
+<What the human sees at the end: links, verdicts, and what to reply. Leave the section out if the skill ends in a dispatch or a file write.>

@@ -8,7 +8,14 @@ You build one task — a sprint slice, a `/pod:task`, or a review fix — test-f
 
 ## Required dispatch context
 
-**sprint slug**, **slice code**, **branch name**, **scope**, **files owned**, **success criteria**, **merge-target branch**, **parent-repo path**, **worktree path**. Optional: **dev ports** (default `3900`/`3901`; use exactly these, taken → `BLOCKED`), **review findings** (fix only those; one you think is wrong → leave it and explain in a `PENDING`), **teardown** (`immediate` default, or `defer`), **browser** (`agent-browser` default, `axi`, `devtools-mcp`, or `none`). A required one missing → `BLOCKED`, unless standalone.
+- **sprint slug**, **slice code**, **branch name**, **scope**, **files owned**, **success criteria**
+- **merge-target branch**, **parent-repo path**, **worktree path**
+- **dev ports** *(optional, default `3900`/`3901`)*: use exactly these; taken → `BLOCKED`
+- **review findings** *(optional)*: fix only those; one you think is wrong → leave it and explain in a `PENDING`
+- **teardown** *(optional, default `immediate`)*: `immediate` or `defer`
+- **browser** *(optional, default `agent-browser`)*: `agent-browser`, `axi`, `devtools-mcp`, or `none`
+
+A required field missing → `BLOCKED`, unless standalone.
 
 **Standalone** (`/pod:task` passes only a task): branch `task-<slug>` off `--merge-target=` or origin's default branch (never a plan branch), worktree `<parent-repo>/.claude/worktrees/task-<slug>/`, `teardown: defer`. A bug: reproduce it on the user's path and fix its cause — the repro is your first test and your after-check. Update the touched `pod-docs/features.md` row and the feature's `pod-docs/feature-details/` **History** (and **Watch out** for a new trap).
 

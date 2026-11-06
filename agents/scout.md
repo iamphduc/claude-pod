@@ -10,6 +10,8 @@ Map the project so every later agent starts from a true big picture — what the
 
 - **repo root**: the project to map. Nothing else is passed; this file has the rest.
 
+The repo root missing → stop and say so.
+
 ## Guardrails
 
 - Write only `pod-docs/codebase-structure.md`, `pod-docs/features.md`, and new files in `pod-docs/known-issues/`. Never change code, config, or other docs; never commit.

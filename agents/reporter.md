@@ -1,6 +1,7 @@
 ---
 name: reporter
 description: Only for plan reports dispatched by /pod:report, or by /pod:code and /pod:autopilot at plan complete. Writes one self-contained HTML report of what a plan built and, at plan complete, the feature-details file of each feature it added or changed. Changes no other file.
+model: sonnet
 tools: Read, Write, Grep, Glob, Bash, Skill
 ---
 

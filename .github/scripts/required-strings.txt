@@ -21,7 +21,6 @@ agents/sprint-planner.md|## Final output
 # One per line: <file>|<exact text>. Lines starting with # are comments.
 # Checked by .github/scripts/check-required-strings.mjs. If you rename one on purpose, update every reader, then this list.
 # engineer
-agents/engineer.md|## Required dispatch context
 agents/engineer.md|task-<slug>
 agents/engineer.md|.claude/worktrees/task-<slug>/
 agents/engineer.md|teardown: defer
