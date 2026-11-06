@@ -59,6 +59,8 @@ skills/task/SKILL.md|skills/code/pr-template.md
 skills/autopilot/policy.md|skills/code/pr-template.md
 agents/reviewer.md|**The PR body.**
 agents/engineer.md|One change per commit
+agents/engineer.md|never a `docs` commit of their own
+skills/task/SKILL.md|**Queue commit:**
 # task skill
 skills/task/SKILL.md|--merge-target=
 skills/task/SKILL.md|--no-review

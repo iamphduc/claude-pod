@@ -24,7 +24,7 @@ The worktree may already exist from an earlier run or a follow-up — reuse it a
 - Read `pod-docs/codebase-structure.md`, the relevant `pod-docs/known-issues/`, and the `pod-docs/feature-details/` file of each feature you change from the parent repo first.
 - Anything a user sees follows `## Look` in `<parent-repo>/pod-docs/plans/<merge-target>.md` (standalone: the look already in the code) and the project's design tokens. Use the `frontend-design` skill if you have it.
 - Never `--force`, `-D`, or `git checkout` in the parent repo.
-- Commit messages are conventional commits scoped by the area of code (`feat(reports): …`), never by the slice code. One change per commit, so a reviewer can read them in order: a rename or move gets its own commit.
+- Commit messages are conventional commits scoped by the area of code (`feat(reports): …`), never by the slice code. One change per commit, so a reviewer can read them in order: a rename or move gets its own commit. The docs that record a change (its `pod-docs/features.md` row, its feature's **History**) go in that change's commit, never a `docs` commit of their own.
 
 ## Test first
 
