@@ -117,6 +117,18 @@ A `/pod:task` change skips the whole plan machinery — no sprint doc, no smoke 
 - **Then it's yours.** The PR comes back with the verdict — `Review still failing` if the fix pass didn't clear it — and you merge.
 - **Skip it on purpose: `/pod:task --no-review <task>`.** For a typo or a one-line config value, a review costs more than it's worth, and you look at every task PR before merging anyway. The skip is a flag you choose, never automatic by diff size: small isn't the same as safe — a one-line auth change is tiny and dangerous.
 
+## PR bodies
+
+Every PR pod opens has the same body (`skills/code/pr-template.md`), in two layers. The top layer is for your merge choice: what changes and why, a **review guide**, and the risks. The folded **Proof** holds what the agents must show: the repro, each test's red and green commits, the checks run, and the browser rows.
+
+- **The review guide is the story of the change.** It lists the steps in the order they were built, and each step links to only its own diff: a commit, a slice's merge, or a fix. You read the PR step by step instead of as one wall of diff. Reviewing in commit order is the core of [Reviewer First Pull Requests](https://www.5xx.engineer/2025/02/13/rfprs.html), and Warp's agent skill puts the guide right after the summary ([write-pr-description](https://github.com/warpdotdev/common-skills/blob/8792394ff1b655e0af451b8fabb68ef0cfcbd208/.agents/skills/write-pr-description/SKILL.md)).
+- **Weights say where to spend your attention.** `Read` marks logic, data, contracts, one-way doors, and security. `Skim` marks tests, renames, and docs. `Done` marks waves reviewed earlier. You read less, but you read the right parts.
+- **The reviewer reads everything anyway.** The author of the code also writes the guide, so the guide could steer you past a bug. The reviewer checks the guide against the diff, and a `Skim` step that holds logic is a `FIX`.
+- **One change per commit.** The guide only works if each commit is one step, so engineers commit renames and moves on their own ([Prat](https://dev.to/nicooprat/how-to-write-reviewer-friendly-pull-requests-16aj)).
+- **Skills write the body, agents don't.** Agents keep every rule in their own file, so the template sits with `/pod:code`. The engineer reports its proof in its **Final output**, and `/pod:task` writes the body from it.
+- **Proof, not prose.** The proof section asks for exact commands and results, as [React's template](https://raw.githubusercontent.com/facebook/react/main/.github/PULL_REQUEST_TEMPLATE.md) does. A study of 33.6k agent PRs found that structured bodies went with faster reviews, while long text did not help ([Watanabe et al.](https://arxiv.org/html/2602.17084v1)).
+- **The body describes the end state.** After a fix pass or a review, the body is written again, never appended to ([Google](https://google.github.io/eng-practices/review/developer/cl-descriptions.html)).
+
 ## Test first
 
 Success criteria used to be prose, and the reviewer judged them by reading code. Now they're tests, written first:

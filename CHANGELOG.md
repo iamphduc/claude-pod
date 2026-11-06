@@ -7,6 +7,10 @@ Newest first. The `pod` and `pod-flow` plugins share this file. Each heading nam
 - **Breaking:** `/pod:fix` is now `/pod:task`. The command takes any one-off change outside a plan, not only bug fixes. There is no `/pod:fix` alias: type `/pod:task <task>`.
 - The engineer's branch and worktree are now `task-<slug>`, and the reviewer takes `kind: task`.
 - pod-flow: comments and tests use the new name. Nothing in the pane changes.
+- Every pod PR uses one body from `skills/code/pr-template.md`: the Door line, what and why, a **Review guide**, **Risks**, and a folded **Proof**. The guide lists the steps in the order they were built: commits, slices, fixes, or waves. Each step links to only its own diff and is marked `Read`, `Skim`, or `Done`.
+- The proof holds what the agents show: the repro for a bug, each test's red and green commits, the checks run, the browser rows, and the review verdict. The body is written again after a fix pass or a review.
+- `/pod:task` writes the task PR's body from the engineer's report. Engineers keep one change per commit, with renames and moves in their own commit.
+- The reviewer checks the PR body against the diff. A `Skim` step that holds logic, a change missing from the guide, or a proof claim its run contradicts is a `FIX`.
 
 ## pod 0.9.2 · pod-flow 0.3.1 — 2026-10-31
 

@@ -24,7 +24,7 @@ The worktree may already exist from an earlier run or a follow-up — reuse it a
 - Read `pod-docs/codebase-structure.md`, the relevant `pod-docs/known-issues/`, and the `pod-docs/feature-details/` file of each feature you change from the parent repo first.
 - Anything a user sees follows `## Look` in `<parent-repo>/pod-docs/plans/<merge-target>.md` (standalone: the look already in the code) and the project's design tokens. Use the `frontend-design` skill if you have it.
 - Never `--force`, `-D`, or `git checkout` in the parent repo.
-- Commit messages are conventional commits scoped by the area of code (`feat(reports): …`), never by the slice code.
+- Commit messages are conventional commits scoped by the area of code (`feat(reports): …`), never by the slice code. One change per commit, so a reviewer can read them in order: a rename or move gets its own commit.
 
 ## Test first
 
@@ -50,7 +50,7 @@ A bug a user would hit, or a change to a value the plan set, is never a `NOTE`.
 - **Browser tools:** run them through the Bash tool, never PowerShell, with a 2-minute time limit per call. One that hangs → `close` the session, retry once, then work as `browser: none` and count the time under **Time lost**. agent-browser missing or failing with no `browser:` given → work as `browser: none`; never fall back to a shared MCP browser, since parallel agents switch each other's tabs.
 - **Dev servers:** start one as a background command that ends in `; exit 0`, so a planned stop never reads as a failure. Prove it started from the page's `<title>` (another app may answer 200); read a crash from its log.
 - **Leave nothing behind:** no running server, open session, rewritten tracked file, or stray log. Push. `teardown: immediate` → from the parent repo, `git worktree remove` and `git branch -d`; refused → report `Cleanup: deferred — <path>`, never force or `rm -rf`.
-- **Task PRs:** only `/pod:task` opens a PR, its body starting `Door: two-way` or `Door: one-way — <what>, undo: <how>`.
+- **Task PRs:** only `/pod:task` opens a PR, its body starting `Door: two-way` or `Door: one-way — <what>, undo: <how>`. `/pod:task` writes the rest of the body from your **Final output**.
 
 ## Final output
 
@@ -59,6 +59,7 @@ A bug a user would hit, or a change to a value the plan set, is never a `NOTE`.
 - **Tests first:** each `[test]` criterion — red (why) → green; the test commit's SHA. Each `[manual]` one — how you checked it
 - **Edges:** each open edge → `tested (<test name>)`, `NOTE`, or `PENDING`
 - **Repro** (standalone bug only): the steps, what went wrong before, the cause, what the same steps show after
+- **Checks run:** each command and its result
 - **Runtime verified:** what you used and saw
 - **Not checked:** what you changed but didn't verify, or `nothing`
 - **Cleanup:** `done` / `deferred — <worktree path>` / `skipped — blocked`

@@ -43,6 +43,8 @@ Ground truth is in the parent repo (docs there may be uncommitted): the plan's *
 
 Then the whole plan diff, only for: Goal and Verification hold; a later wave breaking an earlier one; the same thing built twice.
 
+**The PR body.** The human reads the diff by its **Review guide**, so check the guide against the diff: every change sits in a step, each step's link opens that step, and a `Skim` step holds no logic, data, public contract, one-way door, or security. A step marked wrong, a change left out, or a claim under **Proof** that your run contradicts is a `FIX` at `PR body`.
+
 **Task PR (`kind: task`):** one pass over the PR diff against the **task** — a test reproduces the bug and was committed before the fix (missing or hollow → `FIX`, out of order → `PENDING`), and the diff fixes the cause the engineer's **Repro** names, not just the symptom; the whole task and nothing more (extras are `PENDING` unless they break something); what the test doesn't pin down, including callers; security. Findings use `task` as their location.
 
 ## Findings
@@ -66,7 +68,7 @@ Post the verdict line, ranked findings, and **Dismissed** as one PR comment, the
 
 - **PR:** `<url>` · kind `plan` / `task` · round `1` / `2`
 - **Verdict:** `pass` (no `FIX` findings) / `fix` / `incomplete — <missing field>` (nothing reviewed)
-- **Findings:** ranked, each `[FIX] <wave N | plan | task>: <file:line> — <what's wrong> — <what it should do>` or `[PENDING · now | before hosting | someday] <wave N | plan | task>: <one line> — <why not a FIX>`, or `none`
+- **Findings:** ranked, each `[FIX] <wave N | plan | task>: <file:line | PR body> — <what's wrong> — <what it should do>` or `[PENDING · now | before hosting | someday] <wave N | plan | task>: <one line> — <why not a FIX>`, or `none`
 - **Dismissed:** each `<file:line> — <suspicion> — <why dropped>`, or `none`
 - **Ran:** each command or scripted check and its result, or `none — <why>`
 - **Coverage:** **plan:** each wave commit and how you read it — `wave N — <commit> — <lines> — full diff` / `<files> only` / `skimmed — <why>`. **task:** the files read. Plus anything only skimmed, and why

@@ -45,6 +45,20 @@ agents/reviewer.md|- **Findings:**
 agents/reviewer.md|- **Dismissed:**
 agents/reviewer.md|- **Ran:**
 agents/reviewer.md|- **Coverage:**
+# PR template
+skills/code/pr-template.md|Door: two-way
+skills/code/pr-template.md|## Review guide
+skills/code/pr-template.md|## Risks
+skills/code/pr-template.md|<details><summary>Proof</summary>
+skills/code/pr-template.md|**`Read`**
+skills/code/pr-template.md|**`Skim`**
+skills/code/pr-template.md|**`Done`**
+skills/code/pr-template.md|## <plan title> (<plan-slug>)
+skills/code/SKILL.md|skills/code/pr-template.md
+skills/task/SKILL.md|skills/code/pr-template.md
+skills/autopilot/policy.md|skills/code/pr-template.md
+agents/reviewer.md|**The PR body.**
+agents/engineer.md|One change per commit
 # task skill
 skills/task/SKILL.md|--merge-target=
 skills/task/SKILL.md|--no-review

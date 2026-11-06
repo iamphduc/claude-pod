@@ -62,6 +62,8 @@ Run one plan per session: after a plan completes, run `/clear` before the next `
 
 One engineer builds the change test-first, the reviewer checks it, and you merge the PR. It branches off `main` (or `--merge-target=<branch>`), never off a plan branch. Add `--no-review` for trivial changes. Small, contained fixes run on Sonnet, the rest on Opus; `--model=sonnet|opus` picks one yourself.
 
+Every pod PR, this one included, opens with a review guide: the steps in the order they were built, each linked to its own diff and marked `Read` or `Skim`. The proof (tests, checks, browser rows) is folded below it. See [PR bodies](design.md#pr-bodies).
+
 ### `/pod:create-wave-prompts [sprint] [wave]`: run engineers yourself
 
 Works out the current wave and prints the commands plus one ready-to-paste prompt per slice. Open a terminal per slice, run `claude --agent pod:engineer`, and paste the prompt. Combining the work and opening the PR is up to you.
