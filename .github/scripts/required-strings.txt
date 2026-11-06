@@ -55,6 +55,7 @@ skills/code/pr-template.md|**`Skim`**
 skills/code/pr-template.md|**`Done`**
 skills/code/pr-template.md|## <plan title> (<plan-slug>)
 skills/code/SKILL.md|skills/code/pr-template.md
+skills/code/SKILL.md|git merge --ff-only
 skills/task/SKILL.md|skills/code/pr-template.md
 skills/autopilot/policy.md|skills/code/pr-template.md
 agents/reviewer.md|**The PR body.**

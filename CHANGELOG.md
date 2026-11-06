@@ -15,6 +15,7 @@ Newest first. The `pod` and `pod-flow` plugins share this file. Each heading nam
 - The reviewer's task check fits any task, not only bugs. A test must pin the behavior the task asks for, committed before the code. The repro and the cause check apply to bugs only.
 - Engineers commit each criterion's test with its code, in one commit, instead of a `test` commit before a `feat` commit. They still watch the test fail first and report its red output. This halves the test and code commits, and every commit passes its tests.
 - The reviewer proves red itself with a **Red check**: it runs the commit's tests against the code before it, in a separate worktree. A test that passes there is a `FIX`. It checks every criterion of a task PR, and in a plan the `Read` steps and any test it doubts. A test it can't run is `not checked`, never proven.
+- A wave with one slice fast-forwards its wave head to the slice (`git merge --ff-only`), so it has no empty merge commit. A wave with two or more slices still merges each one. In three projects, a third to half of all waves had one slice.
 
 ## pod 0.9.2 · pod-flow 0.3.1 — 2026-10-31
 

@@ -30,7 +30,7 @@ One numbered line per step, in the order it was built. A PR with one step gets o
 | PR | A step is | Its link |
 |---|---|---|
 | Task | each commit | `pull/<n>/commits/<sha>` |
-| Wave | each slice, then the wave fix | `pull/<n>/files/<wave head before its merge>..<its merge commit>` |
+| Wave | each slice, then the wave fix | `pull/<n>/files/<wave head before its merge>..<its merge commit>`; a fast-forwarded lone slice → `<wave base>..<wave head>` |
 | `Review fixes` | each `FIX` finding: its test, then its fix | `pull/<n>/files/<commit before its test>..<its fix commit>` |
 | Final plan | each wave PR in order, then `Review fixes` and each sync | an earlier PR → its PR link; new commits → a range on this PR |
 | Staging | each plan | its final PR |
