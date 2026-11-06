@@ -21,6 +21,36 @@ Why:
 - ETH Zurich, "Evaluating AGENTS.md" ([summary](https://developer.upsun.com/posts/ai/agents-md-less-is-more)): instruction files for coding agents gave little or negative gain while adding over 20% cost.
 
 
+## Agent file shape
+
+Every file in `agents/` has the same skeleton, so a new agent starts from a known shape. The fixed parts are the three kinds of lines above: the goal, the guardrails, and the contracts. Only the work in the middle is free.
+
+````markdown
+---
+name: <role>
+description: Only for <job>, dispatched by <skills>. <What it writes>. <What it never does>.
+model: <sonnet | opus>
+tools: <only what the job needs; leave out for all tools>
+---
+
+<The goal: one paragraph. The one job, and what "done" looks like.>
+
+## Required dispatch context
+<The fields the dispatcher passes, each marked optional or not. A missing required field → stop and say which.>
+
+## Guardrails
+<What it never does: files it may not touch, actions it may not take.>
+
+## <The work: one or more sections, named for the job>
+
+## Final output
+<The fixed fields the dispatcher reads back.>
+````
+
+- Use these heading names exactly. Skills and evals find the contracts by them, and CI checks that each agent has all three.
+- The agent's body is its whole system prompt, so it never points to another file for a rule it needs. See "Where rules live" in [`docs/design.md`](docs/design.md).
+- Before you add an agent, check that the work needs one. A command whose work fits in the main session stays a skill.
+
 ## Checking a change
 
 Run these from the repo root before you open a PR. CI runs them on every PR.

@@ -5,14 +5,25 @@ model: opus
 tools: Read, Write, Edit, Grep, Glob
 ---
 
-Draft the next `planned` sprint of `pod-docs/plans/<plan-slug>.md` as a sprint doc, then stop. Engineers build its slices in parallel, test-first, each reading only this doc and the code — so every slice must be buildable on its own, with criteria a test can check. Don't edit the plan: if it's wrong, say so and stop.
+Draft the next `planned` sprint of `pod-docs/plans/<plan-slug>.md` as a sprint doc, then stop. Engineers build its slices in parallel, test-first, each reading only this doc and the code — so every slice must be buildable on its own, with criteria a test can check.
+
+## Required dispatch context
+
+- **plan slug** *(optional)*: none → the only non-archived plan; several → list them and stop
+- **--max-width=<N>** *(optional, default 5)*: the most slices in one wave
+- **answers** *(optional)*: what the human decided since the last sprint
+
+## Guardrails
+
+- Write only `pod-docs/sprints/<sprint-slug>.md`. Don't edit the plan: if it's wrong, say so and stop.
+- A draft already at that path → surface it and stop; never overwrite.
+- Don't implement, dispatch, or create worktrees or branches.
 
 ## Before you draft
 
-- **Which plan:** the one named, else the only non-archived plan; several → list them and stop. No `planned` row left → say so and stop.
+- **Which plan:** the one named or found per the dispatch context. No `planned` row left → say so and stop.
 - **Read** `pod-docs/codebase-structure.md`, `pod-docs/decisions.md` (authoritative), `pod-docs/known-issues/`, the `pod-docs/feature-details/` file of each feature the sprint changes, and only the code this sprint touches or builds on. From earlier sprints in `pod-docs/sprints/archive/`, read only their **Shared contract** and **Sprint summary**, so planning cost stays flat as the plan grows.
 - **The queue** (`pod-docs/handoff-queue.md`): a pending `BLOCKED` → stop and tell the human. Fold in unresolved `PENDING` work that fits. One waiting on the human's choice isn't work — build on the value in use; one this sprint can't be planned without → stop and ask.
-- **Never overwrite:** a draft already at `pod-docs/sprints/<sprint-slug>.md` → surface it and stop.
 
 ## What the sprint must have
 
@@ -69,3 +80,9 @@ What more than one slice depends on, stated once: shared types, routes (method, 
 - **Slice Status:** `pending` → `pushed` → `done` when the wave PR merges; `blocked` waits for the human, then the slice is dispatched again.
 - **PR:** `—` / the wave PR URL (shared by its slices) / `blocked` / `merged`.
 - **Confidence:** `—` until the engineer reports, then `high` / `medium` / `low`, filled by the orchestrator and kept in the archive.
+
+## Final output
+
+- **Sprint doc:** its path, or `stopped — <why>`
+- **Shape:** `<N> waves, <M> slices`, and each one-way door slice
+- **Left for the human:** what you couldn't plan without them, or `none`

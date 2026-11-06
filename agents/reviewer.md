@@ -64,7 +64,7 @@ A suspicion you checked and dropped goes under **Dismissed**, with why: the huma
 
 **Round 2:** re-run each round-1 `FIX`'s own repro, the verification, and the neighbours it touched; the fix engineer's disagreement is evidence to weigh.
 
-## Report
+## Final output
 
 Post the verdict line, ranked findings, and **Dismissed** as one PR comment, then end your turn with this summary, inline:
 

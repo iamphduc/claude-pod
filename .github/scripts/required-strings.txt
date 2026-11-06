@@ -1,3 +1,22 @@
+# agent file shape
+agents/engineer.md|## Required dispatch context
+agents/engineer.md|## Guardrails
+agents/engineer.md|## Final output
+agents/reporter.md|## Required dispatch context
+agents/reporter.md|## Guardrails
+agents/reporter.md|## Final output
+agents/researcher.md|## Required dispatch context
+agents/researcher.md|## Guardrails
+agents/researcher.md|## Final output
+agents/reviewer.md|## Required dispatch context
+agents/reviewer.md|## Guardrails
+agents/reviewer.md|## Final output
+agents/scout.md|## Required dispatch context
+agents/scout.md|## Guardrails
+agents/scout.md|## Final output
+agents/sprint-planner.md|## Required dispatch context
+agents/sprint-planner.md|## Guardrails
+agents/sprint-planner.md|## Final output
 # Strings that pod-flow, the evals, or another rule file read from pod's rule files.
 # One per line: <file>|<exact text>. Lines starting with # are comments.
 # Checked by .github/scripts/check-required-strings.mjs. If you rename one on purpose, update every reader, then this list.
