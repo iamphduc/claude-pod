@@ -21,35 +21,14 @@ Why:
 - ETH Zurich, "Evaluating AGENTS.md" ([summary](https://developer.upsun.com/posts/ai/agents-md-less-is-more)): instruction files for coding agents gave little or negative gain while adding over 20% cost.
 
 
-## Agent file shape
+## Templates
 
-Every file in `agents/` has the same skeleton, so a new agent starts from a known shape. The fixed parts are the three kinds of lines above: the goal, the guardrails, and the contracts. Only the work in the middle is free.
+Start a new rule file from `templates/`. People read these files; no agent loads them.
 
-````markdown
----
-name: <role>
-description: Only for <job>, dispatched by <skills>. <What it writes>. <What it never does>.
-model: <sonnet | opus>
-tools: <only what the job needs; leave out for all tools>
----
+- **`templates/agent.md`**: every file in `agents/` has this skeleton. The fixed parts are the three kinds of lines above: the goal, the guardrails, and the contracts (`## Required dispatch context`, `## Guardrails`, `## Final output`). Use these heading names exactly: skills and evals find the contracts by them, and CI checks that each agent has all three. Only the work in the middle is free.
+- **`templates/skill.md`**: a starting shape for a new command: the goal and args, `## Guardrails`, the work, and `## Hand back`. Skills differ more than agents, so CI doesn't check it, and existing skills keep their shape.
 
-<The goal: one paragraph. The one job, and what "done" looks like.>
-
-## Required dispatch context
-<The fields the dispatcher passes, each marked optional or not. A missing required field → stop and say which.>
-
-## Guardrails
-<What it never does: files it may not touch, actions it may not take.>
-
-## <The work: one or more sections, named for the job>
-
-## Final output
-<The fixed fields the dispatcher reads back.>
-````
-
-- Use these heading names exactly. Skills and evals find the contracts by them, and CI checks that each agent has all three.
-- The agent's body is its whole system prompt, so it never points to another file for a rule it needs. See "Where rules live" in [`docs/design.md`](docs/design.md).
-- Before you add an agent, check that the work needs one. A command whose work fits in the main session stays a skill.
+An agent's body is its whole system prompt, so it never points to another file for a rule it needs (see "Where rules live" in [`docs/design.md`](docs/design.md)). Before you add an agent, check that the work needs one: a command whose work fits in the main session stays a skill.
 
 ## Checking a change
 
