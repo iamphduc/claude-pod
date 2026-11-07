@@ -4,7 +4,10 @@ Newest first. The `pod` and `pod-flow` plugins share this file. Each heading nam
 
 ## pod 0.10.3 — 2026-11-06
 
-- The sprint planner has the template shape: its four work sections are one `## Work` with three parts, **Pick the plan and read its context**, **Split the work into slices**, and **Write the sprint doc**, each a list of named rules, per `docs/templates/agent.md`. No rule changes. The sprint doc template and the field rules sit under **Write the sprint doc**. The second of six agent conversions, one per PR.
+- The sprint planner gives goals and guardrails, not procedure: its four work sections are one `## Work` with four parts, **Cut the slices**, **Write the criteria**, **Add the setup slices**, and **Write the sprint doc**, per `docs/templates/agent.md` (1,300 → 906 words). Rationale and how-to are gone. The sprint doc template, the branch names, and the Bootstrap CI description do not change. The second of six agent conversions, one per PR.
+- The status board's lifecycle (Slice Status, PR, Confidence, Doc Status) moves to `/pod:code`, which fills it. `/pod:sprint` now tells the human to review the doc and run `/pod:code`, so autopilot's dispatch no longer carries that line.
+- `check-agent-shape.mjs` asks for the dispatch stop line only when a field is required: an agent whose fields are all optional has nothing to stop on. It also fails on a nested bullet or indented line outside a code block, so each rule stays one bullet.
+- The Model rule says what "touching the Shared contract" meant: a slice that defines or changes it gets `opus`; one that only uses it can get `sonnet`.
 
 ## pod 0.10.2 — 2026-11-06
 

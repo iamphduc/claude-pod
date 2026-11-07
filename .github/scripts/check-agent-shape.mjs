@@ -47,6 +47,10 @@ function check(file) {
   }
 
   for (const s of sections) {
+    // One bullet per field, guardrail, rule, or output: no nested bullets or indented text, except a code block under its rule.
+    for (const { text, n } of s.body.filter(b => !b.fenced && /^\s/.test(b.text))) {
+      fail(n, `\`## ${s.name}\` has an indented line: each item is one bullet, with no nested bullets (a format goes in a code block under its rule)`)
+    }
     const top = s.body.filter(b => !b.fenced && !/^\s/.test(b.text))
     for (const { text, n } of top) {
       const bullet = text.startsWith('- ')
@@ -64,7 +68,9 @@ function check(file) {
         fail(n, 'a rule is `- **<Rule name>:** <goal or constraint> → <result>`')
       }
     }
-    if (s.name === 'Required dispatch context' && !top.some(b => /missing → stop/.test(b.text))) fail(s.line, 'no stop line: "<field> missing → stop and say which."')
+    // The stop line is needed only when a field is required; an agent whose fields are all optional has nothing to stop on.
+    const required = top.some(b => b.text.startsWith('- ') && !b.text.includes('*(optional'))
+    if (s.name === 'Required dispatch context' && required && !top.some(b => /missing → stop/.test(b.text))) fail(s.line, 'no stop line: "<field> missing → stop and say which."')
   }
   return errors
 }
