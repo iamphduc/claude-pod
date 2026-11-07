@@ -16,6 +16,8 @@ tools: <tool, tool>
 
 A required field missing → stop and say which.
 
+<!-- Leave out the stop line when every field is optional. -->
+
 ## Guardrails
 
 - <What it never does.>
@@ -26,7 +28,7 @@ A required field missing → stop and say which.
 
 - **<Rule name>:** <the goal or constraint> → <the result, or what to do when it fails>.
 
-<!-- `### <Part>` is optional: a small agent lists its rules right under `## Work`. A format other files depend on goes in a code block under its rule. -->
+<!-- `### <Part>` is optional: a small agent lists its rules right under `## Work`. A format other files depend on goes in a code block under its rule. No nested bullets: a rule too big for one bullet is two rules. -->
 
 ## Final output
 
