@@ -2,6 +2,10 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.10.3 — 2026-11-06
+
+- The sprint planner has the template shape: its four work sections are one `## Work` with three parts, **Pick the plan and read its context**, **Split the work into slices**, and **Write the sprint doc**, each a list of named rules, per `docs/templates/agent.md`. No rule changes. The sprint doc template and the field rules sit under **Write the sprint doc**. The second of six agent conversions, one per PR.
+
 ## pod 0.10.2 — 2026-11-06
 
 - The scout gives goals and guardrails, not procedure: its six prose sections are two, **Map** and **Prove the smoke recipe**, with eight named rules, per `docs/templates/agent.md`. Rules the brief template or the Final output already state are gone. The known-issues shape and the smoke-run strings do not change. The first of six agent conversions, one per PR.
