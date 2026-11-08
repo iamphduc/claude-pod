@@ -72,7 +72,7 @@ Options: `--merge-target=<branch>`.
 
 ### `/pod:report [slug]`: plan report
 
-Writes an HTML report of a plan: key features, how the parts fit together as built, decisions, data structures, and how the agents worked together. At the end of a plan, the reporter also writes `pod-docs/feature-details/<feature>.md` for each feature the plan added or changed: how it works, why it's built that way, and what to watch out for. Later agents read these before they change a feature.
+Writes an HTML report of a plan and opens it: where to look first, key features with screenshots, the proof for each criterion, risks and how to undo them, how the parts fit together as built, and the key decisions. Every report uses the same page skeleton, `skills/report/page.html`. At the end of a plan, the reporter also writes `pod-docs/feature-details/<feature>.md` for each feature the plan added or changed: how it works, why it's built that way, and what to watch out for. Later agents read these before they change a feature.
 
 ### `/pod:idea [idea]`: save an idea for later
 
