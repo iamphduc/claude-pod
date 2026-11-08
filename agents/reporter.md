@@ -40,7 +40,7 @@ A field without *(optional* missing → stop before any other step and say which
 - **Key features:** what a user can do now → shown by its screenshots or, with no UI, by its result.
 - **Proof:** each Verification criterion and feature → met, not met, or not checked; who checked it (the engineer's own tests, the reviewer, a human, or nobody); and how. The engineer's own tests alone → say so. A source you couldn't read or check → list it under **Not checked by this report**.
 - **Risks and undo:** each change to auth, data, a migration, money, a public API, or a one-way door → its file and how to undo it.
-- **How it fits together, as built:** the plan's **How it fits together** redrawn from the code as inline SVG, each part with its files → mark and explain each difference. The plan has none → draw it from the code and say so.
+- **How it fits together, as built:** the files as the code has them, and the imports or calls that connect them → mark and explain each difference from the plan's **How it fits together**. The plan has none → say so.
 - **Key decisions:** each decision → who made it (human or agent), why, the alternative, the consequence, and its `decisions.md` entry, if any.
 - **What's left:** open queue entries → sorted into the template's three groups.
 

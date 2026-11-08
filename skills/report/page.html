@@ -10,7 +10,8 @@
   and every "fill:" note. Remove a block's example rows; never remove a section (empty → say so in one line).
   The plan has a Look → set --accent and --display in :root to its palette and display font; change no other CSS.
   At most 2,000 words.
-  No scripts, nothing from the web. Images are JPEG files in the PLAN_SLUG/ folder next to this page; diagrams are inline <svg>.
+  No scripts but the Mermaid loader at the end, nothing else from the web. Images are JPEG files in the PLAN_SLUG/ folder
+  next to this page. No hand-drawn SVG: the one diagram is the Mermaid flowchart below; offline it shows as its text.
   Scannable: every section opens with one <p class="lead"> takeaway. Anything a reader can skip goes in <details>.
   No paragraph over three lines; prefer a table row, a list item, or a pill.
 -->
@@ -57,10 +58,9 @@ table.decisions td:first-child { font-weight: 600; min-width: 12rem; }
 .shots { display: grid; grid-template-columns: 3fr 1fr; gap: .75rem; align-items: start; }
 .shots figure { margin: 0; } .shots img { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; }
 figcaption { color: var(--muted); font-size: .9rem; }
-.diagram svg { width: 100%; height: auto; }
-.diagram svg text { fill: var(--fg); font: 14px system-ui, sans-serif; }
 .small { display: block; color: var(--muted); font-size: .9rem; }
 table.risks td:first-child { font-weight: 600; }
+pre.mermaid { background: var(--soft); text-align: center; }
 @media (max-width: 520px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) { body { font-size: 16px; } .shots { grid-template-columns: 1fr; } }
 </style>
@@ -142,8 +142,14 @@ table.risks td:first-child { font-weight: 600; }
 <section id="fit">
 <h2>How it fits together, as built</h2>
 <p class="lead"><!-- fill: the one-line takeaway. --></p>
-<div class="diagram"><!-- fill: inline <svg viewBox="…"> of the parts and their files. --></div>
-<!-- fill: each difference from the approved plan, with why, as a list; or "The plan has no overview: drawn from the code." -->
+<pre class="mermaid">
+flowchart LR
+  A["FILE"] -- "WHAT IT USES" --> B["FILE"]
+</pre>
+<!-- A --> B means A uses B (imports or calls it). One edge per real import or call that matters, labelled with what is used.
+     Node labels: file names. At most about 12 nodes. -->
+<h3>Differences from the plan</h3>
+<ul><!-- fill: each part that differs from the plan's How it fits together, with why, one line each. None → "None." The plan has no overview → "The plan had no overview; this is drawn from the code." --></ul>
 </section>
 
 <section id="decisions">
@@ -167,5 +173,10 @@ table.risks td:first-child { font-weight: 600; }
 
 
 </main>
+<script type="module">
+import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs";
+const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+mermaid.initialize({ startOnLoad: true, theme: dark ? "dark" : "neutral", securityLevel: "strict" });
+</script>
 </body>
 </html>
