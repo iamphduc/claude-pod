@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan report: PLAN_NAME</title>
+<!--
+  pod plan report skeleton. /pod:report or /pod:code copies it to pod-docs/reports/<plan-slug>.html; the reporter fills it.
+  Keep: the <style> block, the section ids and their order, the classes below. Replace every UPPER_CASE placeholder
+  and every "fill:" note. Remove a block's example rows; never remove a section (empty → say so in one line).
+  The plan has a Look → set --accent and --display in :root to its palette and display font; change no other CSS.
+  At most 2,000 words.
+  No scripts but the Mermaid loader at the end, nothing else from the web. Images are JPEG files in the PLAN_SLUG/ folder
+  next to this page. No hand-drawn SVG: the one diagram is the Mermaid flowchart below; offline it shows as its text.
+  Scannable: every section opens with one <p class="lead"> takeaway. Anything a reader can skip goes in <details>.
+  No paragraph over three lines; prefer a table row, a list item, or a pill.
+-->
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #fff; --fg: #1b1b1f; --muted: #5d5d66; --line: #d9d9e0; --soft: #f4f4f7;
+  --accent: #3554d1; --ok: #1d7a3e; --bad: #b42318; --warn: #a15c07;
+  --display: system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #131316; --fg: #ececf1; --muted: #a2a2ad; --line: #34343c; --soft: #1d1d22;
+          --accent: #8da2ff; --ok: #5cc98a; --bad: #ff8a80; --warn: #f0b45c; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.55 system-ui, sans-serif; }
+main { max-width: 980px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.25; }
+h1 { font-size: 1.9rem; margin: 0 0 .25rem; }
+h2 { font-size: 1.4rem; margin: 2.5rem 0 .75rem; padding-top: .5rem; border-top: 1px solid var(--line); }
+h3 { font-size: 1.1rem; margin: 1.25rem 0 .5rem; }
+a { color: var(--accent); }
+code, pre { font: 15px/1.45 ui-monospace, Consolas, monospace; }
+pre { background: var(--soft); padding: .75rem; overflow-x: auto; border-radius: 6px; }
+.meta { color: var(--muted); margin: 0 0 1rem; }
+nav.toc { background: var(--soft); border-radius: 8px; padding: .75rem 1rem; }
+nav.toc ol { margin: 0; padding-left: 1.25rem; columns: 2 14rem; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; margin: .5rem 0; }
+th, td { border: 1px solid var(--line); padding: .4rem .6rem; text-align: left; vertical-align: top; }
+th { background: var(--soft); }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; margin: 1rem 0 .25rem; }
+.stat { background: var(--soft); border-radius: 8px; padding: .5rem .75rem; }
+.stat b { display: block; font-size: 1.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stat span { color: var(--muted); font-size: .9rem; }
+.note { color: var(--muted); font-size: .9rem; margin: 0 0 1rem; }
+.pill { display: inline-block; padding: 0 .5rem; border-radius: 99px; font-size: .9rem; border: 1px solid currentColor; white-space: nowrap; }
+.ok { color: var(--ok); } .bad { color: var(--bad); } .warn { color: var(--warn); } .muted { color: var(--muted); }
+.lead { font-size: 1.1rem; font-weight: 600; margin: 0 0 .75rem; }
+details { border: 1px solid var(--line); border-radius: 8px; padding: .5rem .9rem; margin: .5rem 0; }
+details > summary { cursor: pointer; font-weight: 600; }
+details[open] > summary { margin-bottom: .5rem; }
+table.decisions td:first-child { font-weight: 600; min-width: 12rem; }
+.shots { display: grid; grid-template-columns: 3fr 1fr; gap: .75rem; align-items: start; }
+.shots figure { margin: 0; } .shots img { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; }
+figcaption { color: var(--muted); font-size: .9rem; }
+.small { display: block; color: var(--muted); font-size: .9rem; }
+table.risks td:first-child { font-weight: 600; }
+pre.mermaid { background: var(--soft); text-align: center; }
+@media (max-width: 520px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { body { font-size: 16px; } .shots { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+
+<h1>PLAN_NAME</h1>
+<p class="meta">Plan <code>PLAN_SLUG</code> · final PR FINAL_PR (#N, verdict) · written DATE by pod:reporter</p>
+
+<nav class="toc" aria-label="Contents"><ol>
+  <li><a href="#glance">At a glance</a></li>
+  <li><a href="#features">Key features</a></li>
+  <li><a href="#proof">Proof</a></li>
+  <li><a href="#risks">Risks and undo</a></li>
+  <li><a href="#fit">How it fits together, as built</a></li>
+  <li><a href="#decisions">Key decisions</a></li>
+  <li><a href="#left">What's left</a></li>
+</ol></nav>
+
+<section id="glance">
+<h2>At a glance</h2>
+<p><b>Goal:</b> <!-- fill: one sentence. --></p>
+<p><b>Shipped:</b></p>
+<ul><!-- fill: one short line per thing a user gets. --></ul>
+<!-- The six facts: values only, a number or one or two words. Keep the labels. Explanations go in the note below. -->
+<div class="stats">
+  <div class="stat"><b>N · N · N</b><span>sprints · waves · slices</span></div>
+  <div class="stat"><b>N</b><span>PRs</span></div>
+  <div class="stat"><b>N · +N −N</b><span>files · lines changed</span></div>
+  <div class="stat"><b>~N h</b><span>wall time</span></div>
+  <div class="stat"><b>~Nk</b><span>agent context</span></div>
+  <div class="stat"><b>verdict</b><span>review, N rounds</span></div>
+</div>
+<p class="note"><!-- fill: one short line, at most 20 words: e.g. "Wall time estimated from commit times. Agent context is final context size, not tokens billed." --></p>
+<h3>Look here first</h3>
+<ol><!-- fill: 3–5 files or behaviors a human should review first, each with why. --></ol>
+</section>
+
+<section id="features">
+<h2>Key features</h2>
+<p class="lead"><!-- fill: the one-line takeaway. --></p>
+<div class="scroll"><table>
+  <tr><th>Feature</th><th>What changed</th><th>Shown by</th></tr>
+  <tr><td>FEATURE</td><td>ONE SHORT LINE</td><td>screenshot below | ONE SHORT RESULT</td></tr>
+</table></div>
+<!-- One row per feature; each cell one short line, no commands. -->
+<div class="shots">
+  <figure><img alt="ALT" src="PLAN_SLUG/desktop.jpg"><figcaption>Desktop</figcaption></figure>
+  <figure><img alt="ALT" src="PLAN_SLUG/375.jpg"><figcaption>375 px</figcaption></figure>
+</div>
+<!-- One .shots per changed screen. No UI: no .shots; the Shown by cell says the result. A <pre> only when its output is what a user sees (an API response), at most 5 lines. -->
+</section>
+
+<section id="proof">
+<h2>Proof</h2>
+<p class="lead"><!-- fill: e.g. "7 of 9 criteria met; 2 checked only by the engineer's own tests." --></p>
+<div class="scroll"><table>
+  <tr><th>Criterion or feature</th><th>Result</th><th>Checked by</th><th>How</th></tr>
+  <tr><td>CRITERION</td><td><span class="pill ok">met</span></td><td>reviewer</td><td>SHORT PHRASE</td></tr>
+  <tr><td>CRITERION</td><td><span class="pill warn">not checked</span></td><td>nobody</td><td>SHORT PHRASE</td></tr>
+</table></div>
+<!-- At most 6 rows: every not met and not checked first, then the most important met. How: a short phrase, no commands.
+     Result: met (ok) · not met (bad) · not checked (warn). Checked by: engineer's tests · reviewer · human · this report · nobody. -->
+<h3>Not checked by this report</h3>
+<ul><!-- fill: at most 3 short items: a source this report couldn't read or check, and what that leaves unsure. None → "Nothing." --></ul>
+</section>
+
+<section id="risks">
+<h2>Risks and undo</h2>
+<p class="lead"><!-- fill: the one-line takeaway. --></p>
+<div class="scroll"><table class="risks">
+  <tr><th>Risk</th><th>Undo</th></tr>
+  <tr><td>SHORT RISK<span class="small"><code>PATH</code></span></td><td>ONE SHORT ACTION</td></tr>
+</table></div>
+<!-- None → one line: "No auth, data, migration, money, public-API, or one-way-door change." -->
+</section>
+
+<section id="fit">
+<h2>How it fits together, as built</h2>
+<p class="lead"><!-- fill: the one-line takeaway. --></p>
+<pre class="mermaid">
+flowchart LR
+  A["FILE"] -- "WHAT IT USES" --> B["FILE"]
+</pre>
+<!-- A --> B means A uses B (imports or calls it). One edge per real import or call that matters, labelled with what is used.
+     Node labels: file names. At most about 12 nodes. -->
+<h3>Differences from the plan</h3>
+<ul><!-- fill: each part that differs from the plan's How it fits together, with why, one line each. None → "None." The plan has no overview → "The plan had no overview; this is drawn from the code." --></ul>
+</section>
+
+<section id="decisions">
+<h2>Key decisions</h2>
+<p class="lead"><!-- fill: the one-line takeaway. --></p>
+<div class="scroll"><table class="decisions">
+  <tr><th>Decision</th><th>By</th><th>Why</th><th>Instead of</th><th>Consequence</th></tr>
+  <tr><td>DECISION</td><td>human</td><td>WHY</td><td>ALTERNATIVE</td><td>CONSEQUENCE</td></tr>
+</table></div>
+<!-- One row per decision, most important first. Each cell one short line, plain text. By: human or agent.
+     A decisions.md entry → link the Decision text to it; no entry → no link, no label. -->
+</section>
+
+<section id="left">
+<h2>What's left</h2>
+<p class="lead"><!-- fill: e.g. "2 to fix next, 1 before hosting, 3 someday." --></p>
+<h3>Fix next</h3><ul></ul>
+<h3>Before hosting</h3><ul></ul>
+<h3>Someday</h3><ul></ul>
+</section>
+
+
+</main>
+<script type="module">
+import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs";
+const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+mermaid.initialize({ startOnLoad: true, theme: dark ? "dark" : "neutral", securityLevel: "strict" });
+</script>
+</body>
+</html>
