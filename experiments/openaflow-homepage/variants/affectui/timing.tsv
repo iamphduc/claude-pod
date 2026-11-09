@@ -1,0 +1,6 @@
+phase	start	end	note
+research	2026-11-09T23:18:05Z	2026-11-09T23:18:43Z	reading README, tool-call-card, decision-inbox, other item APIs, DESIGN.md
+setup	2026-11-09T23:18:50Z	2026-11-09T23:20:46Z	Vite+React19+TS by hand, copied 7 affectUI files + Geist fonts, token mapping CSS for --ui-* vars (no Tailwind/shadcn needed)
+demo	2026-11-09T23:20:46Z	2026-11-09T23:21:47Z	ToolCallCard per call, DecisionInbox, NumberTicker totals, ShimmerText, Button replay; hand-rolled agent run list + replay clock
+page	2026-11-09T23:21:47Z	2026-11-09T23:22:22Z	hero (GridBackground, TextReveal), features, privacy, install with copy (Button), footer, theme toggle
+verify	2026-11-09T23:22:22Z	2026-11-09T23:24:06Z	build+tsc pass first try; 4 screenshots, fixed status-dot rail across nested rows and mono weight; scripted check of decision click, replay, theme toggle

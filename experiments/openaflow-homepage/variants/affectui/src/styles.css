@@ -1,0 +1,278 @@
+@import "../../../shared/tokens.css";
+
+/* Self-hosted Geist, copied from Open AFlow (packages/web/public/fonts, OFL). */
+@font-face { font-family: "Geist"; font-weight: 400; font-display: swap; src: url("/fonts/geist-400.woff2") format("woff2"); }
+@font-face { font-family: "Geist"; font-weight: 500; font-display: swap; src: url("/fonts/geist-500.woff2") format("woff2"); }
+@font-face { font-family: "Geist"; font-weight: 600; font-display: swap; src: url("/fonts/geist-600.woff2") format("woff2"); }
+@font-face { font-family: "Geist Mono"; font-weight: 400; font-display: swap; src: url("/fonts/geist-mono-400.woff2") format("woff2"); }
+@font-face { font-family: "Geist Mono"; font-weight: 500; font-display: swap; src: url("/fonts/geist-mono-500.woff2") format("woff2"); }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  font-size: var(--size-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, p { margin: 0; }
+a { color: inherit; }
+a:hover { color: var(--focus); }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+code, pre { font-family: var(--mono); }
+svg { flex: none; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+
+.wrap { width: 100%; max-width: 1120px; margin-inline: auto; padding-inline: 24px; }
+@media (max-width: 600px) { .wrap { padding-inline: 16px; } }
+
+/* ---------- Header ---------- */
+.site-head {
+  position: sticky; top: 0; z-index: 10;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+.site-head .wrap { display: flex; align-items: center; gap: 12px; height: 56px; }
+.brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: var(--size-dense); text-decoration: none; }
+.brand img { width: 24px; height: 24px; border-radius: 6px; }
+.site-head nav { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+.navlink {
+  font-size: var(--size-dense); color: var(--muted); text-decoration: none;
+  padding: 4px 8px; border-radius: var(--radius-sm);
+}
+.navlink:hover { color: var(--fg); background: var(--hover); }
+@media (max-width: 600px) { .navlink.hide-sm { display: none; } }
+
+/* ---------- Link buttons (hand-rolled: affectUI's Button renders <button> only) ---------- */
+.lbtn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 40px; padding: 0 16px 0 12px; border-radius: var(--radius-md);
+  font-size: var(--size-dense); font-weight: 500; text-decoration: none;
+  border: 1px solid var(--border-strong); background: var(--bg); color: var(--fg);
+  transition: background-color 160ms ease;
+}
+.lbtn:hover { background: var(--hover); color: var(--fg); }
+.lbtn--primary { background: var(--primary-bg); color: var(--primary-fg); border-color: var(--primary-bg); }
+.lbtn--primary:hover { background: color-mix(in srgb, var(--primary-bg) 86%, var(--bg)); color: var(--primary-fg); }
+
+/* ---------- Hero ---------- */
+.hero { border-bottom: 1px solid var(--border); }
+.hero .ui-gb-content { padding: 96px 0 80px; }
+.hero-inner { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 20px; }
+.hero-icon { width: 72px; height: 72px; border-radius: 16px; }
+.hero-name { font-size: var(--size-dense); font-weight: 500; color: var(--muted); letter-spacing: 0.01em; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3.25rem); line-height: 1.1; font-weight: 600; letter-spacing: -0.03em; max-width: 18ch; }
+.hero-lead { color: var(--muted); font-size: 1.125rem; max-width: 56ch; }
+.hero-ctas { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 8px; }
+.hero-note { font-size: var(--size-dense); color: var(--muted); }
+@media (max-width: 600px) { .hero .ui-gb-content { padding: 56px 0 48px; } .hero-lead { font-size: var(--size-body); } }
+
+/* ---------- Sections ---------- */
+.section { padding: 80px 0; border-bottom: 1px solid var(--border); }
+@media (max-width: 600px) { .section { padding: 56px 0; } }
+.section-head { display: flex; flex-direction: column; gap: 8px; margin-bottom: 32px; max-width: 72ch; }
+.section h2 { font-size: var(--size-h2); font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; }
+.section-lead { color: var(--muted); }
+
+/* ---------- Demo window ---------- */
+.window { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); overflow: hidden; }
+.window-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px;
+  padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--bg);
+}
+.window-title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; min-width: 0; }
+.window-title strong { font-size: var(--size-dense); font-weight: 600; font-family: var(--mono); }
+.window-title span { font-size: var(--size-dense); color: var(--muted); }
+.window-figs { margin-left: auto; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.tag {
+  display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 8px;
+  border: 1px solid var(--border); border-radius: var(--radius-pill);
+  font-size: var(--size-micro); color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+.tag--mono { font-family: var(--mono); }
+.window-body { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; padding: 16px; }
+@media (max-width: 960px) { .window-body { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 600px) { .window-body { padding: 12px; gap: 12px; } }
+.pane-label { font-size: var(--size-micro); font-weight: 500; color: var(--muted); margin: 0 0 8px; text-transform: none; }
+
+/* Hand-rolled agent run list (affectUI's Agent Tree is Pro and not in the repo) */
+.agents { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.agent { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg); }
+.agent-row {
+  display: grid; grid-template-columns: 88px minmax(0, 1fr); align-items: baseline; gap: 12px;
+  padding: 12px 16px;
+}
+.status { display: inline-flex; align-items: center; gap: 8px; font-size: var(--size-small); white-space: nowrap; color: var(--fg); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--idle); flex: none; transform: translateY(-1px); }
+.dot[data-s="done"] { background: var(--ready); }
+.dot[data-s="running"] { background: var(--running); }
+.dot[data-s="blocked"] { background: var(--blocked); }
+.dot[data-s="needs-you"] { background: var(--needs-you); }
+.dot[data-s="running"]::after {
+  content: ""; display: block; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--running); animation: pulse 1.6s ease-out infinite;
+}
+@keyframes pulse { from { transform: scale(1); opacity: 0.6; } to { transform: scale(2.4); opacity: 0; } }
+.agent-main { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; min-width: 0; }
+.agent-name { font-size: var(--size-dense); font-weight: 500; }
+.agent-slice { font-size: var(--size-dense); color: var(--muted); }
+.agent-figs { display: inline-flex; flex-wrap: wrap; gap: 4px 12px; font-size: var(--size-small); color: var(--muted); font-variant-numeric: tabular-nums; }
+.agent-tools { display: flex; flex-direction: column; gap: 8px; padding: 0 12px 12px 116px; }
+.agent-children { list-style: none; margin: 0; padding: 0 12px 12px 28px; display: flex; flex-direction: column; gap: 8px; }
+.agent-children .agent { background: var(--bg); }
+@media (max-width: 600px) {
+  .agent-row { grid-template-columns: 80px minmax(0, 1fr); gap: 8px; padding: 12px; }
+  .agent-tools { padding: 0 12px 12px 12px; }
+  .agent-children { padding: 0 8px 8px 8px; }
+}
+.demo-foot { display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+.demo-foot p { font-size: var(--size-micro); color: var(--muted); }
+
+/* ---------- Features ---------- */
+.features { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 960px) { .features { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .features { grid-template-columns: minmax(0, 1fr); } }
+.feature { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px 20px; display: flex; flex-direction: column; gap: 8px; background: var(--bg); }
+.feature-icon { color: var(--muted); }
+.feature h3 { font-size: var(--size-body); font-weight: 600; }
+.feature p { color: var(--muted); font-size: var(--size-dense); }
+
+/* ---------- Privacy ---------- */
+.privacy { display: flex; gap: 16px; align-items: flex-start; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; background: var(--surface); }
+.privacy svg { color: var(--muted); margin-top: 4px; }
+.privacy h2 { margin-bottom: 8px; }
+.privacy p { color: var(--muted); max-width: 72ch; }
+
+/* ---------- Install ---------- */
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 16px; counter-reset: step; max-width: 760px; }
+.step { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 16px; }
+.step-num {
+  width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border-strong);
+  display: grid; place-items: center; font-size: var(--size-small); font-weight: 500; font-variant-numeric: tabular-nums;
+}
+.step h3 { font-size: var(--size-body); font-weight: 600; line-height: 32px; }
+.step p { color: var(--muted); }
+.code {
+  position: relative; margin-top: 12px; border: 1px solid var(--border); border-radius: var(--radius-md);
+  background: var(--surface); display: flex; align-items: flex-start; gap: 8px; padding: 12px 8px 12px 16px;
+}
+.code pre { margin: 0; flex: 1; min-width: 0; overflow-x: auto; font-size: var(--size-small); line-height: 1.7; padding-top: 4px; }
+.copy-status { font-size: var(--size-micro); color: var(--muted); }
+
+/* ---------- Footer ---------- */
+.site-foot { padding: 32px 0 48px; }
+.site-foot .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+.site-foot p { font-size: var(--size-dense); color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.site-foot img { width: 20px; height: 20px; border-radius: 4px; }
+.site-foot ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 16px; }
+.site-foot a { font-size: var(--size-dense); color: var(--muted); text-decoration: none; }
+.site-foot a:hover { color: var(--fg); }
+
+/* =====================================================================
+ * affectUI → Open AFlow tokens.
+ * Every item ships its colours as --ui-* variables and only switches to
+ * dark with .dark / [data-theme="dark"] on an ancestor (not the OS media
+ * query). Pointing the variables at our tokens makes them follow both.
+ * `.oaf` adds specificity over the items' `:where(...) .ui-x` dark rules.
+ * ===================================================================== */
+.oaf .ui-tclc,
+.oaf .ui-tclc-group {
+  --ui-tclc-card: var(--bg);
+  --ui-tclc-strong: var(--fg);
+  --ui-tclc-ink: var(--fg);
+  --ui-tclc-text: var(--muted);
+  --ui-tclc-muted: var(--muted);
+  --ui-tclc-faint: var(--faint);
+  --ui-tclc-icon: var(--muted);
+  --ui-tclc-line: var(--border);
+  --ui-tclc-wash: var(--hover);
+  --ui-tclc-wash-big: var(--hover);
+  --ui-tclc-code: var(--surface);
+  --ui-tclc-accent: var(--running);
+  --ui-tclc-red: var(--danger);
+  --ui-tclc-red-bg: color-mix(in srgb, var(--danger) 6%, transparent);
+  --ui-tclc-red-line: color-mix(in srgb, var(--danger) 24%, transparent);
+  --ui-tclc-key: var(--fg);
+  --ui-tclc-str: var(--muted);
+  --ui-tclc-num: var(--fg);
+  --ui-tclc-lit: var(--fg);
+  --ui-tclc-shine: var(--fg);
+  --ui-tclc-shadow: 0 0 0 1px var(--border);
+  --ui-tclc-focus: var(--focus);
+  --ui-tclc-mono: var(--mono);
+  font-family: var(--font);
+}
+/* A finished call's check is a status mark: ready green, not the accent blue */
+.oaf .ui-tclc__ok circle { fill: var(--ready); }
+.oaf .ui-tclc__ok path { stroke: var(--bg); }
+.oaf .ui-tclc__err path { stroke: var(--bg); }
+.oaf .ui-tclc[data-status="error"] .ui-tclc__status { color: var(--fg); }
+.oaf .ui-tclc__head { min-height: 40px; padding: 0 12px; }
+
+.oaf .ui-dic {
+  --ui-dic-card: var(--bg);
+  --ui-dic-strong: var(--fg);
+  --ui-dic-ink: var(--fg);
+  --ui-dic-text: var(--muted);
+  --ui-dic-muted: var(--muted);
+  --ui-dic-faint: var(--faint);
+  --ui-dic-line: var(--border);
+  --ui-dic-wash: var(--hover);
+  --ui-dic-alert: var(--needs-you);
+  --ui-dic-ok: var(--ready);
+  --ui-dic-ok-bg: var(--hover);
+  --ui-dic-solid: var(--primary-bg);
+  --ui-dic-solid-hover: color-mix(in srgb, var(--primary-bg) 86%, var(--bg));
+  --ui-dic-on-solid: var(--primary-fg);
+  --ui-dic-shadow: 0 0 0 1px var(--border);
+  --ui-dic-shadow-hover: 0 0 0 1px var(--border-strong);
+  --ui-dic-focus: var(--focus);
+  max-width: none;
+  font-family: var(--font);
+}
+/* Green is for the mark only; the answer's words stay in the ink colour */
+.oaf .ui-dic__done { color: var(--fg); }
+.oaf .ui-dic__done .ui-dic__glyph { color: var(--ready); }
+
+.oaf .ui-buttonc {
+  --ui-btnc-title: var(--fg);
+  --ui-btnc-ink: var(--fg);
+  --ui-btnc-muted: var(--muted);
+  --ui-btnc-icon: var(--muted);
+  --ui-btnc-solid: var(--primary-bg);
+  --ui-btnc-solid-hover: color-mix(in srgb, var(--primary-bg) 86%, var(--bg));
+  --ui-btnc-on-solid: var(--primary-fg);
+  --ui-btnc-surface: var(--bg);
+  --ui-btnc-shadow: 0 0 0 1px var(--border-strong);
+  --ui-btnc-shadow-hover: 0 0 0 1px var(--border-strong);
+  --ui-btnc-wash: var(--hover);
+  --ui-btnc-danger: var(--danger);
+  --ui-btnc-focus: var(--focus);
+  --ui-btnc-shine: var(--bg);
+  font-family: var(--font);
+}
+
+.oaf .ui-shm-text { --ui-shm-text: var(--muted); --ui-shm-text-glow: var(--fg); }
+
+@media (prefers-reduced-motion: reduce) {
+  .dot[data-s="running"]::after { animation: none; opacity: 0; }
+  .lbtn, .navlink { transition: none; }
+}
+
+/* One status rail: the top-level row is padded so its dot lines up with the nested rows' dots */
+.window-title strong { font-weight: 500; }
+.agents > .agent > .agent-row { padding-left: 28px; }
+.agents > .agent > .agent-tools { padding-left: 128px; }
+.agent-children { padding: 0 12px 12px 12px; }
+@media (max-width: 600px) {
+  .agents > .agent > .agent-row { padding-left: 20px; }
+  .agents > .agent > .agent-tools { padding-left: 20px; }
+  .agent-children { padding: 0 8px 8px 8px; }
+}
