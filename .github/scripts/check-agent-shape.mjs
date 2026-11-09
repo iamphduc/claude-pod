@@ -3,7 +3,7 @@
 import { readFileSync } from 'node:fs'
 
 // Agents converted to the template shape. Each plan-A PR adds its agent. When all six are in, check every agents/*.md.
-const CONVERTED = ['scout', 'sprint-planner', 'reporter']
+const CONVERTED = ['scout', 'sprint-planner', 'reporter', 'researcher']
 
 const SECTIONS = ['Required dispatch context', 'Guardrails', 'Work', 'Final output']
 
