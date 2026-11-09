@@ -1,0 +1,100 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "../../../shared/tokens.css";
+
+/* Tailwind's dark: variant follows the OS unless <html data-theme> overrides it,
+   matching tokens.css. AI Elements (code-block, tool) use dark: classes. */
+@custom-variant dark {
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]), :root:not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+}
+
+/* Map shadcn/AI Elements colour names straight onto Open AFlow tokens.
+   No shadcn --background/--muted layer: tokens.css already owns --muted
+   (a text colour), which clashes with shadcn's --muted (a fill). */
+@theme {
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  --color-card: var(--bg);
+  --color-card-foreground: var(--fg);
+  --color-popover: var(--bg);
+  --color-popover-foreground: var(--fg);
+  --color-primary: var(--primary-bg);
+  --color-primary-foreground: var(--primary-fg);
+  --color-secondary: var(--hover);
+  --color-secondary-foreground: var(--fg);
+  --color-muted: var(--surface);
+  --color-muted-foreground: var(--muted);
+  --color-accent: var(--hover);
+  --color-accent-foreground: var(--fg);
+  --color-destructive: var(--danger);
+  --color-border: var(--border);
+  --color-input: var(--border-strong);
+  --color-ring: var(--focus);
+
+  --color-faint: var(--faint);
+  --color-surface: var(--surface);
+  --color-hover: var(--hover);
+  --color-st-blocked: var(--blocked);
+  --color-st-needs-you: var(--needs-you);
+  --color-st-running: var(--running);
+  --color-st-ready: var(--ready);
+  --color-st-idle: var(--idle);
+
+  --font-sans: var(--font);
+  --font-mono: var(--mono);
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before {
+    @apply border-border;
+  }
+  html {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--fg);
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    margin: 0;
+    font-size: var(--size-body);
+    line-height: 1.5;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  a {
+    color: inherit;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* AI Elements' CodeBlockContainer sets content-visibility: auto inline, which
+   leaves code blank in full-page captures and print until scrolled into view.
+   The blocks here are small, so render them always. */
+[data-language] {
+  content-visibility: visible !important;
+}

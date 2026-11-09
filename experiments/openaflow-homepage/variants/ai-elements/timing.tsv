@@ -1,0 +1,6 @@
+phase	start	end	note
+research	2026-11-09T23:18:02Z	2026-11-09T23:18:36Z	reading agent/tool/task/confirmation/plan/queue/code-block/snippet source, docs theme css, examples, Open AFlow DESIGN.md
+setup	2026-11-09T23:18:36Z	2026-11-09T23:20:26Z	npm deps, pin shiki 3.22/ai 6/lucide 0.577/ts 5.9 to library versions, copy 7 elements + 8 shadcn ui files, rewrite @repo imports, Tailwind v4 theme mapped to tokens.css, dark custom-variant, patch AgentHeader slots + tool status colours
+demo	2026-11-09T23:20:26Z	2026-11-09T23:21:50Z	mapRun.ts (DynamicToolUIPart mapping, replay clock) + LiveDemo.tsx with Plan/Agent/Task/Tool/Confirmation; end time estimated (wrote demo then page back to back)
+page	2026-11-09T23:21:50Z	2026-11-09T23:22:43Z	App.tsx: header+theme toggle, hero, features, privacy, install with CodeBlock+copy, footer; start time estimated
+verify	2026-11-09T23:22:43Z	2026-11-09T23:28:44Z	tsc+build pass first try; screenshots revealed blank CodeBlocks (content-visibility:auto), 7px mobile overflow (grid min-width), PlanHeader flex layout, copy button over code; fixed and reshot 4x

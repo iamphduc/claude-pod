@@ -1,0 +1,22 @@
+const { chromium } = require("playwright");
+(async () => {
+  const b = await chromium.launch();
+  const ctx = await b.newContext({ reducedMotion: "reduce", viewport: { width: 1440, height: 900 } });
+  const p = await ctx.newPage();
+  const errs = []; p.on("console", m => m.type()==="error" && errs.push(m.text()));
+  await p.goto("http://localhost:5102/");
+  await p.waitForTimeout(500);
+  console.log("decisions visible immediately (reduced motion):", await p.getByRole("button", { name: "Merge" }).count());
+  const merge = p.getByRole("button", { name: "Open on GitHub" });
+  await merge.focus(); await p.keyboard.press("Escape"); await p.waitForTimeout(300);
+  console.log("after Escape, still open:", await merge.count());
+  await merge.focus(); await p.keyboard.press("Enter"); await p.waitForTimeout(400);
+  console.log("receipt:", await p.locator('[data-receipt="true"]').allInnerTexts());
+  console.log("focus now on:", await p.evaluate(() => document.activeElement?.tagName + " " + (document.activeElement?.textContent||"").slice(0,30)));
+  await p.getByRole("button", { name: /Theme/ }).click();
+  console.log("data-theme:", await p.evaluate(() => document.documentElement.getAttribute("data-theme")));
+  await p.getByRole("button", { name: "Copy code" }).click();
+  console.log("copy label:", await p.getByRole("button", { name: "Copied" }).count());
+  console.log(errs);
+  await b.close();
+})();

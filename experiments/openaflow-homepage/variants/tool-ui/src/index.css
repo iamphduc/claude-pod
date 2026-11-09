@@ -1,0 +1,153 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "tw-shimmer";
+@import "@fontsource/geist/400.css";
+@import "@fontsource/geist/500.css";
+@import "@fontsource/geist/600.css";
+@import "@fontsource/geist-mono/400.css";
+/* Open AFlow's own tokens: the single source of colour, type and radius. */
+@import "../../../shared/tokens.css";
+
+/*
+ * Dark variant for tool-ui's `dark:` classes: an explicit data-theme="dark",
+ * or the OS in dark mode unless data-theme="light" overrides it.
+ */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]), :root:not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+}
+
+/*
+ * shadcn colour names -> Open AFlow tokens. Mapped straight onto --color-*
+ * (no shadcn --muted/--card vars), because Open AFlow's --muted is a TEXT
+ * colour while shadcn's --muted is a BACKGROUND: defining both would clash.
+ */
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  --color-card: var(--bg);
+  --color-card-foreground: var(--fg);
+  --color-popover: var(--bg);
+  --color-popover-foreground: var(--fg);
+  --color-primary: var(--primary-bg);
+  --color-primary-foreground: var(--primary-fg);
+  --color-secondary: var(--hover);
+  --color-secondary-foreground: var(--fg);
+  --color-muted: var(--surface);
+  --color-muted-foreground: var(--muted);
+  --color-accent: var(--hover);
+  --color-accent-foreground: var(--fg);
+  --color-destructive: var(--blocked);
+  --color-border: var(--border);
+  --color-input: var(--border-strong);
+  --color-ring: var(--focus);
+
+  --font-sans: var(--font);
+  --font-mono: var(--mono);
+
+  /* tokens.css already defines --radius-sm/md/lg (6/8/12 px); cap the rest. */
+  --radius-xl: 12px;
+  --radius-2xl: 12px;
+
+  /* Open AFlow allows one shadow (menus). tool-ui puts shadow-xs on every card. */
+  --shadow-xs: 0 0 #0000;
+  --shadow-sm: 0 0 #0000;
+}
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--border);
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 72px;
+  }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font);
+    font-size: var(--size-body);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+  a {
+    color: var(--fg);
+    text-decoration: underline;
+    text-decoration-color: var(--border-strong);
+    text-underline-offset: 3px;
+  }
+  a:hover {
+    color: var(--focus);
+    text-decoration-color: currentColor;
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+}
+
+/* ---- tool-ui look overrides (CSS only; the copied sources stay close to upstream) ---- */
+
+/* Buttons: tool-ui uses pill buttons and a 3px soft ring; Open AFlow uses 6px corners and a 2px ring. */
+[data-slot="button"] {
+  border-radius: var(--radius-sm) !important;
+  font-weight: 500;
+}
+[data-slot="button"]:focus-visible {
+  box-shadow: none;
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+[data-slot="button"][data-variant="ghost"] {
+  border: 1px solid var(--border-strong);
+}
+[data-slot="button"][data-variant="ghost"]:hover {
+  background: var(--hover);
+}
+
+/* Terminal / code block copy button is icon-only ghost: no border. */
+[data-slot="terminal"] [data-slot="button"][data-variant="ghost"],
+[data-slot="code-block"] [data-slot="button"][data-variant="ghost"] {
+  border-color: transparent;
+}
+
+/* Shiki pierre themes paint their own background; let the card show through. */
+[data-slot="code-block"] pre {
+  background: transparent !important;
+  margin: 0;
+  padding-inline: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Terminal output is whitespace-pre; wrap it so a long error stays readable at 390 px. */
+[data-slot="terminal"] .whitespace-pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

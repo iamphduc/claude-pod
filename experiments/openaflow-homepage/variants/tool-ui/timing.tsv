@@ -1,0 +1,4 @@
+phase	start	end	note
+research	2026-11-09T23:18:05Z	2026-11-09T23:19:39Z	reading tool-ui README, AGENTS, docs (quick-start, approval-card), approval-card, plan, progress-tracker, terminal, code-block, shared/*, shadcn theme; Open AFlow DESIGN.md + theme
+setup	2026-11-09T23:19:39Z	2026-11-09T23:21:12Z	hand-written package.json/vite/tsconfig (no create-vite), npm i (Tailwind v4, tw-animate-css, tw-shimmer, radix slot/collapsible/separator, cva, lucide, zod, shiki, ansi-to-react, fontsource Geist), copied 5 tool-ui folders + 3 shadcn ui files, token mapping CSS, 3 small source edits
+demo	2026-11-09T23:21:12Z	2026-11-09T23:23:31Z	map.ts (run.ts -> ProgressTracker/Terminal/ApprovalCard payloads, Zod safeParse), RunDemo with replay; first tsc+build pass
