@@ -2,6 +2,10 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.10.5 — 2026-11-08
+
+- The researcher gives goals and guardrails, not procedure: its four prose sections are one `## Work` of named rules, per `docs/templates/agent.md` (914 → 728 words). Rules on how to research are gone: source quality and staleness, how to cover one angle, the word range, and the 5–8 ideas and questions. The researcher decides these. Kept, because `docs/design.md` and `docs/commands.md` promise them: brainstorm after the search, the citation check before finishing, and the page's cards. Also kept: use at least half the budget. In test runs without it, each angle ran 3–5 of its 6 searches. The report shape, the dispatch fields, the source rule, the page's no-script rule, and the final output do not change. The fourth of six agent conversions, one per PR.
+
 ## pod 0.10.4 — 2026-11-07
 
 - The reporter gives goals and guardrails, not procedure: its three prose sections are one `## Work` with three parts, **The page**, **The sections, in order**, and **Feature details**, per `docs/templates/agent.md` (959 → 818 words, with the review additions below; format rules live in the template). Reasons and repeats are gone, and so is the `Skill` tool with its frontend-design line: in about 20 test runs the reporter never used it. The feature-details shape and the final output do not change. The third of six agent conversions, one per PR.
