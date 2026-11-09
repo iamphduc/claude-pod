@@ -2,6 +2,10 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.10.8 — 2026-11-09
+
+- Shorter plugin descriptions that match the GitHub repo description. `plugin.json` and the `pod` entry in `marketplace.json` now say "Builds your plan with parallel Claude engineers. You review and merge each step." The marketplace description now names both plugins.
+
 ## pod 0.10.7 — 2026-11-08
 
 - The engineer gives goals and guardrails, not procedure: its five sections are one `## Work` with four parts, **Set up**, **Build test-first**, **Check it works**, and **Report and ship**, per `docs/templates/agent.md`. Rules now say what to reach, not how: learn the project from pod's docs (no fixed reading list), make sure the server that answers is yours (no `<title>` recipe), (no command lines). Gone: the `frontend-design` line and the throwing-stub tip. Kept: every rule a past incident or retro added (edges first, `; exit 0` for planned server stops, the 2-minute browser limit, Bash not PowerShell for browsers, no shared MCP browser, the Confidence rules, never a `NOTE` for a user-facing bug), the dispatch fields, **Standalone**, the `Door:` line, and the final output. The last of six agent conversions.
