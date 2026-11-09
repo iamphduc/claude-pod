@@ -2,6 +2,11 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.10.6 — 2026-11-08
+
+- The reviewer gives goals and guardrails, not procedure: its four prose sections are one `## Work` with three parts, **Run it**, **Review the change**, and **Write the findings**, per `docs/templates/agent.md`. Rules now say what to achieve, not how: the Red check shows a test fails without its code (any way, never over a tracked file), the plan is read in pieces small enough to read in full, the whole-plan pass may flag anything, the PR body check names outcomes, not cases to walk through, browser commands are the agent's choice, and **Coverage** is free text. Gone: the Red check's wave-head fallback, and the notes on installs, logic-heavy slices, and style. Kept: every rule a past incident added (run every feature row, a bug with repro steps is a `FIX`, round 2 re-runs the repro), the dispatch fields, the finding format, and the final output. The fifth of six agent conversions, one per PR.
+- `/pod:code` and `/pod:task` now spell out the dispatch's field-line format, which the reviewer file no longer holds.
+
 ## pod 0.10.5 — 2026-11-08
 
 - The researcher gives goals and guardrails, not procedure: its four prose sections are one `## Work` of named rules, per `docs/templates/agent.md` (914 → 728 words). Rules on how to research are gone: source quality and staleness, how to cover one angle, the word range, and the 5–8 ideas and questions. The researcher decides these. Kept, because `docs/design.md` and `docs/commands.md` promise them: brainstorm after the search, the citation check before finishing, and the page's cards. Also kept: use at least half the budget. In test runs without it, each angle ran 3–5 of its 6 searches. The report shape, the dispatch fields, the source rule, the page's no-script rule, and the final output do not change. The fourth of six agent conversions, one per PR.
