@@ -1,0 +1,7 @@
+phase	start	end	note
+research	2026-11-09T23:18:04Z	2026-11-09T23:19:27Z	reading AgentPrism readme, AGENTS.md, TreeView/SpanCard/DetailsView, OTel adapter, theme.css; Open AFlow DESIGN.md
+setup	2026-11-09T23:19:36Z	2026-11-09T23:20:59Z	manual Vite+React19+TS package.json, Tailwind 3.4.17 (library needs v3, not v4), copied packages/ui/src/components, theme token generator hex->OKLCH
+demo	2026-11-09T23:20:59Z	2026-11-09T23:22:50Z	OTLP mapping of run.ts via openTelemetrySpanAdapter, patched copied SpanCard (status first, wider titles), TreeView+DetailsView, hand-rolled decisions, replay
+page	2026-11-09T23:22:50Z	2026-11-09T23:23:50Z	hero, features, privacy, install (library CopyButton), footer, page CSS; tsc+build passed first try
+verify	2026-11-09T23:23:50Z	2026-11-09T23:27:30Z	screenshots, mobile overflow fixes (SpanCard grid 1fr -> minmax(0,1fr), steps grid); code block + run bar mobile layout; live replay totals; interaction test (decision fold, replay, theme, keyboard); dev fs.allow check
+notes	2026-11-09T23:27:30Z	2026-11-09T23:28:12Z	writing NOTES.md (not one of the five phases; total of five phases 23:18:04-23:27:30 = 9.4 min)

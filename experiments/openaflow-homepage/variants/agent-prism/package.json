@@ -1,0 +1,34 @@
+{
+  "name": "openaflow-homepage-agent-prism",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5101 --strictPort",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 5101 --strictPort"
+  },
+  "dependencies": {
+    "@evilmartians/agent-prism-data": "^1.0.0",
+    "@evilmartians/agent-prism-types": "^1.0.0",
+    "@radix-ui/react-collapsible": "^1.2.1",
+    "@radix-ui/react-tabs": "^1.2.1",
+    "classnames": "^2.5.1",
+    "lucide-react": "^0.534.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-json-pretty": "^2.2.0",
+    "react-resizable-panels": "^3.0.6"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^5.2.0",
+    "autoprefixer": "^10.6.2",
+    "postcss": "^8.5.32",
+    "tailwindcss": "^3.4.17",
+    "typescript": "~5.8.3",
+    "vite": "^7.3.8"
+  }
+}
