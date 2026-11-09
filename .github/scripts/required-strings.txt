@@ -31,11 +31,11 @@ agents/engineer.md|pod-<slice-code>
 agents/engineer.md|NOTE for <slice-code>:
 agents/engineer.md|BLOCKED
 agents/engineer.md|SOLVED
-agents/engineer.md|- **Slice**
+agents/engineer.md|- **Slice:**
 agents/engineer.md|- **Concerns:**
 agents/engineer.md|- **Tests first:**
 agents/engineer.md|- **Edges:**
-agents/engineer.md|- **Repro**
+agents/engineer.md|- **Repro:**
 agents/engineer.md|- **Runtime verified:**
 agents/engineer.md|- **Not checked:**
 agents/engineer.md|- **Cleanup:**
