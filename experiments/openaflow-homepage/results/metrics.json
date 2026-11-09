@@ -1,0 +1,158 @@
+{
+  "agent-prism": {
+    "directDeps": 10,
+    "directDevDeps": 9,
+    "installedPackages": 162,
+    "nodeModulesMB": 135.1,
+    "installSec": 3.3,
+    "buildSecMedian": 6.5,
+    "typecheckOk": true,
+    "jsKB": 330.3,
+    "jsGzKB": 105.8,
+    "cssKB": 49,
+    "cssGzKB": 8.4,
+    "src": {
+      "files": 84,
+      "lines": 6777
+    },
+    "agentTiming": {
+      "phases": {
+        "research": 1.4,
+        "setup": 1.4,
+        "demo": 1.9,
+        "page": 1,
+        "verify": 3.7,
+        "notes": 0.7
+      },
+      "wallMinutes": 10.1
+    },
+    "lighthouse": {
+      "performance": 74,
+      "accessibility": 97,
+      "bestPractices": 100,
+      "seo": 92,
+      "lcpMs": 2215,
+      "tbtMs": 150,
+      "cls": 0.003,
+      "a11yFails": [
+        "label-content-name-mismatch",
+        "target-size"
+      ]
+    }
+  },
+  "tool-ui": {
+    "directDeps": 14,
+    "directDevDeps": 10,
+    "installedPackages": 122,
+    "nodeModulesMB": 212,
+    "installSec": 4.1,
+    "buildSecMedian": 1.9,
+    "typecheckOk": true,
+    "jsKB": 9980.6,
+    "jsGzKB": 1913.2,
+    "cssKB": 104.1,
+    "cssGzKB": 42.6,
+    "src": {
+      "files": 49,
+      "lines": 3813
+    },
+    "agentTiming": {
+      "phases": {
+        "research": 1.6,
+        "setup": 1.6,
+        "demo": 2.3,
+        "page": 5.7,
+        "verify": 1.1
+      },
+      "wallMinutes": 12.2
+    },
+    "lighthouse": {
+      "performance": 66,
+      "accessibility": 99,
+      "bestPractices": 100,
+      "seo": 92,
+      "lcpMs": 2858,
+      "tbtMs": 150,
+      "cls": 0,
+      "a11yFails": [
+        "aria-allowed-role"
+      ]
+    }
+  },
+  "ai-elements": {
+    "directDeps": 11,
+    "directDevDeps": 10,
+    "installedPackages": 190,
+    "nodeModulesMB": 241.8,
+    "installSec": 4.2,
+    "buildSecMedian": 4.9,
+    "typecheckOk": true,
+    "jsKB": 9680.4,
+    "jsGzKB": 1896.9,
+    "cssKB": 91.4,
+    "cssGzKB": 41,
+    "src": {
+      "files": 21,
+      "lines": 2849
+    },
+    "agentTiming": {
+      "phases": {
+        "research": 0.6,
+        "setup": 1.8,
+        "demo": 1.4,
+        "page": 0.9,
+        "verify": 6
+      },
+      "wallMinutes": 10.7
+    },
+    "lighthouse": {
+      "performance": 67,
+      "accessibility": 95,
+      "bestPractices": 96,
+      "seo": 92,
+      "lcpMs": 3024,
+      "tbtMs": 85,
+      "cls": 0,
+      "a11yFails": [
+        "target-size"
+      ]
+    }
+  },
+  "affectui": {
+    "directDeps": 2,
+    "directDevDeps": 5,
+    "installedPackages": 26,
+    "nodeModulesMB": 105.2,
+    "installSec": 1.3,
+    "buildSecMedian": 0.8,
+    "typecheckOk": true,
+    "jsKB": 286.6,
+    "jsGzKB": 85.7,
+    "cssKB": 12.8,
+    "cssGzKB": 3.1,
+    "src": {
+      "files": 13,
+      "lines": 3407
+    },
+    "agentTiming": {
+      "phases": {
+        "research": 0.6,
+        "setup": 1.9,
+        "demo": 1,
+        "page": 0.6,
+        "verify": 1.7
+      },
+      "wallMinutes": 6
+    },
+    "lighthouse": {
+      "performance": 76,
+      "accessibility": 100,
+      "bestPractices": 100,
+      "seo": 83,
+      "lcpMs": 2100,
+      "tbtMs": 133,
+      "cls": 0.005,
+      "a11yFails": []
+    }
+  }
+}
