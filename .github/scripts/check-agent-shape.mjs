@@ -1,9 +1,6 @@
 // Fails when an agent file doesn't match docs/templates/agent.md.
-//   node .github/scripts/check-agent-shape.mjs [file …]   run from the repo root; no args checks every agent in CONVERTED.
-import { readFileSync } from 'node:fs'
-
-// Agents converted to the template shape. Each plan-A PR adds its agent. When all six are in, check every agents/*.md.
-const CONVERTED = ['scout', 'sprint-planner', 'reporter', 'researcher', 'reviewer']
+//   node .github/scripts/check-agent-shape.mjs [file …]   run from the repo root; no args checks every agents/*.md.
+import { readFileSync, readdirSync } from 'node:fs'
 
 const SECTIONS = ['Required dispatch context', 'Guardrails', 'Work', 'Final output']
 
@@ -75,7 +72,7 @@ function check(file) {
   return errors
 }
 
-const files = process.argv.length > 2 ? process.argv.slice(2) : CONVERTED.map(a => `agents/${a}.md`)
+const files = process.argv.length > 2 ? process.argv.slice(2) : readdirSync('agents').filter(f => f.endsWith('.md')).map(f => `agents/${f}`)
 const errors = files.flatMap(check)
 if (errors.length) {
   console.error(`${errors.length} agent shape error(s), per docs/templates/agent.md:\n${errors.map(e => `  ${e}`).join('\n')}`)
