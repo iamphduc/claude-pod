@@ -2,6 +2,15 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.10.8 — 2026-11-09
+
+- **No placeholders in text the human reads.** In one run the human asked 4 times what `<sha>` meant: a sprint doc's undo with a tag pattern was copied into the wave PR's Door line and the queue. The PR template now says every slot is in plain words with no `<…>` placeholder, and `/pod:code` hand-backs, queue entries, and autopilot halts follow it. The sprint-planner writes the One-way door line for the human and keeps exact commands in the Shared contract. The reviewer files a placeholder in the Door line, summary, or Risks as a `FIX`. ([#108](https://github.com/iamphduc/claude-pod/issues/108))
+- **An undo names real commits.** The Door line's `undo:` is now a command on this PR's real commit IDs, with a check: `git revert -m 1 <merge commit>` for a merged slice, `git revert <commits>` for a fast-forwarded slice or a task. The orchestrator fills in the merge commit, the engineer names its own commits on a task PR, and a part that can't exist yet says so and names the command that lists it later. An undo with no real ID, where one exists, is a reviewer `FIX`.
+- **A plainer PR body keeps its sections.** Rewording a body happens inside the same sections; no Proof part is dropped.
+- **The sprint-planner puts a test that pins a changed file in that file's slice.** In one run a test asserting a script's exact call list was in no slice, and the slice changing the script hit `BLOCKED`.
+- **The port base reads `pod-docs/known-issues/` first.** A port a known issue reserves is never free.
+- **Autopilot keeps both sides of an append-only `pod-docs/` conflict on `pod-staging`.** Lines added word for word on both sides are kept once, and the next hand-back names the files. Any other conflict is still gate 3.
+
 ## pod 0.10.7 — 2026-11-08
 
 - The engineer gives goals and guardrails, not procedure: its five sections are one `## Work` with four parts, **Set up**, **Build test-first**, **Check it works**, and **Report and ship**, per `docs/templates/agent.md`. Rules now say what to reach, not how: learn the project from pod's docs (no fixed reading list), make sure the server that answers is yours (no `<title>` recipe), (no command lines). Gone: the `frontend-design` line and the throwing-stub tip. Kept: every rule a past incident or retro added (edges first, `; exit 0` for planned server stops, the 2-minute browser limit, Bash not PowerShell for browsers, no shared MCP browser, the Confidence rules, never a `NOTE` for a user-facing bug), the dispatch fields, **Standalone**, the `Door:` line, and the final output. The last of six agent conversions.

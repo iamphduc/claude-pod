@@ -26,8 +26,8 @@ Draft the next `planned` sprint of `pod-docs/plans/<plan-slug>.md` as a sprint d
 - **The queue:** a pending `BLOCKED` in `pod-docs/handoff-queue.md` → stop and tell the human. Fold in `PENDING` work that fits. One waiting on the human → build on the value in use, unless you can't plan without it: then stop and ask.
 - **Follow the plan:** each In-scope item under this sprint's goal lands in a slice, and slices follow the parts of **How it fits together** → one that doesn't fit: say so and stop.
 - **Split only where it pays:** a slice only for parallel work or a risk worth its own check → work that feeds one later step goes in that step's slice.
-- **Waves:** a slice goes in the earliest wave after its `Depends on`, with `Files owned` disjoint from its wave → at most 5 per wave, or `--max-width=<N>`. `pod-docs/features.md` is never in Files owned.
-- **One-way doors:** destroys or migrates data, sends to real people, moves money, changes auth or permissions, breaks a public API, or touches secrets or production → mark it in **One-way door:**. An additive change reaches the same goal → plan that instead.
+- **Waves:** a slice goes in the earliest wave after its `Depends on`, with `Files owned` disjoint from its wave → at most 5 per wave, or `--max-width=<N>`. `pod-docs/features.md` is never in Files owned. A test that pins a changed file's exact behavior or call order goes in the same slice as that file.
+- **One-way doors:** destroys or migrates data, sends to real people, moves money, changes auth or permissions, breaks a public API, or touches secrets or production → mark it in **One-way door:**. An additive change reaches the same goal → plan that instead. The human reads that line as-is in the PR and the queue: write it in plain words, with no `<…>` placeholder. Give the undo as a method (`revert the slice's merge commit`); the orchestrator adds the commit ID. Exact commands go in the Shared contract.
 - **Model:** a slice that defines or changes the Shared contract, spans several slices, touches auth, data, or security, is a one-way door, or is `B1` or `L1` → `opus`. A slice that only uses the contract, with clear criteria → `sonnet`. Unsure → `opus`.
 
 ### Write the criteria
@@ -70,7 +70,7 @@ Draft the next `planned` sprint of `pod-docs/plans/<plan-slug>.md` as a sprint d
     - `[test] <behavior> — <test file> › <test name>`
     - `[manual] <behavior> — <how to check it>`
   - **Depends on:** <slice codes or —>
-  - **One-way door:** <none, or what can't be undone and how it would be undone>
+  - **One-way door:** <none, or what can't be undone and how to undo it, in plain words>
   - **Model:** <sonnet | opus>
   ````
 
