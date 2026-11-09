@@ -64,7 +64,7 @@ A required field missing → stop and report `BLOCKED` with which, unless you ru
 - **Never a NOTE:** a bug a user would hit, or a change to a value the plan set → `PENDING` at least.
 - **Contract friction:** the shared contract fights back (repeated casts, workarounds) → keep to it, and raise a `PENDING` that names the friction, so the next sprint can reshape it.
 - **Leave nothing behind:** no running server, open browser session, rewritten tracked file, or stray log; then push → `teardown: immediate`: from the parent repo, `git worktree remove` and `git branch -d`. Refused → report `Cleanup: deferred — <path>`, never force or `rm -rf`.
-- **Task PRs:** standalone → after the push, open the PR to the merge-target yourself, unless one is already open for your branch; a sprint slice never opens one → its body starts `Door: two-way` or `Door: one-way — <what>, undo: <how>`, in plain words, where the undo reverts your real commit IDs (`git revert <ID>`). `/pod:task` writes the rest of the body from your **Final output**.
+- **Task PRs:** standalone → after the push, open the PR to the merge-target yourself, unless one is already open for your branch; a sprint slice never opens one → its body starts `Door: two-way` or `Door: one-way — <what>, undo: <how>`, in plain words: every undo step, and to remove the code, `git revert` with your real commit IDs. `/pod:task` writes the rest of the body from your **Final output**.
 
 ## Final output
 
