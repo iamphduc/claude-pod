@@ -1,0 +1,4 @@
+node_modules/
+dist/
+results/lighthouse-*.json
+scripts/.spawned_at
