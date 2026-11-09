@@ -1,7 +1,7 @@
 const { chromium } = require("playwright");
 (async () => {
   const b = await chromium.launch();
-  const ctx = await b.newContext({ reducedMotion: "reduce", viewport: { width: 1440, height: 900 } });
+  const ctx = await b.newContext({ permissions: ["clipboard-read","clipboard-write"], reducedMotion: "reduce", viewport: { width: 1440, height: 900 } });
   const p = await ctx.newPage();
   const errs = []; p.on("console", m => m.type()==="error" && errs.push(m.text()));
   await p.goto("http://localhost:5102/");
@@ -15,8 +15,9 @@ const { chromium } = require("playwright");
   console.log("focus now on:", await p.evaluate(() => document.activeElement?.tagName + " " + (document.activeElement?.textContent||"").slice(0,30)));
   await p.getByRole("button", { name: /Theme/ }).click();
   console.log("data-theme:", await p.evaluate(() => document.documentElement.getAttribute("data-theme")));
-  await p.getByRole("button", { name: "Copy code" }).click();
-  console.log("copy label:", await p.getByRole("button", { name: "Copied" }).count());
+  const copyBtn = p.locator('[data-slot="code-block"] button').first();
+  await copyBtn.click(); await p.waitForTimeout(200);
+  console.log("copy:", await copyBtn.getAttribute("aria-label"), JSON.stringify(await p.evaluate(() => navigator.clipboard.readText())));
   console.log(errs);
   await b.close();
 })();

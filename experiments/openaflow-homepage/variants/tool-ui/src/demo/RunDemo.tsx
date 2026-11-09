@@ -81,8 +81,12 @@ export function RunDemo() {
     play();
   };
 
-  const decide = (id: string, choice: ApprovalDecision) =>
+  const needsHeading = useRef<HTMLHeadingElement>(null);
+  // The card unmounts into a receipt, which would drop focus to <body>; keep it in the panel.
+  const decide = (id: string, choice: ApprovalDecision) => {
     setChoices((c) => ({ ...c, [id]: choice }));
+    requestAnimationFrame(() => needsHeading.current?.focus());
+  };
 
   return (
     <div className="overflow-hidden rounded-[var(--radius-lg)] border bg-[var(--bg)]">
@@ -139,6 +143,8 @@ export function RunDemo() {
         <section aria-labelledby="demo-needs" className="order-first flex min-w-0 flex-col gap-3 lg:order-none">
           <h3
             id="demo-needs"
+            ref={needsHeading}
+            tabIndex={-1}
             className="flex items-center gap-2 text-[length:var(--size-dense)] font-semibold"
           >
             Needs you
