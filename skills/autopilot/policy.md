@@ -20,7 +20,7 @@ No CI (`## CI` is `none`) isn't a halt: say once, at the start, that merges rest
 
 **Browser:** settle `/pod:code`'s browser check first — once the run is unattended, a question nobody answers stalls it.
 
-**Merge target:** no `--merge-target` given → reuse a `## <date> — merge target: <choice>` entry in `pod-docs/decisions.md`; none → ask once, with the browser check: **Staging (recommended)** — merges land on `pod-staging` and the human moves them to the default branch after looking, so unattended code never reaches it alone — or **Default branch**. Record it there under that title. With staging, bring `pod-staging` on origin up to date with origin's default branch (create it if missing). A conflict where every hunk only appends lines to a `pod-docs/` file → keep both sides, drop a line only when both sides added it word for word, and name the files in your next hand-back. Any other conflict → gate 3. Use `pod-staging` as the merge-target everywhere.
+**Merge target:** no `--merge-target` given → reuse a `## <date> — merge target: <choice>` entry in `pod-docs/decisions.md`; none → ask once, with the browser check: **Staging (recommended)** — merges land on `pod-staging` and the human moves them to the default branch after looking, so unattended code never reaches it alone — or **Default branch**. Record it there under that title. With staging, bring `pod-staging` on origin up to date with origin's default branch (create it if missing). A conflict where every hunk only appends lines to a `pod-docs/` file → keep both sides (a line both sides added word for word stays once), and name the files in your next hand-back. Any other conflict → gate 3. Use `pod-staging` as the merge-target everywhere.
 
 ## The wave check is a gate
 
