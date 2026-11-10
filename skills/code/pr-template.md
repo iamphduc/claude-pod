@@ -15,6 +15,9 @@ Every PR pod opens uses this body: `/pod:code` writes the wave, `Review fixes`, 
 ## Risks
 <Edge cases, limits, decisions made for the human — or `None known`>
 
+## Try it
+1. <The final plan PR only: one action> → <what you should see>
+
 <details><summary>Proof</summary>
 
 <The proof for this kind of PR, below.>

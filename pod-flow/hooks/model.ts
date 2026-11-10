@@ -657,27 +657,41 @@ const MAX_STEPS = 8
 export type TryStep = { text: string; note?: string }
 
 /**
- * The steps under each `Try it` heading of a PR body (`skills/code/pr-template.md`): `1. <action> → <what you
- * should see>`, as the action and the expectation, at most MAX_STEPS per list. Anything else reads as none.
+ * The steps of a PR body's `Try it` list (`skills/code/pr-template.md`): `1. <action> → <what you should see>`,
+ * as the action and the expectation, at most MAX_STEPS. The list ends at its first line that is not a step.
+ * A staging PR has a section per plan, headed `<title> (<plan-slug>)`: only this plan's list counts.
  */
-export function tryItSteps(body: string): TryStep[] {
+export function tryItSteps(body: string, planSlug?: string): TryStep[] {
+  const lines = body.split(/\r?\n/)
+  const headingOf = (line: string) => /^(#{1,6})\s+(.*?)\s*$/.exec(line)
+  const isPlan = (title: string) => planSlug !== undefined && title.endsWith(`(${planSlug})`)
+  const hasPlanSection = lines.some(l => isPlan(headingOf(l)?.[2] ?? ''))
   const steps: TryStep[] = []
+  // A list counts under a heading deeper than this: this plan's heading, while in its section. Out of it, none
+  // counts; with no plan sections, every list does.
+  let planDepth = hasPlanSection ? Infinity : 0
   let inList = false
-  let count = 0
-  for (const line of body.split(/\r?\n/)) {
-    const heading = /^#{1,6}\s+(.*)$/.exec(line)
+  for (const line of lines) {
+    const heading = headingOf(line)
     if (heading) {
-      inList = /^try it\b/i.test(concernText(heading[1] ?? ''))
-      count = 0
+      const depth = heading[1]!.length
+      const title = heading[2] ?? ''
+      if (hasPlanSection && isPlan(title)) planDepth = depth
+      else if (hasPlanSection && depth <= planDepth) planDepth = Infinity
+      inList = depth > planDepth && /^try it\b/i.test(plainText(title))
       continue
     }
-    const item = inList && /^\s*(?:\d+[.)]|[-*])\s+(.*)$/.exec(line)
-    if (!item || count >= MAX_STEPS) continue
+    if (!inList || line.trim() === '') continue
+    const item = /^\s*(?:\d+[.)]|[-*])\s+(.*)$/.exec(line)
+    if (!item) {
+      inList = false
+      continue
+    }
     const [action = '', see] = (item[1] ?? '').split(/\s*(?:→|->)\s*/, 2)
     const text = plainText(action)
     if (!text || steps.some(s => s.text === text)) continue
     steps.push({ text, note: see ? plainText(see) || undefined : undefined })
-    count++
+    if (steps.length === MAX_STEPS) break
   }
   return steps
 }

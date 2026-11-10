@@ -1096,3 +1096,41 @@ test('issue #115: the plan-complete checklist is short, and app checks come firs
   // Before: 26 rows, and the first app check was row 13.
   expect(checks).toEqual(['PR #71: saved data 1 moves to the v2 format', 'PR #72: saved data 2 moves to the v2 format', 'PR #73: saved data 3 moves to the v2 format', 'PR #74: saved data 4 moves to the v2 format', 'Cards', 'Theme'])
 })
+
+test('the Try it list ends at its first line that is not a step, as in the template, where Proof follows it', () => {
+  const body = [
+    '## Risks',
+    'None known',
+    '',
+    '## Try it',
+    '1. Open a card → it opens in place.',
+    '',
+    '2. Shut it → the list comes back.',
+    '',
+    '<details><summary>Proof</summary>',
+    '',
+    '- wave 1: https://github.com/me/app/pull/81',
+    '1. rows driven → all pass',
+    '</details>',
+  ].join('\n')
+  expect(tryItSteps(body).map(s => s.text)).toEqual(['Open a card', 'Shut it'])
+})
+
+test("in a staging PR, only this plan's Try it list counts", () => {
+  const body = [
+    '## Friends list (friends)',
+    'The goal.',
+    '### Try it',
+    '1. Add a friend → the friend is listed.',
+    '## Long runs (long-runs)',
+    'The goal.',
+    '### Try it',
+    '1. Start a long run → it shows its time.',
+    '## Proof',
+    '1. not a step → none',
+  ].join('\n')
+  expect(tryItSteps(body, 'long-runs')).toEqual([{ text: 'Start a long run', note: 'it shows its time' }])
+  expect(tryItSteps(body, 'friends')).toEqual([{ text: 'Add a friend', note: 'the friend is listed' }])
+  // A final plan PR has no plan sections: its list counts.
+  expect(tryItSteps('## Try it\n1. Open a card → it opens.', 'long-runs')).toHaveLength(1)
+})
