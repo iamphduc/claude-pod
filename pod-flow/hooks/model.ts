@@ -620,35 +620,12 @@ export type TreeInput = {
   tokens?: Record<string, number>
   /** Pull request numbers known to be merged: the queue keeps a hand-back pending after its PR merges. */
   merged?: number[]
-  /** The features the hand-back's PR added or changed, to check by hand; the ones ticked; whether the app was started. */
-  checks?: FeatureCheck[]
-  /** The steps of the hand-back PR's `Try it` list: when there are some, the checklist shows them in place of `checks`. */
+  /** The steps of the hand-back PR's `Try it` list, to check by hand; the ones ticked; whether the app was started. */
   steps?: TryStep[]
   ticked?: string[]
   isAppRunning?: boolean
   /** You said continue after the hand-back's PR merged: the hand-back part folds to one line. */
   isHandBackClosed?: boolean
-}
-
-export type FeatureCheck = { feature: string; reach: string; isNew: boolean }
-
-/**
- * The `features.md` rows a PR's diff adds or changes, from `gh pr diff`: a changed row is removed and added,
- * so its added line is enough, and a row added with no removed row of its name is new. Each row's Feature and
- * "User reaches it by" cells, as plain text.
- */
-export function changedFeatures(diff: string): FeatureCheck[] {
-  const rows: { sign: string; feature: string; reach: string }[] = []
-  let isFeatures = false
-  for (const line of diff.split(/\r?\n/)) {
-    if (line.startsWith('diff --git ')) isFeatures = /\/(pod-)?docs\/features\.md$/.test(line)
-    const m = /^([+-])\s*\|(.*)$/.exec(line)
-    if (!isFeatures || !m || /^[\s:|-]+$/.test(m[2] ?? '')) continue
-    const [feature = '', reach = ''] = (m[2] ?? '').split('|').map(cell => concernText(cell.trim()))
-    if (feature && feature !== 'Feature') rows.push({ sign: m[1] ?? '', feature, reach })
-  }
-  const removed = new Set(rows.filter(r => r.sign === '-').map(r => r.feature))
-  return rows.filter(r => r.sign === '+').map(r => ({ feature: r.feature, reach: r.reach, isNew: !removed.has(r.feature) }))
 }
 
 /** The most steps a "Try it" list gives: a list longer than this is not one you run through. */
@@ -687,7 +664,8 @@ export function tryItSteps(body: string, planSlug?: string): TryStep[] {
       inList = false
       continue
     }
-    const [action = '', see] = (item[1] ?? '').split(/\s*(?:→|->)\s*/, 2)
+    // At the first arrow: what you should see can have arrows of its own (`Settings → API keys`).
+    const [, action = '', see] = /^(.*?)(?:\s*(?:→|->)\s*(.*))?$/.exec(item[1] ?? '') ?? []
     const text = plainText(action)
     if (!text || steps.some(s => s.text === text)) continue
     steps.push({ text, note: see ? plainText(see) || undefined : undefined })
@@ -701,11 +679,10 @@ const plainText = (text: string) => text.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
 
 /**
  * What you check before or after the merge: the plan's one-way doors still pending, then the steps to try in the
- * running app, from the PR's `Try it` list. A PR with no list falls back to the features the plan added.
- * A door you accepted (its wave PR merged), a decision already recorded, and a feature row only reworded stay out:
- * the hand-back names them, and none is something you check by running the app.
+ * running app, from the PR's `Try it` list. A door you accepted (its wave PR merged) and a decision already recorded
+ * stay out: the hand-back names them, and neither is something you check by running the app.
  */
-function checklist(queue: QueueEntry[], plan: PlanDoc, checks: FeatureCheck[], steps: TryStep[]): { text: string; note?: string; detail?: string }[] {
+function checklist(queue: QueueEntry[], plan: PlanDoc, steps: TryStep[]): { text: string; note?: string; detail?: string }[] {
   const doors = queue
     .filter(e => isForPlan(e, plan) && e.plan && e.isPending && /^one-way door/i.test(concernText(e.body)))
     .map(e => {
@@ -715,8 +692,7 @@ function checklist(queue: QueueEntry[], plan: PlanDoc, checks: FeatureCheck[], s
       const undo = undoOf(e.body)
       return { text: firstClause(shortDoor(whole)), detail: `${whole}.${undo ? ` Undo: ${undo}.` : ''}` }
     })
-  const app = steps.length > 0 ? steps : checks.filter(c => c.isNew).map(c => ({ text: c.feature, note: c.reach || undefined }))
-  return [...doors, ...app]
+  return [...doors, ...steps]
 }
 
 /** A sentence up to its first `;`, `(` or comma: the reason after it is too long for one line. */
@@ -744,7 +720,7 @@ export const pullOf = (text: string) => /https?:\/\/[^\s,;)]+?\/pull\/(\d+)/.exe
 const ENDED = new Set(['completed', 'failed', 'killed'])
 const PLANNER = /(^|:)sprint-planner$/
 
-export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, lastSeen = {}, queue = [], tokens = {}, merged = [], checks = [], steps = [], ticked = [], isAppRunning = false, isHandBackClosed = false }: TreeInput): TreeLine[] {
+export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, lastSeen = {}, queue = [], tokens = {}, merged = [], steps = [], ticked = [], isAppRunning = false, isHandBackClosed = false }: TreeInput): TreeLine[] {
   const spent = tokenTotals(spawns, tokens, sprints, plan.slug)
   // Live until it ends: an agent `waiting` on its own background work, `pending` or `idle` is still at it.
   const running = live.filter(a => !ENDED.has(a.status))
@@ -905,7 +881,7 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
     // A pull request URL reads as its short number.
     const pull = pullOf(haltText)
     // At the hand-back, merged or not: run the app and look at what the plan changed.
-    const items = checklist(queue, plan, checks, steps)
+    const items = checklist(queue, plan, steps)
     const tickedCount = items.filter(c => ticked.includes(c.text)).length
     const appLines = (): TreeLine[] =>
       // After the merge and your continue, nothing is left to do here: one line says how it went.

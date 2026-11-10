@@ -40,7 +40,7 @@ declare module 'claude-code' {
       planShown: string
       /** Why there is no tree, shown in its place. */
       emptyNote: string
-      /** The hand-back checklist's ticked features, and whether Run app was pressed last. */
+      /** The hand-back checklist's ticked rows, and whether Run app was pressed last. */
       ticked: string[]
       isAppRunning: boolean
       /** The hand-back PR you said continue after, once it merged; 0 for none. */

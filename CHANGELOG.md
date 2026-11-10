@@ -5,9 +5,9 @@ Newest first. The `pod` and `pod-flow` plugins share this file. Each heading nam
 ## pod 0.10.11 · pod-flow 0.3.3 — 2026-11-10
 
 - **The plan-complete checklist is short, and it lists app checks.** In one autopilot run, pod-flow's "check these" list had 26 rows, and the first app check was row 13. The cause was in 4 parts. Each gate 6 halt names its one-way door, so it counted as a second door. Doors the human accepted stayed on the list. Defaults already recorded in `decisions.md` stayed on the list. Every reworded `features.md` row became a check. The list now has the one-way doors still pending, each cut to its first clause, then the steps to try in the app. ([#115](https://github.com/iamphduc/claude-pod/issues/115))
-- **The final plan PR has a `## Try it` list.** It has at most 8 steps, each `<N>. <one action> → <what you should see>`, one per user-facing change. pod-flow reads it from the PR body and shows it as the checklist. A PR with no list falls back to the features the plan added. Each plan section of the staging PR has its own `### Try it`.
+- **The final plan PR has a `## Try it` list.** It has at most 8 steps, each `<N>. <one action> → <what you should see>`, one per user-facing change. pod-flow reads it from the PR body and shows it as the checklist. A PR with no list shows only the doors still pending. pod-flow no longer reads `features.md` from the PR diff, so it makes one `gh` call per PR, not two. Each plan section of the staging PR has its own `### Try it`.
 - **`/pod:code` resolves a door once its wave PR merges.** The entry reads `accepted, PR #<n> merged`, so an accepted door leaves the checklist.
-- The merge reminder now says `checks`, not `important checks`. The "also changed" label is gone, because changed feature rows are no longer on the list.
+- The merge reminder now says `checks`, not `important checks`. The "also changed" label is gone, because feature rows are no longer on the list.
 
 ## pod 0.10.10 — 2026-11-09
 

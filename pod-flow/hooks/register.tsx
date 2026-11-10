@@ -2,8 +2,8 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Dispatch, TreeLine } from '../types'
-import { buildTree, changedFeatures, fit, foldKey, GLYPH, header, isFoldable, latestHalt, mainCheckout, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, pullOf, questionGlyph, short, snapshot, tryItSteps, turnTokens, uncheckedReminder, visibleLines } from './model'
-import type { FeatureCheck, PlanDoc, SprintDoc } from './model'
+import { buildTree, fit, foldKey, GLYPH, header, isFoldable, latestHalt, mainCheckout, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, pullOf, questionGlyph, short, snapshot, tryItSteps, turnTokens, uncheckedReminder, visibleLines } from './model'
+import type { PlanDoc, SprintDoc } from './model'
 
 const PANE = 'pod-flow'
 const REFRESH_MS = 3000
@@ -43,33 +43,26 @@ let told: Set<string> | undefined
 const lastSeen: Record<string, number> = {}
 const merged = new Set<number>()
 const pullCheckedAt: Record<number, number> = {}
-const checksOf: Record<number, FeatureCheck[]> = {}
 const bodyOf: Record<number, string> = {}
-const diffAskedAt: Record<number, number> = {}
+const bodyAskedAt: Record<number, number> = {}
 // The latest `gh` calls a refresh started.
 let ghWork: Promise<unknown> = Promise.resolve()
 const GH_WAIT_MS = 5000
 
-/**
- * Reads the hand-back PR's body, for its `Try it` steps, and the features its diff added, once per PR.
- * Each `gh` that fails tries again after PULL_CHECK_MS; until then the checklist does without it.
- */
+/** Reads the hand-back PR's body, for its `Try it` steps, once per PR; a failed `gh` tries again after PULL_CHECK_MS. */
 async function loadChecks($: Dollar, number: number, cwd: string) {
   const now = await $.clock.now()
-  if ((checksOf[number] && bodyOf[number] !== undefined) || now - (diffAskedAt[number] ?? -Infinity) < PULL_CHECK_MS) return
-  diffAskedAt[number] = now
-  const gh = async (args: string[]) => {
-    try {
-      const { exitCode, stdout } = await $.process.run(['gh', 'pr', ...args, String(number)], { cwd, timeoutMs: 20_000 })
-      return exitCode === 0 ? stdout : undefined
-    } catch {
-      return undefined
+  if (bodyOf[number] !== undefined || now - (bodyAskedAt[number] ?? -Infinity) < PULL_CHECK_MS) return
+  bodyAskedAt[number] = now
+  try {
+    const { exitCode, stdout } = await $.process.run(['gh', 'pr', 'view', String(number), '--json', 'body', '--jq', '.body'], { cwd, timeoutMs: 20_000 })
+    if (exitCode === 0) {
+      bodyOf[number] = stdout
+      void refresh($)
     }
+  } catch {
+    // No checklist yet: the button still shows.
   }
-  const [diff, body] = await Promise.all([checksOf[number] ? undefined : gh(['diff']), bodyOf[number] !== undefined ? undefined : gh(['view', '--json', 'body', '--jq', '.body'])])
-  if (diff !== undefined) checksOf[number] = changedFeatures(diff)
-  if (body !== undefined) bodyOf[number] = body
-  if (diff !== undefined || body !== undefined) void refresh($)
 }
 
 /**
@@ -212,10 +205,9 @@ async function buildLines($: Dollar) {
   const known = await read($, spawns)
   const spent = await read($, tokens)
   const now = await $.clock.now()
-  const checks = pull ? (checksOf[Number(pull[1])] ?? []) : []
   const steps = pull ? tryItSteps(bodyOf[Number(pull[1])] ?? '', plan.slug) : []
   const isHandBackClosed = pull !== null && pull !== undefined && (await read($, handBackClosed)) === Number(pull[1])
-  const app = { checks, steps, ticked: await read($, ticked), isAppRunning: await read($, isAppRunning), isHandBackClosed }
+  const app = { steps, ticked: await read($, ticked), isAppRunning: await read($, isAppRunning), isHandBackClosed }
   await update($, lines, () => buildTree({ plan, sprints, spawns: known, live, halt: halt?.body, haltType: halt?.type, now, lastSeen, queue, tokens: spent, merged: [...merged], ...app }))
 }
 
