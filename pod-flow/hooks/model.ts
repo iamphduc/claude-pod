@@ -354,16 +354,16 @@ export function header(lines: TreeLine[], width = Infinity): string {
 /** The symbol for each status, shared by the tree and the transcript lines. */
 export const GLYPH: Record<string, string> = { running: '●', pushed: '◐', done: '✓', blocked: '✗', waiting: '○' }
 
-/** How many unticked features the reminder names before `and N more`. */
+/** How many unticked checks the reminder names before `and N more`. */
 const REMINDER_NAMES = 3
 
-/** A soft reminder for a `continue` with features still unticked at the hand-back: it names them and goes on. */
+/** A soft reminder for a `continue` with checks still unticked at the hand-back: it names them and goes on. */
 export function uncheckedReminder(lines: TreeLine[]): string | undefined {
-  const left = lines.filter(l => l.kind === 'check' && l.isImportant && l.status !== 'done').map(l => short(l.text, 40))
+  const left = lines.filter(l => l.kind === 'check' && l.status !== 'done').map(l => short(l.text, 40))
   if (left.length === 0) return undefined
   const names = left.length > REMINDER_NAMES ? `${left.slice(0, REMINDER_NAMES).join('; ')} and ${left.length - REMINDER_NAMES} more` : left.join('; ')
   const end = /[.…]$/.test(names) ? '' : '.'
-  return `☐ Merged with ${left.length} important ${left.length === 1 ? 'check' : 'checks'} not ticked: ${names}${end}`
+  return `☐ Merged with ${left.length} ${left.length === 1 ? 'check' : 'checks'} not ticked: ${names}${end}`
 }
 
 /** The divider over Run app in the text version, which has no width to fill. */
@@ -477,8 +477,6 @@ export function snapshot(lines: TreeLine[]): string {
       row(1, '─'.repeat(DIVIDER))
       row(1, `${glyph} ${line.text}  reply '${line.text.toLowerCase()}'`)
       if (line.detail) row(1, line.detail)
-    } else if (line.kind === 'also' && !lines.some(l => l.kind === 'app' && l.detail)) {
-      row(1, `${line.text}:`)
     } else if (line.kind === 'check' && !lines.some(l => l.kind === 'app' && l.detail)) {
       // A plain list, no tree: the name whole, then how to reach it on a line of its own.
       row(1, `${line.status === 'done' ? '☑' : '☐'} ${line.text}`)
@@ -624,6 +622,8 @@ export type TreeInput = {
   merged?: number[]
   /** The features the hand-back's PR added or changed, to check by hand; the ones ticked; whether the app was started. */
   checks?: FeatureCheck[]
+  /** The steps of the hand-back PR's `Try it` list: when there are some, the checklist shows them in place of `checks`. */
+  steps?: TryStep[]
   ticked?: string[]
   isAppRunning?: boolean
   /** You said continue after the hand-back's PR merged: the hand-back part folds to one line. */
@@ -651,32 +651,58 @@ export function changedFeatures(diff: string): FeatureCheck[] {
   return rows.filter(r => r.sign === '+').map(r => ({ feature: r.feature, reach: r.reach, isNew: !removed.has(r.feature) }))
 }
 
+/** The most steps a "Try it" list gives: a list longer than this is not one you run through. */
+const MAX_STEPS = 8
+
+export type TryStep = { text: string; note?: string }
+
 /**
- * What only the person can judge before the merge, first: the plan's one-way doors, the decisions pod defaulted
- * for them, and the features it added. The features it only changed come after.
+ * The steps under each `Try it` heading of a PR body (`skills/code/pr-template.md`): `1. <action> → <what you
+ * should see>`, as the action and the expectation, at most MAX_STEPS per list. Anything else reads as none.
  */
-function checklist(queue: QueueEntry[], plan: PlanDoc, checks: FeatureCheck[]): { text: string; note?: string; detail?: string; isImportant: boolean }[] {
-  const mine = queue.filter(e => isForPlan(e, plan) && e.plan)
-  const doors = mine
-    .filter(e => /one-way door/i.test(e.body))
+export function tryItSteps(body: string): TryStep[] {
+  const steps: TryStep[] = []
+  let inList = false
+  let count = 0
+  for (const line of body.split(/\r?\n/)) {
+    const heading = /^#{1,6}\s+(.*)$/.exec(line)
+    if (heading) {
+      inList = /^try it\b/i.test(concernText(heading[1] ?? ''))
+      count = 0
+      continue
+    }
+    const item = inList && /^\s*(?:\d+[.)]|[-*])\s+(.*)$/.exec(line)
+    if (!item || count >= MAX_STEPS) continue
+    const [action = '', see] = (item[1] ?? '').split(/\s*(?:→|->)\s*/, 2)
+    const text = plainText(action)
+    if (!text || steps.some(s => s.text === text)) continue
+    steps.push({ text, note: see ? plainText(see) || undefined : undefined })
+    count++
+  }
+  return steps
+}
+
+/** Markdown links, bold and code as plain text, with no end stop. */
+const plainText = (text: string) => text.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[*`]/g, '').trim().replace(/[.\s]+$/, '')
+
+/**
+ * What you check before or after the merge: the plan's one-way doors still pending, then the steps to try in the
+ * running app, from the PR's `Try it` list. A PR with no list falls back to the features the plan added.
+ * A door you accepted (its wave PR merged), a decision already recorded, and a feature row only reworded stay out:
+ * the hand-back names them, and none is something you check by running the app.
+ */
+function checklist(queue: QueueEntry[], plan: PlanDoc, checks: FeatureCheck[], steps: TryStep[]): { text: string; note?: string; detail?: string }[] {
+  const doors = queue
+    .filter(e => isForPlan(e, plan) && e.plan && e.isPending && /^one-way door/i.test(concernText(e.body)))
     .map(e => {
-      const first = concernText(e.body)
-      const whole = withoutUndo(/^one-way door/i.test(first) ? first : `One-way door: ${first}`)
-      // Short, as `Decided:` is: `PR #74: …`. The open row says it whole, with how to undo it,
+      const whole = withoutUndo(concernText(e.body))
+      // Short: `PR #74: <its first clause>`. The open row says it whole, with how to undo it,
       // what you weigh before you merge a door.
       const undo = undoOf(e.body)
-      return { text: shortDoor(whole), detail: `${whole}.${undo ? ` Undo: ${undo}.` : ''}`, isImportant: true }
+      return { text: firstClause(shortDoor(whole)), detail: `${whole}.${undo ? ` Undo: ${undo}.` : ''}` }
     })
-  const decided = mine
-    .filter(e => !e.isPending && /default recorded/i.test(e.resolution ?? ''))
-    // One line each: the decision's first clause, and the default alone. The whole sentence opens under it.
-    .map(e => {
-      const value = defaultOf(e.resolution ?? '')
-      const detail = [`Decided: ${concernText(e.body)}`, value && `Default: ${value}.`].filter(Boolean).join(' ')
-      return { text: `Decided: ${firstClause(concernText(e.body))}`, note: value, detail, isImportant: true }
-    })
-  const features = checks.map(c => ({ text: c.feature, note: c.reach || undefined, isImportant: c.isNew }))
-  return [...doors, ...decided, ...features.filter(f => f.isImportant), ...features.filter(f => !f.isImportant)]
+  const app = steps.length > 0 ? steps : checks.filter(c => c.isNew).map(c => ({ text: c.feature, note: c.reach || undefined }))
+  return [...doors, ...app]
 }
 
 /** A sentence up to its first `;`, `(` or comma: the reason after it is too long for one line. */
@@ -698,17 +724,13 @@ const shortDoor = (text: string) => {
 const undoOf = (body: string) =>
   /\bUndo:\s*(.+?)(?:\.(?:\s|$)|$)/i.exec(body.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[*`]/g, ''))?.[1]?.trim() || undefined
 
-/** The value from `default recorded: 36 px; override anytime ([decision](…))`: `36 px`. */
-const defaultOf = (resolution: string) =>
-  concernText(/default recorded:\s*([^;]*)/i.exec(resolution)?.[1] ?? '').replace(/[.\s]+$/, '') || undefined
-
 /** The pull request a halt or hand-back links to, by its number. */
 export const pullOf = (text: string) => /https?:\/\/[^\s,;)]+?\/pull\/(\d+)/.exec(text)
 
 const ENDED = new Set(['completed', 'failed', 'killed'])
 const PLANNER = /(^|:)sprint-planner$/
 
-export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, lastSeen = {}, queue = [], tokens = {}, merged = [], checks = [], ticked = [], isAppRunning = false, isHandBackClosed = false }: TreeInput): TreeLine[] {
+export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, lastSeen = {}, queue = [], tokens = {}, merged = [], checks = [], steps = [], ticked = [], isAppRunning = false, isHandBackClosed = false }: TreeInput): TreeLine[] {
   const spent = tokenTotals(spawns, tokens, sprints, plan.slug)
   // Live until it ends: an agent `waiting` on its own background work, `pending` or `idle` is still at it.
   const running = live.filter(a => !ENDED.has(a.status))
@@ -869,9 +891,8 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
     // A pull request URL reads as its short number.
     const pull = pullOf(haltText)
     // At the hand-back, merged or not: run the app and look at what the plan changed.
-    const items = checklist(queue, plan, checks)
+    const items = checklist(queue, plan, checks, steps)
     const tickedCount = items.filter(c => ticked.includes(c.text)).length
-    const hasAlso = items.some(c => c.isImportant) && items.some(c => !c.isImportant)
     const appLines = (): TreeLine[] =>
       // After the merge and your continue, nothing is left to do here: one line says how it went.
       isHandBackClosed
@@ -886,11 +907,7 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
               // All ticked: the list folds to this line, and opens again when pressed.
               detail: items.length > 0 && tickedCount === items.length ? `✓ all ${items.length} checked` : undefined,
             },
-            ...items.flatMap((c, n): TreeLine[] => [
-              // The first that isn't important gets a label over it.
-              ...(hasAlso && !c.isImportant && items[n - 1]?.isImportant ? [{ depth: 2, kind: 'also' as const, text: 'also changed', status: '' }] : []),
-              { depth: 2, kind: 'check', text: c.text, status: ticked.includes(c.text) ? 'done' : 'waiting', note: c.note, detail: c.detail, isImportant: c.isImportant || undefined },
-            ]),
+            ...items.map((c): TreeLine => ({ depth: 2, kind: 'check', text: c.text, status: ticked.includes(c.text) ? 'done' : 'waiting', note: c.note, detail: c.detail })),
           ]
     if (isHandBack && pull && merged.includes(Number(pull[1]))) {
       // Nothing left for you: the hand-back's PR is in.

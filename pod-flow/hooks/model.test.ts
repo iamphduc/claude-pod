@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 
-import { ageNote, buildTree, uncheckedReminder, changedFeatures, foldKey, isFoldable, header, mainCheckout, snapshot, formatTokens, tokenTotals, turnTokens, concernText, fit, parseQueue, formatAge, prState, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, milestones, prefixes, summarize, tableRows, visibleLines } from './model'
+import { ageNote, buildTree, uncheckedReminder, changedFeatures, foldKey, isFoldable, header, mainCheckout, snapshot, tryItSteps, formatTokens, tokenTotals, turnTokens, concernText, fit, parseQueue, formatAge, prState, latestHalt, sliceOf, parseDispatch, parsePlan, parseSprint, milestones, prefixes, summarize, tableRows, visibleLines } from './model'
 import type { TreeLine } from '../types'
 
 const PLAN = `# Plan: Long runs
@@ -666,21 +666,63 @@ const appTree = (input: Partial<Parameters<typeof buildTree>[0]> = {}) => {
   return buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [], spawns: {}, live: [], queue: parseQueue(HAND_BACK_QUEUE), halt: halt?.body, haltType: halt?.type, checks: changedFeatures(DIFF), ...input })
 }
 
-test('at the hand-back, the checklist puts one-way doors, decisions made for you and new features first', () => {
+test('at the hand-back, the checklist puts the pending one-way doors first, then the features the plan added', () => {
   const lines = appTree({ ticked: ['Saved keys'] })
   const at = lines.findIndex(l => l.kind === 'app')
   expect(lines[at - 1]).toMatchObject({ kind: 'hint', text: 'merge PR #58' })
-  expect(lines.slice(at).map(l => `${l.kind} ${l.status} ${l.isImportant ? '!' : '-'} ${l.text} | ${l.note ?? ''}`)).toEqual([
-    'app waiting - Run app | check these (1/4)',
-    'check waiting ! PR #35: saved keys move to the v2 format | ',
-    'check waiting ! Decided: the input border | 1px grey',
-    'check done ! Saved keys | Settings → API keys',
-    'also  - also changed | ',
-    'check waiting - Sign in | the login page, or a magic link',
+  // The decision pod recorded and the row only reworded stay out: neither is a check in the app.
+  expect(lines.slice(at).map(l => `${l.kind} ${l.status} ${l.text} | ${l.note ?? ''}`)).toEqual([
+    'app waiting Run app | check these (1/2)',
+    'check waiting PR #35: saved keys move to the v2 format | ',
+    'check done Saved keys | Settings → API keys',
   ])
   expect(appTree({ isAppRunning: true }).find(l => l.kind === 'app')?.text).toBe('Stop app')
   // The checklist says what to look at; its ticks are not one more done or blocked row.
   expect(summarize(lines)).toBe(summarize(appTree({ ticked: [] })))
+})
+
+test('a door you accepted, and a gate 6 halt that names its door, are not checks', () => {
+  const queue = parseQueue(
+    [
+      '- `[2026-10-08 · PENDING · orchestrator → human · plan: long-runs]` one-way door in PR #40 — old rows are dropped, undo: none **Resolution:** 2026-10-09 — accepted, PR #40 merged',
+      '- `[2026-10-08 · PENDING · orchestrator → human · plan: long-runs]` gate 6 (escalation-valve): wave 2 PR https://github.com/me/app/pull/41 withheld, one-way door **Resolution:** pending',
+    ].join('\n'),
+  )
+  expect(appTree({ queue: [...queue, ...parseQueue(HAND_BACK_QUEUE)], checks: [] }).filter(l => l.kind === 'check').map(l => l.text)).toEqual([
+    'PR #35: saved keys move to the v2 format',
+  ])
+})
+
+const BODY = [
+  'Door: two-way',
+  '',
+  '## Try it',
+  '1. Sign in with the test account → the home page lists your cards.',
+  '2. Open a card, then shut it → it opens in place, and shuts with Esc.',
+  '3. **Mark all read**',
+  '- Sign in with the test account → a second copy is not listed',
+  '',
+  '## Risks',
+  '1. Not a step → none',
+].join('\n')
+
+test('tryItSteps reads the steps under Try it, as the action and what you should see', () => {
+  expect(tryItSteps(BODY)).toEqual([
+    { text: 'Sign in with the test account', note: 'the home page lists your cards' },
+    { text: 'Open a card, then shut it', note: 'it opens in place, and shuts with Esc' },
+    { text: 'Mark all read', note: undefined },
+  ])
+  expect(tryItSteps(`## Try it\n${Array.from({ length: 12 }, (_, n) => `${n + 1}. step ${n} → ok`).join('\n')}`)).toHaveLength(8)
+  expect(tryItSteps('OPEN\n')).toEqual([])
+})
+
+test("the PR's Try it steps take the place of the features, after the doors", () => {
+  expect(appTree({ steps: tryItSteps(BODY) }).filter(l => l.kind === 'check').map(l => `${l.text} | ${l.note ?? ''}`)).toEqual([
+    'PR #35: saved keys move to the v2 format | ',
+    'Sign in with the test account | the home page lists your cards',
+    'Open a card, then shut it | it opens in place, and shuts with Esc',
+    'Mark all read | ',
+  ])
 })
 
 test('a one-way door reads short as PR #N, and opens whole with how to undo it', () => {
@@ -711,23 +753,13 @@ test("a door in /pod:code's format reads PR #N and opens with its undo once; one
   ])
 })
 
-test('a door entry as the queue-door-entry eval run wrote it reads short and opens with its whole undo', () => {
+test('a door entry as the queue-door-entry eval run wrote it reads as its first clause and opens with its whole undo', () => {
   const queue = parseQueue(
-    "- `[2026-10-31 · PENDING · orchestrator → human · plan: long-runs · sprint: one · slice: A1]` one-way door in PR #74 — saved books move to the v2 format and older builds can't read them, undo: restore `books.v1.json`, the backup the migration writes **Resolution:** pending",
+    "- `[2026-10-31 · PENDING · orchestrator → human · plan: long-runs · sprint: one · slice: A1]` one-way door in PR #74 — saved books move to the v2 format, and older builds can't read them, undo: restore `books.v1.json`, the backup the migration writes **Resolution:** pending",
   )
   expect(appTree({ queue, checks: [] }).find(l => l.kind === 'check')).toMatchObject({
-    text: "PR #74: saved books move to the v2 format and older builds can't read them",
-    detail: "one-way door in PR #74 — saved books move to the v2 format and older builds can't read them. Undo: restore books.v1.json, the backup the migration writes.",
-  })
-})
-
-test('a long decision made for you reads as its first clause and the default alone', () => {
-  const queue = parseQueue(
-    "- `[2026-10-30 · PENDING · engineer → human · plan: long-runs · sprint: ui · slice: L2]` needs your decision: a chapter's time link has a 36 px tap area, not the 44 px of design.md's Tap targets rule; 44 px would overlap the title row. **Resolution:** 2026-10-30 — default recorded: 36 px; override anytime ([decision](decisions.md#2026-10-30--chapter-time-link))",
-  )
-  expect(appTree({ queue: [...parseQueue(HAND_BACK_QUEUE), ...queue], checks: [] }).find(l => l.text.includes('36 px'))).toMatchObject({
-    text: "Decided: a chapter's time link has a 36 px tap area",
-    note: '36 px',
+    text: 'PR #74: saved books move to the v2 format',
+    detail: "one-way door in PR #74 — saved books move to the v2 format, and older builds can't read them. Undo: restore books.v1.json, the backup the migration writes.",
   })
 })
 
@@ -735,53 +767,43 @@ test('a merged hand-back keeps the run-app line; a gate halt or no halt has none
   expect(appTree({ merged: [58] }).some(l => l.kind === 'app')).toBe(true)
   expect(appTree({ halt: 'Gate 4: wave check failed', haltType: 'BLOCKED' }).some(l => l.kind === 'app' || l.kind === 'check')).toBe(false)
   expect(appTree({ halt: undefined }).some(l => l.kind === 'app')).toBe(false)
-  // Nothing to check: the button alone.
-  const bare = appTree({ checks: [], queue: [] })
-  expect(bare.filter(l => l.kind === 'app' || l.kind === 'check' || l.kind === 'also').map(l => l.text)).toEqual(['Run app'])
-  // Only changed rows: no "also changed" label over a list that is all of them.
-  expect(appTree({ checks: [{ feature: 'Sign in', reach: '', isNew: false }], queue: [] }).some(l => l.kind === 'also')).toBe(false)
+  // Nothing to check: the button alone. A row only changed is not a check.
+  const bare = appTree({ checks: [{ feature: 'Sign in', reach: '', isNew: false }], queue: [] })
+  expect(bare.filter(l => l.kind === 'app' || l.kind === 'check').map(l => l.text)).toEqual(['Run app'])
 })
 
-const ALL = ['PR #35: saved keys move to the v2 format', 'Decided: the input border', 'Saved keys', 'Sign in']
+const ALL = ['PR #35: saved keys move to the v2 format', 'Saved keys']
 
 test('the run-app line counts the ticks, and folds the list once all are ticked', () => {
   const done = appTree({ ticked: ALL })
   const app = done.find(l => l.kind === 'app')!
-  expect(app).toMatchObject({ note: 'check these (4/4)', detail: '✓ all 4 checked' })
+  expect(app).toMatchObject({ note: 'check these (2/2)', detail: '✓ all 2 checked' })
   expect(isFoldable(app)).toBe(true)
   // Folded unless you open it again.
-  expect(visibleLines(done, []).some(l => l.kind === 'check' || l.kind === 'also')).toBe(false)
-  expect(visibleLines(done, [foldKey(app)]).filter(l => l.kind === 'check')).toHaveLength(4)
-  expect(snapshot(done).split('\n').slice(-2)).toEqual(["○ Run app  reply 'run app'", '✓ all 4 checked'])
+  expect(visibleLines(done, []).some(l => l.kind === 'check')).toBe(false)
+  expect(visibleLines(done, [foldKey(app)]).filter(l => l.kind === 'check')).toHaveLength(2)
+  expect(snapshot(done).split('\n').slice(-2)).toEqual(["○ Run app  reply 'run app'", '✓ all 2 checked'])
 })
 
 test('after the merge and your continue, the hand-back part is one line', () => {
   const lines = appTree({ merged: [58], ticked: ['Saved keys'], isHandBackClosed: true })
-  expect(lines.filter(l => l.kind === 'app' || l.kind === 'check' || l.kind === 'also').map(l => `${l.status} ${l.text} | ${l.note}`)).toEqual(['done plan done | checked 1/4'])
-  expect(snapshot(lines).split('\n').at(-1)).toBe('✓ plan done · checked 1/4')
+  expect(lines.filter(l => l.kind === 'app' || l.kind === 'check').map(l => `${l.status} ${l.text} | ${l.note}`)).toEqual(['done plan done | checked 1/2'])
+  expect(snapshot(lines).split('\n').at(-1)).toBe('✓ plan done · checked 1/2')
 })
 
-test('the merge reminder names the important checks left, and says nothing when they are ticked', () => {
-  expect(uncheckedReminder(appTree({ ticked: ['Saved keys'] }))).toBe(
-    '☐ Merged with 2 important checks not ticked: PR #35: saved keys move to the v2 format; Decided: the input border.',
-  )
-  // Only what is not important left: nothing to say.
-  expect(uncheckedReminder(appTree({ ticked: ALL.slice(0, 3) }))).toBeUndefined()
+test('the merge reminder names the checks left, and says nothing when they are ticked', () => {
+  expect(uncheckedReminder(appTree({ ticked: ['Saved keys'] }))).toBe('☐ Merged with 1 check not ticked: PR #35: saved keys move to the v2 format.')
+  expect(uncheckedReminder(appTree({ ticked: ALL }))).toBeUndefined()
   expect(uncheckedReminder(appTree({ checks: [], queue: [] }))).toBeUndefined()
 })
 
-test('the snapshot says how to run the app without a button, and lists the checks, important first', () => {
-  expect(snapshot(appTree({ ticked: ['Saved keys'] })).split('\n').slice(-10)).toEqual([
+test('the snapshot says how to run the app without a button, and lists the checks', () => {
+  expect(snapshot(appTree({ ticked: ['Saved keys'] })).split('\n').slice(-5)).toEqual([
     '─'.repeat(30),
     "○ Run app  reply 'run app'",
     '☐ PR #35: saved keys move to the v2 format',
-    '☐ Decided: the input border',
-    '  1px grey',
     '☑ Saved keys',
     '  Settings → API keys',
-    'also changed:',
-    '☐ Sign in',
-    '  the login page, or a magic link',
   ])
 })
 
@@ -1051,4 +1073,26 @@ test('a sprint doc links its plan from pod-docs/ or, before the move, docs/', ()
   const head = (dir: string) => `_From plan: ${dir}/plans/demo.md · Slug: one · Status: active_\n`
   expect(parseSprint(head('pod-docs'), false)?.plan).toBe('demo')
   expect(parseSprint(head('docs'), false)?.plan).toBe('demo')
+})
+
+// Issue #115, from one autopilot run: 4 doors, 5 gate 6 halts that name their door, 3 recorded defaults, 14 rewritten feature rows, 2 of them new.
+const RUN_115 = [
+  ...[1, 2, 3, 4].map(n => `- \`[2026-11-0${n} · PENDING · orchestrator → human · plan: long-runs]\` one-way door in PR #${70 + n} — saved data ${n} moves to the v2 format, and older builds can't read it, undo: restore the backup **Resolution:** pending`),
+  ...[1, 2, 3, 4, 5].map(n => `- \`[2026-11-0${n} · PENDING · orchestrator → human · plan: long-runs]\` gate 6 (escalation-valve): wave ${n} PR https://github.com/me/app/pull/${80 + n} withheld, one-way door **Resolution:** 2026-11-0${n} — merged by the human`),
+  ...[1, 2, 3].map(n => `- \`[2026-11-0${n} · PENDING · engineer → human · plan: long-runs]\` needs your decision: choice ${n}, a long reason. **Resolution:** 2026-11-09 — default recorded: value ${n}; override anytime`),
+  '- `[2026-11-09 · PENDING · orchestrator → human · plan: long-runs]` plan long-runs complete — final PR https://github.com/me/app/pull/90, review pass **Resolution:** pending',
+].join('\n')
+const DIFF_115 = [
+  'diff --git a/pod-docs/features.md b/pod-docs/features.md',
+  ...Array.from({ length: 12 }, (_, n) => [`-| Row ${n} | old place | x | y |`, `+| Row ${n} | new wording ${n} | x | y |`]).flat(),
+  '+| Cards | the home page | open a card | it opens |',
+  '+| Theme | Settings | pick dark | the page goes dark |',
+].join('\n')
+
+test('issue #115: the plan-complete checklist is short, and app checks come first', () => {
+  const halt = latestHalt(RUN_115)
+  const lines = buildTree({ plan: parsePlan(PLAN, 'long-runs'), sprints: [], spawns: {}, live: [], queue: parseQueue(RUN_115), halt: halt?.body, haltType: halt?.type, checks: changedFeatures(DIFF_115) })
+  const checks = lines.filter(l => l.kind === 'check').map(l => l.text)
+  // Before: 26 rows, and the first app check was row 13.
+  expect(checks).toEqual(['PR #71: saved data 1 moves to the v2 format', 'PR #72: saved data 2 moves to the v2 format', 'PR #73: saved data 3 moves to the v2 format', 'PR #74: saved data 4 moves to the v2 format', 'Cards', 'Theme'])
 })

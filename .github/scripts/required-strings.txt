@@ -41,6 +41,9 @@ agents/engineer.md|- **Not checked:**
 agents/engineer.md|- **Cleanup:**
 agents/engineer.md|- **Time lost:**
 agents/engineer.md|- **Confidence:**
+# pod-flow reads the final PR's Try it steps
+skills/code/pr-template.md|## Try it
+skills/code/pr-template.md|<N>. <one action> → <what you should see>
 # reviewer
 agents/reviewer.md|## Required dispatch context
 agents/reviewer.md|- **kind**
