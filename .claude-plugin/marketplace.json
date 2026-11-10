@@ -1,6 +1,6 @@
 {
   "name": "pod",
-  "description": "The pod plugin: parallel Claude engineers shipping a plan in waves.",
+  "description": "pod and pod-flow: Claude Code plugins that build your plan with parallel Claude engineers.",
   "owner": {
     "name": "Duc Pham"
   },
@@ -8,7 +8,7 @@
     {
       "name": "pod",
       "source": "./",
-      "description": "Ship a plan in waves of parallel Claude engineers."
+      "description": "Builds your plan with parallel Claude engineers. You review and merge each step."
     },
     {
       "name": "pod-flow",
