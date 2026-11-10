@@ -32,12 +32,12 @@ One numbered line per step, in the order it was built. A PR with one step gets o
 | PR | A step is | Its link |
 |---|---|---|
 | Task | each commit | `pull/<n>/commits/<sha>` |
-| Wave | each slice, then the wave fix | `pull/<n>/files/<wave head before its merge>..<its merge commit>`; a fast-forwarded lone slice → `<wave base>..<wave head>` |
+| Wave | each slice, then the wave fix | `pull/<n>/files/<wave head before its merge>..<its merge commit>`; a fast-forwarded lone slice → `compare/<wave base>...<wave head>` |
 | `Review fixes` | each `FIX` finding: its test, then its fix | `pull/<n>/files/<commit before its test>..<its fix commit>` |
 | Final plan | each wave PR in order, then `Review fixes` and each sync | an earlier PR → its PR link; new commits → a range on this PR |
 | Staging | each plan | its final PR |
 
-A range starts at the commit **before** the step: GitHub leaves out the first commit of `<a>..<b>`. Short SHAs work.
+A range starts at the commit **before** the step: GitHub leaves out the first commit of `<a>..<b>`. Short SHAs work. A `pull/<n>/files/` range opens only when both ends are commits of this PR. A step whose start is on the base branch (the first step of a wave or `Review fixes` PR, and a lone slice) links to `https://github.com/<owner>/<repo>/compare/<start>...<end>` instead.
 
 Each line starts with a weight:
 - **`Read`** — logic, data, a public contract, a one-way door, or security.
