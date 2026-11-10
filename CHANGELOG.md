@@ -2,6 +2,11 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.10.10 — 2026-11-09
+
+- **A Review guide's first link opens.** A PR's Files view (`pull/<n>/files/<a>..<b>`) opens only when both commits are in the PR. The first step of a wave PR or a `Review fixes` PR starts at a commit on the base branch, so GitHub showed "commit not found". In one run, this broke the first link of all five wave PRs. A step that starts on the base branch, including a fast-forwarded lone slice, now links to the compare view, `compare/<start>...<end>`. ([#113](https://github.com/iamphduc/claude-pod/issues/113))
+- **Every slice in a multi-slice wave gets its own merge commit.** `/pod:code` merges each slice into the wave head with `--no-ff`. Before, nothing required it: a plain `git merge` fast-forwards the first slice, which then had no merge commit for its Review guide link or its `git revert -m 1` undo.
+
 ## pod 0.10.9 — 2026-11-09
 
 - **No placeholders in text the human reads.** In one run the human asked 4 times what `<sha>` meant: a sprint doc's undo with a tag pattern was copied into the wave PR's Door line and the queue. The PR template now says every slot is in plain words with no `<…>` placeholder, and `/pod:code` hand-backs, queue entries, and autopilot halts follow it. The sprint-planner writes the One-way door line for the human and keeps exact commands in the Shared contract. The reviewer files a placeholder in the Door line, summary, or Risks as a `FIX`. ([#108](https://github.com/iamphduc/claude-pod/issues/108))
