@@ -354,16 +354,16 @@ export function header(lines: TreeLine[], width = Infinity): string {
 /** The symbol for each status, shared by the tree and the transcript lines. */
 export const GLYPH: Record<string, string> = { running: '●', pushed: '◐', done: '✓', blocked: '✗', waiting: '○' }
 
-/** How many unticked features the reminder names before `and N more`. */
+/** How many unticked checks the reminder names before `and N more`. */
 const REMINDER_NAMES = 3
 
-/** A soft reminder for a `continue` with features still unticked at the hand-back: it names them and goes on. */
+/** A soft reminder for a `continue` with checks still unticked at the hand-back: it names them and goes on. */
 export function uncheckedReminder(lines: TreeLine[]): string | undefined {
-  const left = lines.filter(l => l.kind === 'check' && l.isImportant && l.status !== 'done').map(l => short(l.text, 40))
+  const left = lines.filter(l => l.kind === 'check' && l.status !== 'done').map(l => short(l.text, 40))
   if (left.length === 0) return undefined
   const names = left.length > REMINDER_NAMES ? `${left.slice(0, REMINDER_NAMES).join('; ')} and ${left.length - REMINDER_NAMES} more` : left.join('; ')
   const end = /[.…]$/.test(names) ? '' : '.'
-  return `☐ Merged with ${left.length} important ${left.length === 1 ? 'check' : 'checks'} not ticked: ${names}${end}`
+  return `☐ Merged with ${left.length} ${left.length === 1 ? 'check' : 'checks'} not ticked: ${names}${end}`
 }
 
 /** The divider over Run app in the text version, which has no width to fill. */
@@ -477,8 +477,6 @@ export function snapshot(lines: TreeLine[]): string {
       row(1, '─'.repeat(DIVIDER))
       row(1, `${glyph} ${line.text}  reply '${line.text.toLowerCase()}'`)
       if (line.detail) row(1, line.detail)
-    } else if (line.kind === 'also' && !lines.some(l => l.kind === 'app' && l.detail)) {
-      row(1, `${line.text}:`)
     } else if (line.kind === 'check' && !lines.some(l => l.kind === 'app' && l.detail)) {
       // A plain list, no tree: the name whole, then how to reach it on a line of its own.
       row(1, `${line.status === 'done' ? '☑' : '☐'} ${line.text}`)
@@ -622,61 +620,79 @@ export type TreeInput = {
   tokens?: Record<string, number>
   /** Pull request numbers known to be merged: the queue keeps a hand-back pending after its PR merges. */
   merged?: number[]
-  /** The features the hand-back's PR added or changed, to check by hand; the ones ticked; whether the app was started. */
-  checks?: FeatureCheck[]
+  /** The steps of the hand-back PR's `Try it` list, to check by hand; the ones ticked; whether the app was started. */
+  steps?: TryStep[]
   ticked?: string[]
   isAppRunning?: boolean
   /** You said continue after the hand-back's PR merged: the hand-back part folds to one line. */
   isHandBackClosed?: boolean
 }
 
-export type FeatureCheck = { feature: string; reach: string; isNew: boolean }
+/** The most steps a "Try it" list gives: a list longer than this is not one you run through. */
+const MAX_STEPS = 8
+
+export type TryStep = { text: string; note?: string }
 
 /**
- * The `features.md` rows a PR's diff adds or changes, from `gh pr diff`: a changed row is removed and added,
- * so its added line is enough, and a row added with no removed row of its name is new. Each row's Feature and
- * "User reaches it by" cells, as plain text.
+ * The steps of a PR body's `Try it` list (`skills/code/pr-template.md`): `1. <action> → <what you should see>`,
+ * as the action and the expectation, at most MAX_STEPS. The list ends at its first line that is not a step.
+ * A staging PR has a section per plan, headed `<title> (<plan-slug>)`: only this plan's list counts.
  */
-export function changedFeatures(diff: string): FeatureCheck[] {
-  const rows: { sign: string; feature: string; reach: string }[] = []
-  let isFeatures = false
-  for (const line of diff.split(/\r?\n/)) {
-    if (line.startsWith('diff --git ')) isFeatures = /\/(pod-)?docs\/features\.md$/.test(line)
-    const m = /^([+-])\s*\|(.*)$/.exec(line)
-    if (!isFeatures || !m || /^[\s:|-]+$/.test(m[2] ?? '')) continue
-    const [feature = '', reach = ''] = (m[2] ?? '').split('|').map(cell => concernText(cell.trim()))
-    if (feature && feature !== 'Feature') rows.push({ sign: m[1] ?? '', feature, reach })
+export function tryItSteps(body: string, planSlug?: string): TryStep[] {
+  const lines = body.split(/\r?\n/)
+  const headingOf = (line: string) => /^(#{1,6})\s+(.*?)\s*$/.exec(line)
+  const isPlan = (title: string) => planSlug !== undefined && title.endsWith(`(${planSlug})`)
+  const hasPlanSection = lines.some(l => isPlan(headingOf(l)?.[2] ?? ''))
+  const steps: TryStep[] = []
+  // A list counts under a heading deeper than this: this plan's heading, while in its section. Out of it, none
+  // counts; with no plan sections, every list does.
+  let planDepth = hasPlanSection ? Infinity : 0
+  let inList = false
+  for (const line of lines) {
+    const heading = headingOf(line)
+    if (heading) {
+      const depth = heading[1]!.length
+      const title = heading[2] ?? ''
+      if (hasPlanSection && isPlan(title)) planDepth = depth
+      else if (hasPlanSection && depth <= planDepth) planDepth = Infinity
+      inList = depth > planDepth && /^try it\b/i.test(plainText(title))
+      continue
+    }
+    if (!inList || line.trim() === '') continue
+    const item = /^\s*(?:\d+[.)]|[-*])\s+(.*)$/.exec(line)
+    if (!item) {
+      inList = false
+      continue
+    }
+    // At the first arrow: what you should see can have arrows of its own (`Settings → API keys`).
+    const [, action = '', see] = /^(.*?)(?:\s*(?:→|->)\s*(.*))?$/.exec(item[1] ?? '') ?? []
+    const text = plainText(action)
+    if (!text || steps.some(s => s.text === text)) continue
+    steps.push({ text, note: see ? plainText(see) || undefined : undefined })
+    if (steps.length === MAX_STEPS) break
   }
-  const removed = new Set(rows.filter(r => r.sign === '-').map(r => r.feature))
-  return rows.filter(r => r.sign === '+').map(r => ({ feature: r.feature, reach: r.reach, isNew: !removed.has(r.feature) }))
+  return steps
 }
 
+/** Markdown links, bold and code as plain text, with no end stop. */
+const plainText = (text: string) => text.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[*`]/g, '').trim().replace(/[.\s]+$/, '')
+
 /**
- * What only the person can judge before the merge, first: the plan's one-way doors, the decisions pod defaulted
- * for them, and the features it added. The features it only changed come after.
+ * What you check before or after the merge: the plan's one-way doors still pending, then the steps to try in the
+ * running app, from the PR's `Try it` list. A door you accepted (its wave PR merged) and a decision already recorded
+ * stay out: the hand-back names them, and neither is something you check by running the app.
  */
-function checklist(queue: QueueEntry[], plan: PlanDoc, checks: FeatureCheck[]): { text: string; note?: string; detail?: string; isImportant: boolean }[] {
-  const mine = queue.filter(e => isForPlan(e, plan) && e.plan)
-  const doors = mine
-    .filter(e => /one-way door/i.test(e.body))
+function checklist(queue: QueueEntry[], plan: PlanDoc, steps: TryStep[]): { text: string; note?: string; detail?: string }[] {
+  const doors = queue
+    .filter(e => isForPlan(e, plan) && e.plan && e.isPending && /^one-way door/i.test(concernText(e.body)))
     .map(e => {
-      const first = concernText(e.body)
-      const whole = withoutUndo(/^one-way door/i.test(first) ? first : `One-way door: ${first}`)
-      // Short, as `Decided:` is: `PR #74: …`. The open row says it whole, with how to undo it,
+      const whole = withoutUndo(concernText(e.body))
+      // Short: `PR #74: <its first clause>`. The open row says it whole, with how to undo it,
       // what you weigh before you merge a door.
       const undo = undoOf(e.body)
-      return { text: shortDoor(whole), detail: `${whole}.${undo ? ` Undo: ${undo}.` : ''}`, isImportant: true }
+      return { text: firstClause(shortDoor(whole)), detail: `${whole}.${undo ? ` Undo: ${undo}.` : ''}` }
     })
-  const decided = mine
-    .filter(e => !e.isPending && /default recorded/i.test(e.resolution ?? ''))
-    // One line each: the decision's first clause, and the default alone. The whole sentence opens under it.
-    .map(e => {
-      const value = defaultOf(e.resolution ?? '')
-      const detail = [`Decided: ${concernText(e.body)}`, value && `Default: ${value}.`].filter(Boolean).join(' ')
-      return { text: `Decided: ${firstClause(concernText(e.body))}`, note: value, detail, isImportant: true }
-    })
-  const features = checks.map(c => ({ text: c.feature, note: c.reach || undefined, isImportant: c.isNew }))
-  return [...doors, ...decided, ...features.filter(f => f.isImportant), ...features.filter(f => !f.isImportant)]
+  return [...doors, ...steps]
 }
 
 /** A sentence up to its first `;`, `(` or comma: the reason after it is too long for one line. */
@@ -698,17 +714,13 @@ const shortDoor = (text: string) => {
 const undoOf = (body: string) =>
   /\bUndo:\s*(.+?)(?:\.(?:\s|$)|$)/i.exec(body.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[*`]/g, ''))?.[1]?.trim() || undefined
 
-/** The value from `default recorded: 36 px; override anytime ([decision](…))`: `36 px`. */
-const defaultOf = (resolution: string) =>
-  concernText(/default recorded:\s*([^;]*)/i.exec(resolution)?.[1] ?? '').replace(/[.\s]+$/, '') || undefined
-
 /** The pull request a halt or hand-back links to, by its number. */
 export const pullOf = (text: string) => /https?:\/\/[^\s,;)]+?\/pull\/(\d+)/.exec(text)
 
 const ENDED = new Set(['completed', 'failed', 'killed'])
 const PLANNER = /(^|:)sprint-planner$/
 
-export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, lastSeen = {}, queue = [], tokens = {}, merged = [], checks = [], ticked = [], isAppRunning = false, isHandBackClosed = false }: TreeInput): TreeLine[] {
+export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, lastSeen = {}, queue = [], tokens = {}, merged = [], steps = [], ticked = [], isAppRunning = false, isHandBackClosed = false }: TreeInput): TreeLine[] {
   const spent = tokenTotals(spawns, tokens, sprints, plan.slug)
   // Live until it ends: an agent `waiting` on its own background work, `pending` or `idle` is still at it.
   const running = live.filter(a => !ENDED.has(a.status))
@@ -869,9 +881,8 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
     // A pull request URL reads as its short number.
     const pull = pullOf(haltText)
     // At the hand-back, merged or not: run the app and look at what the plan changed.
-    const items = checklist(queue, plan, checks)
+    const items = checklist(queue, plan, steps)
     const tickedCount = items.filter(c => ticked.includes(c.text)).length
-    const hasAlso = items.some(c => c.isImportant) && items.some(c => !c.isImportant)
     const appLines = (): TreeLine[] =>
       // After the merge and your continue, nothing is left to do here: one line says how it went.
       isHandBackClosed
@@ -886,11 +897,7 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
               // All ticked: the list folds to this line, and opens again when pressed.
               detail: items.length > 0 && tickedCount === items.length ? `✓ all ${items.length} checked` : undefined,
             },
-            ...items.flatMap((c, n): TreeLine[] => [
-              // The first that isn't important gets a label over it.
-              ...(hasAlso && !c.isImportant && items[n - 1]?.isImportant ? [{ depth: 2, kind: 'also' as const, text: 'also changed', status: '' }] : []),
-              { depth: 2, kind: 'check', text: c.text, status: ticked.includes(c.text) ? 'done' : 'waiting', note: c.note, detail: c.detail, isImportant: c.isImportant || undefined },
-            ]),
+            ...items.map((c): TreeLine => ({ depth: 2, kind: 'check', text: c.text, status: ticked.includes(c.text) ? 'done' : 'waiting', note: c.note, detail: c.detail })),
           ]
     if (isHandBack && pull && merged.includes(Number(pull[1]))) {
       // Nothing left for you: the hand-back's PR is in.

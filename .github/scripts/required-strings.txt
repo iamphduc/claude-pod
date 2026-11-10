@@ -41,6 +41,11 @@ agents/engineer.md|- **Not checked:**
 agents/engineer.md|- **Cleanup:**
 agents/engineer.md|- **Time lost:**
 agents/engineer.md|- **Confidence:**
+# pod-flow reads the final PR's Try it steps
+skills/code/pr-template.md|## Try it
+skills/code/pr-template.md|<N>. <one action> → <what you should see>
+# pod-flow finds that PR from the link in the gate 7 halt
+skills/autopilot/SKILL.md|halt at gate 7 with the URL of the PR left for the human
 # reviewer
 agents/reviewer.md|## Required dispatch context
 agents/reviewer.md|- **kind**

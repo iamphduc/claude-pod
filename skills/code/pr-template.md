@@ -15,6 +15,9 @@ Every PR pod opens uses this body: `/pod:code` writes the wave, `Review fixes`, 
 ## Risks
 <Edge cases, limits, decisions made for the human — or `None known`>
 
+## Try it
+1. <The final plan PR only: one action> → <what you should see>
+
 <details><summary>Proof</summary>
 
 <The proof for this kind of PR, below.>
@@ -46,6 +49,10 @@ Each line starts with a weight:
 
 A step that touches a one-way door or security is always `Read`. Name what to check in behavior terms ("the server rule, not only the hidden button"); the diff already lists the files.
 
+## Try it
+
+The final plan PR only, after `## Risks`: a `## Try it` heading, then at most 8 numbered steps to run in the app, each `<N>. <one action> → <what you should see>`. Give one step per user-facing change, in the order a person meets them. A changed feature with nothing new to see, such as reworded docs, gets no step. pod-flow shows these steps as the plan's checklist. A plan with no user-facing change leaves out the section.
+
 ## Proof
 
 | PR | Proof |
@@ -60,4 +67,4 @@ Take the proof from the agents' reports and your own checks, as written. A claim
 
 ## Staging PR
 
-One `## <plan title> (<plan-slug>)` section per plan, from `skills/autopilot/policy.md`, takes the place of `## Risks`. Reusing the PR adds this plan's guide line and section and keeps the others.
+One `## <plan title> (<plan-slug>)` section per plan, from `skills/autopilot/policy.md`, takes the place of `## Risks` and `## Try it`. Reusing the PR adds this plan's guide line and section and keeps the others.

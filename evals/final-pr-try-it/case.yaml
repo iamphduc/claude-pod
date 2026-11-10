@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: final-pr-try-it
+tags: [code, pr-body, plan-complete]
+context:
+  scaffold_script: setup.sh

@@ -330,26 +330,27 @@ const handBack = (pull: number) => ({
 })
 
 test('in a narrow pane, a cut check opens whole from its text and ticks from its box', async ($, on) => {
-  const files = handBack(8)
-  files['pod-docs/handoff-queue.md'] =
-    "- `[2026-10-08 · PENDING · engineer → human · plan: demo · sprint: one · slice: A1]` needs your decision: older v1/v2 summaries that contain a literal x now render bold. **Resolution:** 2026-10-08 — default recorded: older summaries render bold; override anytime\n" +
-    files['pod-docs/handoff-queue.md']
-  world(on, [], true, [], files)
+  world(on, [], true, [], handBack(8))
+  // The final PR's Try it list: one long step.
+  const body = '## Try it\n1. Open the summary of an older v1/v2 book that has a literal x → the x renders bold, as in new books.'
+  on('process.run', (_$, e) => ({ value: { exitCode: 0, stdout: e.argv.includes('body') ? body : 'OPEN\n', stderr: '' } as never }))
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  await run($, 'text')
   const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 44 } as never })
-  const key = 'open:Decided: older v1/v2 summaries that contain a literal x now render bold'
-  // One line: a long default is cut before the decision it belongs to.
+  const step = 'Open the summary of an older v1/v2 book that has a literal x'
+  const key = `open:${step}`
+  // One line: a long expectation is cut before the step it belongs to.
   const text = async () => (await pane.find({ key }))?.text
-  expect(await text()).toBe('Decided: older v1/v2 su…  older summari…')
+  expect(await text()).toBe('Open the summary of an …  the x renders…')
   expect(await pane.find({ type: 'Button', text: /^☐$/ })).toBeDefined()
-  // The text opens the whole sentence and its default, and closes it again; it never ticks.
+  // The text opens the whole step and what you should see, and closes it again; it never ticks.
   await pane.press({ key })
-  expect(await text()).toBe('Decided: older v1/v2 summaries that contain a literal x now render bold. Default: older summaries render bold.')
+  expect(await text()).toBe(`${step} · the x renders bold, as in new books`)
   await pane.press({ key })
-  expect(await text()).toBe('Decided: older v1/v2 su…  older summari…')
+  expect(await text()).toBe('Open the summary of an …  the x renders…')
   expect(await pane.find({ type: 'Button', text: /^☑$/ })).toBeUndefined()
   // The box ticks: the only check, so the list folds.
-  await pane.press({ key: 'check:Decided: older v1/v2 summaries that contain a literal x now render bold' })
+  await pane.press({ key: `check:${step}` })
   expect(await pane.find({ type: 'Button', text: /^▸ ✓ all 1 checked$/ })).toBeDefined()
 })
 
@@ -461,28 +462,23 @@ test('a finished wave in a running sprint draws folded, as a button', async ($, 
   expect(await pane.find({ type: 'Text', text: /A2 Second slice/ })).toBeDefined()
 })
 
-test('at the hand-back, Run app sends your reply and turns into Stop app, and each changed feature ticks', async ($, on) => {
-  const diff = [
-    'diff --git a/pod-docs/features.md b/pod-docs/features.md',
-    '+++ b/pod-docs/features.md',
-    '+| Saved keys | Settings → API keys | save, reload | the key reads back masked |',
-  ].join('\n')
+test('at the hand-back, Run app sends your reply and turns into Stop app, and each Try it step ticks', async ($, on) => {
+  const body = '## Try it\n1. Saved keys → Settings → API keys'
   const asked: string[] = []
   const sent: { text: string; asUser?: boolean }[] = []
   world(on, [], true, [], handBack(12))
   on('process.run', (_$, e) => {
-    asked.push(e.argv.slice(0, 3).join(' '))
-    const isDiff = e.argv[2] === 'diff'
-    return { value: { exitCode: 0, stdout: isDiff ? diff : 'OPEN\n', stderr: '' } as never }
+    asked.push(e.argv.join(' '))
+    return { value: { exitCode: 0, stdout: e.argv.includes('body') ? body : 'OPEN\n', stderr: '' } as never }
   })
   on('prompt.submit', (_$, e) => {
     sent.push({ text: e.text, asUser: (e.origin as { asUser?: boolean } | undefined)?.asUser })
     return { text: e.text } as never
   })
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
-  // The diff is read once per PR, beside the merge check.
+  // The body is read once per PR, beside the merge check.
   await run($, 'text')
-  expect(asked.filter(a => a === 'gh pr diff')).toHaveLength(1)
+  expect(asked.filter(a => a.includes('body'))).toHaveLength(1)
   const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 100 } as never })
   // A primary button, not a plain row; each check on one line, how to reach it after the name.
   expect(await pane.find({ type: 'Button', text: /^Run app$/ })).toMatchObject({ props: { variant: 'primary' } })
@@ -512,13 +508,12 @@ test('at the hand-back, Run app sends your reply and turns into Stop app, and ea
   expect(sent).toHaveLength(2)
 })
 
-test('the merge brings one soft reminder of the important checks left; continue after it folds the hand-back to one line', async ($, on) => {
-  // A new feature (important) and a changed one (not).
-  const diff = 'diff --git a/pod-docs/features.md b/pod-docs/features.md\n-| Sign in | /login | post | cookie |\n+| Sign in | /login or a link | post | cookie |\n+| Saved keys | Settings | save | masked |'
+test('the merge brings one soft reminder of the checks left; continue after it folds the hand-back to one line', async ($, on) => {
+  const body = '## Try it\n1. Saved keys → Settings'
   const logged: string[] = []
   let state = 'OPEN'
   const clock = world(on, [], true, logged, handBack(14))
-  on('process.run', (_$, e) => ({ value: { exitCode: 0, stdout: e.argv[2] === 'diff' ? diff : `${state}\n`, stderr: '' } as never }))
+  on('process.run', (_$, e) => ({ value: { exitCode: 0, stdout: e.argv.includes('body') ? body : `${state}\n`, stderr: '' } as never }))
   // Core takes the prompt as typed.
   on('prompt.submit', (_$, e) => ({ text: e.text }) as never)
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
@@ -529,29 +524,29 @@ test('the merge brings one soft reminder of the important checks left; continue 
   expect((await run($, 'text')).text).toContain('☐ Saved keys')
   expect(logged).toEqual([])
 
-  // The merge is seen on the next check: one line, for the important check only.
+  // The merge is seen on the next check: one line, for the check left.
   state = 'MERGED'
   await clock.advance(31_000)
   await run($, 'text')
-  expect(logged).toEqual(['☐ Merged with 1 important check not ticked: Saved keys.'])
+  expect(logged).toEqual(['☐ Merged with 1 check not ticked: Saved keys.'])
   await run($, 'text')
   expect(logged).toHaveLength(1)
 
   // Continue after the merge: the hand-back part is one line, and your reply goes through as typed.
   expect((await $.prompt.submit({ text: 'continue' } as never)).text).toBe('continue')
   const { text } = await run($, 'text')
-  expect(text).toContain('✓ plan done · checked 0/2')
+  expect(text).toContain('✓ plan done · checked 0/1')
   expect(text).not.toContain('Run app')
 })
 
 test('the first /pod-flow text already has the checklist, as under -p, where there is no second call', async ($, on) => {
-  const diff = 'diff --git a/pod-docs/features.md b/pod-docs/features.md\n+| Saved keys | Settings → API keys | save | masked |'
+  const body = '## Try it\n1. Saved keys → Settings → API keys'
   world(on, [], true, [], handBack(13))
   // No surface draws, as under -p.
   on('session.surfaces', () => ({ value: [] }))
   // gh answers after the refresh that asked it has drawn the tree.
   on('process.run', (_$, e) => {
-    return { value: { exitCode: 0, stdout: e.argv[2] === 'diff' ? diff : 'OPEN\n', stderr: '' } as never }
+    return { value: { exitCode: 0, stdout: e.argv.includes('body') ? body : 'OPEN\n', stderr: '' } as never }
   })
   const { text } = await run($, 'preview')
   expect(text).toContain("○ Run app  reply 'run app'")

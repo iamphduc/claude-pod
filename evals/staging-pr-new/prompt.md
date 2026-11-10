@@ -6,4 +6,12 @@ allowed_tools: [Read, Glob, Grep, Skill]
 
 /pod:autopilot friends
 
-Resume at **Plan complete**: the final PR https://github.com/acme/app/pull/20 from `friends` into `pod-staging` passed review and is merged, the report is `pod-docs/reports/friends.html`, and there are no loose ends. No PR from `pod-staging` to `main` is open. `gh` is not available in this session, so instead of running it, put the exact `gh pr create` command you would run, with its full title and body, in your final message, then halt at gate 7.
+Resume at **Plan complete**: the final PR https://github.com/acme/app/pull/20 from `friends` into `pod-staging` passed review and is merged, the report is `pod-docs/reports/friends.html`, and there are no loose ends. The final PR's body ends with this list:
+
+```
+## Try it
+1. Add a friend at /friends, then reload → the friend is still listed
+2. Open an invite link in a private window → the sign-up page opens
+```
+
+No PR from `pod-staging` to `main` is open. `gh` is not available in this session, so instead of running it, put the exact `gh pr create` command you would run, with its full title and body, in your final message, then halt at gate 7.

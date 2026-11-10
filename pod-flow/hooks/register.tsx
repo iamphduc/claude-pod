@@ -2,8 +2,8 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Dispatch, TreeLine } from '../types'
-import { buildTree, changedFeatures, fit, foldKey, GLYPH, header, isFoldable, latestHalt, mainCheckout, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, pullOf, questionGlyph, short, snapshot, turnTokens, uncheckedReminder, visibleLines } from './model'
-import type { FeatureCheck, PlanDoc, SprintDoc } from './model'
+import { buildTree, fit, foldKey, GLYPH, header, isFoldable, latestHalt, mainCheckout, milestones, parseDispatch, parseQueue, parsePlan, parseSprint, prefixes, pullOf, questionGlyph, short, snapshot, tryItSteps, turnTokens, uncheckedReminder, visibleLines } from './model'
+import type { PlanDoc, SprintDoc } from './model'
 
 const PANE = 'pod-flow'
 const REFRESH_MS = 3000
@@ -43,21 +43,21 @@ let told: Set<string> | undefined
 const lastSeen: Record<string, number> = {}
 const merged = new Set<number>()
 const pullCheckedAt: Record<number, number> = {}
-const checksOf: Record<number, FeatureCheck[]> = {}
-const diffAskedAt: Record<number, number> = {}
+const bodyOf: Record<number, string> = {}
+const bodyAskedAt: Record<number, number> = {}
 // The latest `gh` calls a refresh started.
 let ghWork: Promise<unknown> = Promise.resolve()
 const GH_WAIT_MS = 5000
 
-/** Reads the features the hand-back's PR added or changed, once per PR; a failed `gh` tries again after PULL_CHECK_MS. */
+/** Reads the hand-back PR's body, for its `Try it` steps, once per PR; a failed `gh` tries again after PULL_CHECK_MS. */
 async function loadChecks($: Dollar, number: number, cwd: string) {
   const now = await $.clock.now()
-  if (checksOf[number] || now - (diffAskedAt[number] ?? -Infinity) < PULL_CHECK_MS) return
-  diffAskedAt[number] = now
+  if (bodyOf[number] !== undefined || now - (bodyAskedAt[number] ?? -Infinity) < PULL_CHECK_MS) return
+  bodyAskedAt[number] = now
   try {
-    const { exitCode, stdout } = await $.process.run(['gh', 'pr', 'diff', String(number)], { cwd, timeoutMs: 20_000 })
+    const { exitCode, stdout } = await $.process.run(['gh', 'pr', 'view', String(number), '--json', 'body', '--jq', '.body'], { cwd, timeoutMs: 20_000 })
     if (exitCode === 0) {
-      checksOf[number] = changedFeatures(stdout)
+      bodyOf[number] = stdout
       void refresh($)
     }
   } catch {
@@ -78,7 +78,7 @@ async function checkPull($: Dollar, number: number, cwd: string) {
     if (exitCode === 0 && stdout.trim() === 'MERGED') {
       merged.add(number)
       await refresh($)
-      // Seen merged once: one soft line for the important checks left, never a block or a question.
+      // Seen merged once: one soft line for the checks left, never a block or a question.
       const reminder = uncheckedReminder(await read($, lines))
       if (reminder) $.ui.log(reminder)
     }
@@ -205,9 +205,9 @@ async function buildLines($: Dollar) {
   const known = await read($, spawns)
   const spent = await read($, tokens)
   const now = await $.clock.now()
-  const checks = pull ? (checksOf[Number(pull[1])] ?? []) : []
+  const steps = pull ? tryItSteps(bodyOf[Number(pull[1])] ?? '', plan.slug) : []
   const isHandBackClosed = pull !== null && pull !== undefined && (await read($, handBackClosed)) === Number(pull[1])
-  const app = { checks, ticked: await read($, ticked), isAppRunning: await read($, isAppRunning), isHandBackClosed }
+  const app = { steps, ticked: await read($, ticked), isAppRunning: await read($, isAppRunning), isHandBackClosed }
   await update($, lines, () => buildTree({ plan, sprints, spawns: known, live, halt: halt?.body, haltType: halt?.type, now, lastSeen, queue, tokens: spent, merged: [...merged], ...app }))
 }
 
@@ -369,7 +369,6 @@ export const register: Register = on => {
         // The plan is done and you moved on: one quiet line, no button, no list.
         return <Text wrap="truncate-end" color={COLOR.done}>{[`${GLYPH.done} ${row.text}`, row.note].filter(Boolean).join(' · ')}</Text>
       }
-      if (row.kind === 'also') return <Text dimColor>{`${row.text}:`}</Text>
       if (row.kind === 'app') {
         // Sends your reply, as if typed: the orchestrator starts or stops the app per /pod:code's **Run app**.
         const press = async () => {
