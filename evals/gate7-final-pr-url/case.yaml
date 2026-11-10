@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: gate7-final-pr-url
+tags: [autopilot, queue, plan-complete]
+context:
+  scaffold_script: setup.sh
