@@ -2,6 +2,15 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.10.9 — 2026-11-09
+
+- **No placeholders in text the human reads.** In one run the human asked 4 times what `<sha>` meant: a sprint doc's undo with a tag pattern was copied into the wave PR's Door line and the queue. The PR template now says every slot is in plain words with no `<…>` placeholder, and `/pod:code` hand-backs, queue entries, and autopilot halts follow it. The sprint-planner writes the One-way door line for the human and keeps exact commands in the Shared contract. The reviewer files a placeholder in the Door line, summary, or Risks as a `FIX`. ([#108](https://github.com/iamphduc/claude-pod/issues/108))
+- **An undo names real commits.** The Door line's `undo:` gives every undo step. Steps outside git, such as restoring a backup, stay in plain words. The step that removes the code names this PR's real commit IDs, with a check: `git revert -m 1 <merge commit>` for a merged slice, `git revert <commits>` for a fast-forwarded slice or a task. The orchestrator fills in the merge commit. The engineer names its own commits on a task PR, and `/pod:task` adds the fix commits after a fix pass. A part that can't exist yet says so and names the command that lists it later. An undo with no real ID, where one exists, is a reviewer `FIX`.
+- **A plainer PR body keeps its sections.** Rewording a body happens inside the same sections; no Proof part is dropped.
+- **The sprint-planner puts a test that pins a changed file in that file's slice.** In one run a test asserting a script's exact call list was in no slice, and the slice changing the script hit `BLOCKED`.
+- **The port base reads `pod-docs/known-issues/` first.** A port a known issue reserves is never free.
+- **Autopilot keeps both sides of an append-only `pod-docs/` conflict on `pod-staging`.** Lines added word for word on both sides are kept once, and the next hand-back names the files. Any other conflict is still gate 3.
+
 ## pod 0.10.8 — 2026-11-09
 
 - Shorter plugin descriptions that match the GitHub repo description. `plugin.json` and the `pod` entry in `marketplace.json` now say "Builds your plan with parallel Claude engineers. You review and merge each step." The marketplace description now names both plugins.

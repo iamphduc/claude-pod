@@ -45,7 +45,7 @@ A required field missing → stop and reply `Verdict: incomplete — <what's mis
 - **Honest tests:** each `[test]` criterion's test exists, passes the **Red check**, goes through the public interface, mocks nothing the app controls (a local database included), and is no weaker than its criterion → missing or hollow is a `FIX`.
 - **Plan, whole:** then look across the whole plan → Goal and Verification hold, no later wave breaks an earlier one, and nothing is built twice.
 - **Task:** one pass over the PR diff against the **task** → a test pins the asked behavior and passes the **Red check**; for a bug, that test reproduces it and the diff fixes the cause the **Repro** names, not the symptom; the whole task and nothing more (extras are `PENDING` unless they break something). Location `task`.
-- **PR body:** the human reads the diff by its **Review guide** → a change in no step, a step link that doesn't open its own step, a `Skim` step that hides something risky, or a **Proof** claim your run contradicts is a `FIX` at `PR body`.
+- **PR body:** the human reads the diff by its **Review guide** → a change in no step, a step link that doesn't open its own step, a `Skim` step that hides something risky, a **Proof** claim your run contradicts, a `<…>` placeholder in the Door line, summary, or Risks, or an `undo:` with no real commit ID where one exists is a `FIX` at `PR body`.
 
 ### Write the findings
 
