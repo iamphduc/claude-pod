@@ -130,6 +130,7 @@ skills/autopilot/policy.md|auto-merge-fail
 skills/autopilot/policy.md|inter-wave-verify
 skills/autopilot/policy.md|safety-bound
 skills/autopilot/policy.md|escalation-valve
+skills/autopilot/policy.md|`gate 6 (escalation-valve): final plan PR <url> withheld, `
 skills/autopilot/policy.md|plan-complete
 skills/autopilot/policy.md|**Answers**
 skills/autopilot/policy.md|## <date> — merge target: <choice>

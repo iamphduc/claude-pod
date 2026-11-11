@@ -547,6 +547,9 @@ export function prefixes(lines: TreeLine[]): string[] {
 
 const HAND_BACK = /(complete|final PR|hand-?back|awaiting)/i
 
+/** Gate 6 withholds the final plan PR for a one-way door: you merge it, then resume (skills/autopilot/policy.md). */
+const FINAL_PR_WITHHELD = /^gate\s*6\b[^:]*:\s*final plan PR\b.*\bwithheld\b/i
+
 export const QUIET_MS = 2 * 60 * 1000
 
 /** `45s`, `3m`, `1h05m`. */
@@ -877,7 +880,10 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
   if (haltText && running.length === 0) {
     // A finished plan's final PR is a hand-back for you to merge, not a failure.
     // A BLOCKED entry, or a final review still failing, is never yours to merge: it halts, even when it names the final PR.
-    const isHandBack = haltType !== 'BLOCKED' && !/still failing/i.test(haltText) && HAND_BACK.test(haltText)
+    // A gate 6 halt that withholds the final plan PR is a hand-back too, with a resume after the merge.
+    const isWithheld = haltType !== 'BLOCKED' && FINAL_PR_WITHHELD.test(haltText)
+    const isHandBack = isWithheld || (haltType !== 'BLOCKED' && !/still failing/i.test(haltText) && HAND_BACK.test(haltText))
+    const resume = (): TreeLine[] => (isWithheld ? resumeHint(haltType).map(text => ({ depth: 2, kind: 'hint', text, status: 'waiting' })) : [])
     // A pull request URL reads as its short number.
     const pull = pullOf(haltText)
     // At the hand-back, merged or not: run the app and look at what the plan changed.
@@ -885,7 +891,8 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
     const tickedCount = items.filter(c => ticked.includes(c.text)).length
     const appLines = (): TreeLine[] =>
       // After the merge and your continue, nothing is left to do here: one line says how it went.
-      isHandBackClosed
+      // Not at gate 6: the plan is not done until you resume.
+      isHandBackClosed && !isWithheld
         ? [{ depth: 1, kind: 'app', text: 'plan done', status: 'done', note: items.length > 0 ? `checked ${tickedCount}/${items.length}` : undefined }]
         : [
             {
@@ -902,7 +909,7 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
     if (isHandBack && pull && merged.includes(Number(pull[1]))) {
       // Nothing left for you: the hand-back's PR is in.
       lines.push({ depth: 1, kind: 'halt', text: `PR #${pull[1]} merged`, status: 'done' })
-      return [...lines, ...appLines()]
+      return [...lines, ...resume(), ...appLines()]
     }
     lines.push({
       depth: 1,
@@ -918,6 +925,8 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
     } else if (pull) {
       // The note's end is the first thing a narrow pane cuts, so the PR to merge gets a line of its own.
       lines.push({ depth: 2, kind: 'hint', text: `merge PR #${pull[1]}`, status: 'waiting' })
+      // After the merge, the run goes on only when you resume it.
+      if (isWithheld) lines.push({ depth: 2, kind: 'hint', text: 'then /pod:autopilot to resume', status: 'waiting', isContinued: true })
     }
     if (isHandBack) lines.push(...appLines())
   }
