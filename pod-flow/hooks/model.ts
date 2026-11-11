@@ -907,8 +907,8 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
             ...items.map((c): TreeLine => ({ depth: 2, kind: 'check', text: c.text, status: ticked.includes(c.text) ? 'done' : 'waiting', note: c.note, detail: c.detail })),
           ]
     if (isHandBack && pull && merged.includes(Number(pull[1]))) {
-      // Nothing left for you: the hand-back's PR is in.
-      lines.push({ depth: 1, kind: 'halt', text: `PR #${pull[1]} merged`, status: 'done' })
+      // Nothing left for you: the hand-back's PR is in. At gate 6, the run still waits on your resume.
+      lines.push({ depth: 1, kind: 'halt', text: `PR #${pull[1]} merged`, status: isWithheld ? 'pushed' : 'done' })
       return [...lines, ...resume(), ...appLines()]
     }
     lines.push({

@@ -241,9 +241,10 @@ export const register: Register = on => {
   })
 
   // Your `continue` after the hand-back's PR merged: the plan is done, so its hand-back part folds to one line.
+  // Not at gate 6's withheld final plan PR: its merged row still waits on your resume, so it is not done.
   on('prompt.submit', async ($, e, next) => {
     if (/^\s*continue\b/i.test(e.text) && (await read($, isActive))) {
-      const done = (await read($, lines)).map(l => (l.kind === 'halt' ? /^PR #(\d+) merged$/.exec(l.text)?.[1] : undefined)).find(Boolean)
+      const done = (await read($, lines)).map(l => (l.kind === 'halt' && l.status === 'done' ? /^PR #(\d+) merged$/.exec(l.text)?.[1] : undefined)).find(Boolean)
       if (done) {
         await update($, handBackClosed, () => Number(done))
         await refresh($)

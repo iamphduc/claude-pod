@@ -1097,12 +1097,17 @@ test('issue #117: a gate 6 halt that withholds the final plan PR shows the merge
 test('issue #117: once the withheld final plan PR is merged, it still says to resume, and continue does not close it', () => {
   const lines = tree117(RUN_117, { merged: [8], isHandBackClosed: true })
   const at = lines.findIndex(l => l.kind === 'halt')
-  expect(lines.slice(at, at + 3).map(l => `${l.kind} ${l.status} ${l.text}`)).toEqual(['halt done PR #8 merged', 'hint waiting /pod:autopilot to resume', 'app waiting Run app'])
+  expect(lines.slice(at, at + 3).map(l => `${l.kind} ${l.status} ${l.text}`)).toEqual(['halt pushed PR #8 merged', 'hint waiting /pod:autopilot to resume', 'app waiting Run app'])
+  // The run still waits on you, so the summary and the milestone say so.
+  expect(summarize(lines)).toContain('waiting on you')
+  expect([...milestones(lines).values()]).toContain('◐ PR #8 MERGED · /pod:autopilot to resume')
 })
 
-test('issue #117: a wave PR gate 6 halt, or a BLOCKED one naming the final plan PR, stays a plain halt', () => {
+test('issue #117: a wave PR gate 6 halt, a BLOCKED one, or another gate naming the final plan PR, stays a plain halt', () => {
   const wave = RUN_117.split('\n').slice(0, 3).join('\n') + '\n' + RUN_117.split('\n')[1]!.replace('**Resolution:** 2026-11-10 — acknowledged: the human merged PR #7 and resumed autopilot', '**Resolution:** pending').replace('2026-10-03', '2026-11-11')
-  for (const queue of [wave, RUN_117.replace('11-10 · PENDING · orchestrator → human · plan: long-runs]` gate 6', '11-10 · BLOCKED · orchestrator → human · plan: long-runs]` gate 6')]) {
+  const blocked = RUN_117.replace('11-10 · PENDING · orchestrator → human · plan: long-runs]` gate 6', '11-10 · BLOCKED · orchestrator → human · plan: long-runs]` gate 6')
+  const otherGate = RUN_117.replace('` gate 6 (escalation-valve): final plan PR', '` gate 5 (safety-bound): final plan PR')
+  for (const queue of [wave, blocked, otherGate]) {
     const lines = tree117(queue)
     expect(lines.find(l => l.kind === 'halt')).toMatchObject({ text: 'halted', status: 'blocked' })
     expect(lines.some(l => l.kind === 'app' || l.kind === 'check' || /^merge PR/.test(l.text))).toBe(false)

@@ -4,7 +4,7 @@ Newest first. The `pod` and `pod-flow` plugins share this file. Each heading nam
 
 ## pod 0.10.12 · pod-flow 0.3.4 — 2026-11-10
 
-- **pod-flow shows the checklist when gate 6 withholds the final plan PR.** When a plan has a one-way slice, autopilot withholds the final plan PR for you to merge. pod-flow showed a red "halted" row with no **Run app** and no checklist, at the moment the app check matters most. The row now reads "waiting", with `merge PR #<n>`, `then /pod:autopilot to resume`, **Run app** and the checklist. After the merge, the resume line stays until you resume. A wave PR's gate 6 halt stays a plain halt. ([#117](https://github.com/iamphduc/claude-pod/issues/117))
+- **pod-flow shows the checklist when gate 6 withholds the final plan PR.** When a plan has a one-way slice, autopilot withholds the final plan PR for you to merge. pod-flow showed a red "halted" row with no **Run app** and no checklist, at the moment the app check matters most. The row now reads "waiting", with `merge PR #<n>`, `then /pod:autopilot to resume`, **Run app** and the checklist. After the merge, the row reads `PR #<n> merged` and still waits on you, with the resume line, until you resume. A `continue` there does not fold the tree to "plan done", and the gate 7 halt that follows still shows **Run app**. A wave PR's gate 6 halt stays a plain halt. ([#117](https://github.com/iamphduc/claude-pod/issues/117))
 - **Autopilot's halt wording names this case.** A withheld final plan PR's halt starts `gate 6 (escalation-valve): final plan PR <url> withheld, `. pod-flow reads that start.
 
 ## pod 0.10.11 · pod-flow 0.3.3 — 2026-11-10

@@ -539,6 +539,72 @@ test('the merge brings one soft reminder of the checks left; continue after it f
   expect(text).not.toContain('Run app')
 })
 
+// Issue #117: gate 6 withholds the final plan PR for a one-way door, after the plan-complete note.
+const withheld = (pull: number) => ({
+  ...docs(),
+  'pod-docs/handoff-queue.md': [
+    `- \`[2026-11-10 · NOTE · orchestrator → human · plan: demo]\` plan demo complete — final PR https://github.com/me/demo/pull/${pull}, review pass **Resolution:** pending`,
+    `- \`[2026-11-10 · PENDING · orchestrator → human · plan: demo]\` gate 6 (escalation-valve): final plan PR https://github.com/me/demo/pull/${pull} withheld, because wave 1 carried a one-way door (saved books move to the v2 format). Merge it yourself, then run /pod:autopilot demo to finish. **Resolution:** pending`,
+  ].join('\n'),
+})
+
+test('issue #117: a narrow, short pane at a withheld final plan PR keeps the merge, the resume and Run app', async ($, on) => {
+  world(on, [], true, [], withheld(8))
+  on('process.run', (_$, e) => ({ value: { exitCode: 0, stdout: e.argv.includes('body') ? '## Try it\n1. Open a saved book → it opens' : 'OPEN\n', stderr: '' } as never }))
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  const { text } = await run($, 'text')
+  expect(text).toContain('➜ merge PR #8, then /pod:autopilot to resume')
+  expect(text).toContain('☐ Open a saved book')
+  const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 42, scroll: { offset: 0, bodyRows: 4 } } as never })
+  expect(await pane.find({ type: 'Text', text: /◐ waiting/ })).toBeDefined()
+  expect(await pane.find({ type: 'Text', text: /merge PR #8/ })).toBeDefined()
+  expect(await pane.find({ type: 'Text', text: /then \/pod:autopilot to resume/ })).toBeDefined()
+  expect(await pane.find({ type: 'Button', text: /^Run app$/ })).toBeDefined()
+  expect(await pane.find({ type: 'Text', text: /more lines/ })).toBeUndefined()
+})
+
+test('issue #117: after the withheld final plan PR merges, the reminder comes once, and continue keeps the resume line', async ($, on) => {
+  const logged: string[] = []
+  let state = 'OPEN'
+  const clock = world(on, [], true, logged, withheld(15))
+  on('process.run', (_$, e) => ({ value: { exitCode: 0, stdout: e.argv.includes('body') ? '## Try it\n1. Open a saved book → it opens' : `${state}\n`, stderr: '' } as never }))
+  on('prompt.submit', (_$, e) => ({ text: e.text }) as never)
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  await run($, 'text')
+  state = 'MERGED'
+  await clock.advance(31_000)
+  const merged = (await run($, 'text')).text
+  expect(merged).toContain('◐ PR #15 merged')
+  expect(merged).toContain('/pod:autopilot to resume')
+  expect(logged).toEqual(['☐ Merged with 1 check not ticked: Open a saved book.'])
+  // Not done yet: you still resume autopilot, so continue does not fold the tree to "plan done".
+  expect((await $.prompt.submit({ text: 'continue' } as never)).text).toBe('continue')
+  const after = (await run($, 'text')).text
+  expect(after).not.toContain('plan done')
+  expect(after).toContain('/pod:autopilot to resume')
+  expect(after).toContain('Run app')
+  expect(after).toContain('waiting on you')
+})
+
+test('issue #117: with the default branch as merge target, gate 7 after the gate 6 merge and a continue still shows Run app', async ($, on) => {
+  const files = withheld(16)
+  world(on, [], true, [], files)
+  on('process.run', (_$, e) => ({ value: { exitCode: 0, stdout: e.argv.includes('body') ? '## Try it\n1. Open a saved book → it opens' : 'MERGED\n', stderr: '' } as never }))
+  on('prompt.submit', (_$, e) => ({ text: e.text }) as never)
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
+  await run($, 'text')
+  await $.prompt.submit({ text: 'continue' } as never)
+  // You resume; autopilot acknowledges gate 6 and halts at gate 7, naming the same merged final PR.
+  files['pod-docs/handoff-queue.md'] = `${files['pod-docs/handoff-queue.md']!.replace(/pending$/, '2026-11-10 — accepted, PR #16 merged')}\n- \`[2026-11-10 · PENDING · orchestrator → human · plan: demo]\` gate 7 (plan-complete): plan demo is on main through final PR https://github.com/me/demo/pull/16. **Resolution:** pending`
+  const { text } = await run($, 'text')
+  expect(text).toContain('✓ PR #16 merged')
+  expect(text).toContain('Run app')
+  expect(text).not.toContain('plan done')
+  // At gate 7, continue closes the plan as before.
+  await $.prompt.submit({ text: 'continue' } as never)
+  expect((await run($, 'text')).text).toContain('✓ plan done · checked 0/1')
+})
+
 test('the first /pod-flow text already has the checklist, as under -p, where there is no second call', async ($, on) => {
   const body = '## Try it\n1. Saved keys → Settings → API keys'
   world(on, [], true, [], handBack(13))
