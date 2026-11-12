@@ -1,6 +1,6 @@
 {
   "name": "pod",
-  "version": "0.10.12",
+  "version": "0.10.13",
   "description": "Builds your plan with parallel Claude engineers. You review and merge each step.",
   "author": {
     "name": "Duc Pham"
