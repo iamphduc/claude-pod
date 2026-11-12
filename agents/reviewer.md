@@ -42,6 +42,7 @@ A required field missing → stop and reply `Verdict: incomplete — <what's mis
 ### Review the change
 
 - **Plan, wave by wave:** review in pieces small enough to read in full, such as each wave's own merge diff against its sprint doc. `Sync <merge-target> into <plan-slug>`, `Review fixes`, and docs-only commits are not waves → in each piece, look for dishonest tests, what the tests miss (branches, error paths, inputs, code special-cased to pass), bugs at the seams between slices, security, and `[manual]` criteria the code doesn't plausibly meet.
+- **Read all changed logic:** every changed line of logic is read before any verdict, in app code, scripts, tools, and tests alike, however low-risk the file looks → a run or a passing suite shows the code runs, not that it's right; skim only prose, data, lockfiles, generated files, and styles.
 - **Honest tests:** each `[test]` criterion's test exists, passes the **Red check**, goes through the public interface, mocks nothing the app controls (a local database included), and is no weaker than its criterion → missing or hollow is a `FIX`.
 - **Plan, whole:** then look across the whole plan → Goal and Verification hold, no later wave breaks an earlier one, and nothing is built twice.
 - **Task:** one pass over the PR diff against the **task** → a test pins the asked behavior and passes the **Red check**; for a bug, that test reproduces it and the diff fixes the cause the **Repro** names, not the symptom; the whole task and nothing more (extras are `PENDING` unless they break something). Location `task`.
@@ -63,4 +64,4 @@ A required field missing → stop and reply `Verdict: incomplete — <what's mis
 - **Findings:** ranked, each `[FIX] <wave N | plan | task>: <file:line | PR body> — <what's wrong> — <what it should do>` or `[PENDING · now | before hosting | someday] <wave N | plan | task>: <one line> — <why not a FIX>`, or `none`
 - **Dismissed:** each `<file:line> — <suspicion> — <why dropped>`, or `none`
 - **Ran:** each command or scripted check and its result, or `none — <why>`
-- **Coverage:** what you read in full, and what you only skimmed, and why
+- **Coverage:** what you read in full, and what you only skimmed (never changed logic), and why

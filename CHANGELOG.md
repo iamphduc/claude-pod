@@ -2,6 +2,10 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.10.13 — 2026-11-12
+
+- **The reviewer reads all changed logic before a verdict.** On a real ~4.2k-line plan with seeded bugs, the reviewer skimmed `scripts/calibrate/anchor.ts` as "dev-only, lower risk" and missed a crash there in 3 of 3 runs: a late engine answer after a timeout threw a `TypeError` once the next game started. A new rule says every changed line of logic is read, in app code, scripts, tools, and tests alike, however low-risk the file looks; a passing run shows the code runs, not that it's right. Only prose, data, lockfiles, generated files, and styles may be skimmed, and **Coverage** never lists changed logic as skimmed. With the rule, 3 of 3 runs saw the crash and 2 filed it as a `FIX`. Mean review time went from 315 s to 322 s, and cost from $1.84 to $1.99.
+
 ## pod 0.10.12 · pod-flow 0.3.4 — 2026-11-10
 
 - **pod-flow shows the checklist when gate 6 withholds the final plan PR.** When a plan has a one-way slice, autopilot withholds the final plan PR for you to merge. pod-flow showed a red "halted" row with no **Run app** and no checklist, at the moment the app check matters most. The row now reads "waiting", with `merge PR #<n>`, `then /pod:autopilot to resume`, **Run app** and the checklist. After the merge, the row reads `PR #<n> merged` and still waits on you, with the resume line, until you resume. A `continue` there does not fold the tree to "plan done", and the gate 7 halt that follows still shows **Run app**. A wave PR's gate 6 halt stays a plain halt. ([#117](https://github.com/iamphduc/claude-pod/issues/117))
