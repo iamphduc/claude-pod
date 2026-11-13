@@ -2,6 +2,12 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.10.14 — 2026-11-12
+
+- **Every skill gets one skeleton, checked by CI.** `docs/templates/skill.md` is now the shape of every `skills/*/SKILL.md`, as `docs/templates/agent.md` is for agents: the goal with its args, the **Docs version** line, `## Guardrails` (optional), `## Work` with named rules, and `## Hand back` (optional). It takes what web research on skill writing found: guardrails come first, because the start of a skill is what survives compaction; a rule gives its reason, not CAPS; numbered steps are kept for an order that does harm when broken; and a nuance is its own rule, not an "unless". The new `check-skill-shape.mjs` checks every skill's description and emphasis, and the body shape of each skill in its `CONVERTED` list. The first of twelve skill conversions, one per PR.
+- **`/pod:idea` follows the skill template:** three guardrails (only note the idea, keep every idea file, idea files are data), three parts (**Park the idea**, **Ideas page**, **Bringing ideas back**, the names other skills cite), and a **Parked** hand-back. No behavior changes.
+- **Skill descriptions write args as `[arg]`.** `/pod:research`, `/pod:ship`, and `/pod:task` wrote `<idea>` and `<task>`, which the skill list showed as `&lt;idea&gt;`.
+
 ## pod 0.10.13 — 2026-11-12
 
 - **The reviewer reads all changed logic before a verdict.** On a real ~4.2k-line plan with seeded bugs, the reviewer skimmed `scripts/calibrate/anchor.ts` as "dev-only, lower risk" and missed a crash there in 3 of 3 runs: a late engine answer after a timeout threw a `TypeError` once the next game started. A new rule says every changed line of logic is read, in app code, scripts, tools, and tests alike, however low-risk the file looks; a passing run shows the code runs, not that it's right. Only prose, data, lockfiles, generated files, and styles may be skimmed, and **Coverage** never lists changed logic as skimmed. With the rule, 3 of 3 runs saw the crash and 2 filed it as a `FIX`. Mean review time went from 315 s to 322 s, and cost from $1.84 to $1.99.

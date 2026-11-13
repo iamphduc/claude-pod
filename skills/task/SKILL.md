@@ -1,6 +1,6 @@
 ---
 name: task
-description: Use when the user types /pod:task <task> or asks for an ad-hoc code change outside the sprint workflow.
+description: Use when the user types /pod:task [task] or asks for an ad-hoc code change outside the sprint workflow.
 ---
 
 A one-off change straight to the merge-target, outside any plan: one engineer builds it test-first, the reviewer checks it, and the human merges. Never merge it yourself. Args: the task, `--merge-target=<branch>` (default: origin's default branch; pass it on), `--no-review` (for a change the human knows is trivial), and `--model=<sonnet | opus>`.
