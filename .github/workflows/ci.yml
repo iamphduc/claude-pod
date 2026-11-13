@@ -27,6 +27,8 @@ jobs:
         run: node .github/scripts/check-required-strings.mjs
       - name: Check the agent file shape
         run: node .github/scripts/check-agent-shape.mjs
+      - name: Check the skill file shape
+        run: node .github/scripts/check-skill-shape.mjs
       - name: Test pod-flow
         working-directory: pod-flow
         run: claude plugin test .

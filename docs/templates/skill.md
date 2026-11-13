@@ -1,21 +1,32 @@
 ---
 name: <command>
-description: Use when the user types /pod:<command> <args> or asks to <job>.
+description: Use when the user types /pod:<command> [args] or asks to <job>.
 ---
+
+<!-- The description says only when to use the skill, never how it works: an agent that reads a workflow summary there skips the body. Write args as `[arg]`; `<arg>` shows as `&lt;arg&gt;` in the skill list. -->
 
 <The goal: one paragraph. What the command does, end to end, and what the human gets at the end. Args: each arg and its default.>
 
-**Docs version** first: check it per `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md`. <Keep this line only if the skill reads or writes `pod-docs/`.>
+**Docs version** first: check it per `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md`.
+
+<!-- Keep the Docs version line only if the skill reads or writes `pod-docs/`. -->
 
 ## Guardrails
 
-- <What it never does without the human: merge, push to the default branch, overwrite a file. Leave the section out if there is nothing.>
+- <What to do instead, and what never to do without the human: merge, push to the default branch, overwrite a file.>
 
-## <Work section, named for the job>
+<!-- Leave out `## Guardrails` when there is nothing. It comes first because the start of a skill is what survives compaction. -->
 
-- **<Step or rule>:** <what to do> → <how you know it's done>.
-- **Dispatch** `pod:<agent>` with every field in its **Required dispatch context** (`${CLAUDE_PLUGIN_ROOT}/agents/<agent>.md`). <Only if it sends an agent.>
+## Work
+
+### <Part, named for what it produces, or for the name other files cite>
+
+- **<Rule name>:** <the goal or constraint> → <the result>, so <why, when it isn't obvious>.
+
+<!-- Rules say what to reach, not how; the agent picks the method and the order. When an order matters, say it inside the rule ("before …"). When a skipped or swapped step does harm, or another file cites a step number, use a numbered list instead of bullets. A format goes in a code block under its rule. No nested bullets: a rule too big for one bullet is two rules. A rule with an "unless" is two rules, each with its own condition. Give the reason, not CAPS or MUST. `### <Part>` is optional: a small skill lists its rules right under `## Work`. -->
 
 ## Hand back
 
-<What the human sees at the end: links, verdicts, and what to reply. Leave the section out if the skill ends in a dispatch or a file write.>
+- **<field>:** <what the human sees: links, verdicts, and what to reply>
+
+<!-- Leave out `## Hand back` when the skill ends in a dispatch or a file write. -->
