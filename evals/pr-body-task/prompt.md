@@ -16,6 +16,7 @@ The engineer's Final output:
 - **Concerns:** none
 - **Tests first:** [test] no name prints "hi" — `greet.test.js › no trailing space` — red: expected "hi", got "hi " → green; commit `7be03f1`
 - **Edges:** a name of only spaces → tested (`greet.test.js › blank name`)
+- **Door:** Door: two-way
 - **Repro:** run `node src/index.js` with no name. Before: it printed `hi ` with a trailing space. Cause: `src/index.js` always adds the space before the name. After: it prints `hi`.
 - **Checks run:** `npm test` — 6 passed · `npm run lint` — ok
 - **Runtime verified:** ran `node src/index.js` and `node src/index.js Ann`; saw `hi` and `hi Ann`

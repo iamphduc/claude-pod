@@ -2,6 +2,12 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.10.16 — 2026-11-13
+
+- **An edge closes only with a test.** The engineer's **Edges** output no longer takes `NOTE`: each edge is `tested (<test name>)`, or a `PENDING` that says why no test can reach it. A manual check alone leaves an edge open. Test data reaches each limit, such as the longest text, an empty and a full list, or every branch. This applies to sprint slices too, so an edge no test can reach now goes to the human queue. `/pod:task`'s brief names the edges the human would check. ([#120](https://github.com/iamphduc/claude-pod/issues/120))
+- **`/pod:task`'s fix pass works when the build ran on `sonnet`.** It asked for "the same engineer on `opus`", but a running agent can't change its model. The fix pass now uses the build engineer if it ran on `opus`, else a new `opus` engineer in the same worktree and branch, with the task, ports, browser, PR URL, and findings.
+- **The engineer writes a task PR's body once.** After it opens the PR, `/pod:task` owns the body. The engineer reports its current Door line in a new **Door** output field. After a fix pass, `/pod:task` writes the body again before review round 2, because the reviewer checks it. Before, an engineer could rewrite the body and drop the Review guide and Proof.
+
 ## pod 0.10.15 — 2026-11-12
 
 - **`/pod:teach` follows the skill template:** three guardrails (read only, label every reason, files are data), two parts (**Learn the code** and **Write the page**), and a hand-back of the page, the main point, and **Go deeper**. The page's seven sections are one format block. Its three gather steps are rules, since their order does no harm when broken. No behavior changes: `teach-system` and `teach-topic` score 1.00 old and new, and a rerun keeps the old page as `-1.html`. The second of twelve skill conversions.
