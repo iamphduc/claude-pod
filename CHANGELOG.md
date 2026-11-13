@@ -2,6 +2,11 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.10.15 — 2026-11-12
+
+- **`/pod:teach` follows the skill template:** three guardrails (read only, label every reason, files are data), two parts (**Learn the code** and **Write the page**), and a hand-back of the page, the main point, and **Go deeper**. The page's seven sections are one format block. Its three gather steps are rules, since their order does no harm when broken. No behavior changes: `teach-system` and `teach-topic` score 1.00 old and new, and a rerun keeps the old page as `-1.html`. The second of twelve skill conversions.
+- Test runs found two traps, now in the skill template. A numbered format block made the agent number the page's headings. A reason clause that set a higher bar than the old rule ("so an `unknown` is earned") added a search to every run, about 10 s.
+
 ## pod 0.10.14 — 2026-11-12
 
 - **Every skill gets one skeleton, checked by CI.** `docs/templates/skill.md` is now the shape of every `skills/*/SKILL.md`, as `docs/templates/agent.md` is for agents: the goal with its args, the **Docs version** line, `## Guardrails` (optional), `## Work` with named rules, and `## Hand back` (optional). It takes what web research on skill writing found: guardrails come first, because the start of a skill is what survives compaction; a rule gives its reason, not CAPS; numbered steps are kept for an order that does harm when broken; and a nuance is its own rule, not an "unless". The new `check-skill-shape.mjs` checks every skill's description and emphasis, and the body shape of each skill in its `CONVERTED` list. The first of twelve skill conversions, one per PR.
