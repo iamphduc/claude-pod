@@ -1,6 +1,6 @@
 # PR body
 
-Every PR pod opens uses this body: `/pod:code` writes the wave, `Review fixes`, and final plan PRs, `/pod:task` the task PR, and `/pod:autopilot` the staging PR. Write it with `gh pr create --body-file` or `gh pr edit --body-file`. When the code changes (a fix pass, a review verdict, a new head), write the whole body again: it describes the end state, never a log of edits.
+Every PR pod opens uses this body: `/pod:code` writes the wave, `Review fixes`, and final plan PRs, `/pod:task` the task PR, and `/pod:autopilot` the staging PR. Write it with `gh pr create --body-file` or `gh pr edit --body-file`. When the code changes (a fix pass, a new head), or a plan PR gets its review verdict, write the whole body again: it describes the end state, never a log of edits. A task PR's verdict stays in the reviewer's PR comment.
 
 ```markdown
 <Door line>
@@ -57,7 +57,7 @@ The final plan PR only, after `## Risks`: a `## Try it` heading, then at most 8 
 
 | PR | Proof |
 |---|---|
-| Task | **Repro** (a bug: the steps, before, cause, after) · **Tests first**: each criterion — its test — the red output — its commit · **Checks run** with results · **Browser rows** driven · **Review**: verdict, round, and its red checks, or `skipped (--no-review)` |
+| Task | **Repro** (a bug: the steps, before, cause, after) · **Tests first**: each criterion — its test — the red output — its commit · **Checks run** with results · **Browser rows** driven · `Review: skipped (--no-review)` when skipped (else the verdict is the reviewer's PR comment) |
 | Wave | Per slice: **Tests first** as above, its `NOTE`s, stray paths · then the **wave check**: checks run, browser rows, the Look check line, the wave fix · **Sent to the queue**: each entry, one line |
 | `Review fixes` | Each `FIX` finding → its fix commit → the check that now passes · checks run |
 | Final plan | **Review**: verdict and round · the regression pass: rows driven and results · a link to each wave PR, which holds its own proof |

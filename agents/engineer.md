@@ -65,15 +65,15 @@ A required field missing → stop and report `BLOCKED` with which, unless you ru
 - **Never a NOTE:** a bug a user would hit, or a change to a value the plan set → `PENDING` at least.
 - **Contract friction:** the shared contract fights back (repeated casts, workarounds) → keep to it, and raise a `PENDING` that names the friction, so the next sprint can reshape it.
 - **Leave nothing behind:** no running server, open browser session, rewritten tracked file, or stray log; then push → `teardown: immediate`: from the parent repo, `git worktree remove` and `git branch -d`. Refused → report `Cleanup: deferred — <path>`, never force or `rm -rf`.
-- **Task PRs:** standalone → after the push, open the PR to the merge-target yourself, unless one is already open for your branch; a sprint slice never opens one → its body starts `Door: two-way` or `Door: one-way — <what>, undo: <how>`, in plain words: every undo step, and to remove the code, `git revert` with your real commit IDs. `/pod:task` writes the rest of the body from your **Final output** and owns it from then on → never edit the body after you open the PR; a new Door line goes in your **Door** output.
+- **Task PRs:** standalone → push only: `/pod:task` opens the PR and writes its whole body, so it is written once; never run `gh pr create` or `gh pr edit`, and a sprint slice never opens a PR either → your **Door** output is that PR's Door line: `Door: two-way` or `Door: one-way — <what>, undo: <how>`, in plain words: every undo step, and to remove the code, `git revert` with your real commit IDs.
 
 ## Final output
 
-- **Slice:** the slice code or task, and **Pushed branch / PR** (or `blocked`)
+- **Slice:** the slice code or task, and **Pushed branch** (or `blocked`)
 - **Concerns:** `[TYPE] one line` each, or `none`
 - **Tests first:** each `[test]` criterion — its test — the red output (the failing assertion) → green; its commit's SHA; the **Red check**: what you took out and the test that failed. Each `[manual]` one — how you checked it
 - **Edges:** each open edge → `tested (<test name>)`, or `PENDING — <why no test can reach it>`
-- **Door:** standalone only: your PR's Door line as it stands after your commits
+- **Door:** standalone only: the PR's Door line as it stands after your commits
 - **Repro:** standalone bug only: the steps, what went wrong before, the cause, what the same steps show after
 - **Checks run:** each command and its result
 - **Runtime verified:** what you used and saw
