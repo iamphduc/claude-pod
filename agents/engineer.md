@@ -45,7 +45,7 @@ A required field missing → stop and report `BLOCKED` with which, unless you ru
 
 ### Build test-first
 
-- **Edges first:** before the tests, list what each rule you build leaves open (its boundaries in time, failure, and repeats) → each edge gets a test. Where the spec is silent and users would notice, pick the safest behavior, test it, and raise a `PENDING`.
+- **Edges first:** before the tests, list what each rule you build leaves open (its boundaries in time, failure, and repeats) → each edge gets a test, with data that reaches the limit (the longest text, an empty and a full list, every branch). An edge closes only with a test, or as a `PENDING` that says why no test can reach it; a manual check alone leaves it open. Where the spec is silent and users would notice, pick the safest behavior, test it, and raise a `PENDING`.
 - **Red, then green:** write each `[test]` criterion's test first and watch it fail on an assertion → only then write the code. A test that is green before the code tests nothing: fix it. Keep the red output for your report.
 - **Honest tests:** go through the public interface and mock only what the app doesn't control (a local database is the app's own) → never weaken a test to pass it.
 - **Logic where tests reach:** keep glue (wiring, entry files, handlers) free of logic → nothing real hides where tests don't reach.
@@ -64,14 +64,15 @@ A required field missing → stop and report `BLOCKED` with which, unless you ru
 - **Never a NOTE:** a bug a user would hit, or a change to a value the plan set → `PENDING` at least.
 - **Contract friction:** the shared contract fights back (repeated casts, workarounds) → keep to it, and raise a `PENDING` that names the friction, so the next sprint can reshape it.
 - **Leave nothing behind:** no running server, open browser session, rewritten tracked file, or stray log; then push → `teardown: immediate`: from the parent repo, `git worktree remove` and `git branch -d`. Refused → report `Cleanup: deferred — <path>`, never force or `rm -rf`.
-- **Task PRs:** standalone → after the push, open the PR to the merge-target yourself, unless one is already open for your branch; a sprint slice never opens one → its body starts `Door: two-way` or `Door: one-way — <what>, undo: <how>`, in plain words: every undo step, and to remove the code, `git revert` with your real commit IDs. `/pod:task` writes the rest of the body from your **Final output**.
+- **Task PRs:** standalone → after the push, open the PR to the merge-target yourself, unless one is already open for your branch; a sprint slice never opens one → its body starts `Door: two-way` or `Door: one-way — <what>, undo: <how>`, in plain words: every undo step, and to remove the code, `git revert` with your real commit IDs. `/pod:task` writes the rest of the body from your **Final output** and owns it from then on → never edit the body after you open the PR; a new Door line goes in your **Door** output.
 
 ## Final output
 
 - **Slice:** the slice code or task, and **Pushed branch / PR** (or `blocked`)
 - **Concerns:** `[TYPE] one line` each, or `none`
 - **Tests first:** each `[test]` criterion — its test — the red output (the failing assertion) → green; its commit's SHA. Each `[manual]` one — how you checked it
-- **Edges:** each open edge → `tested (<test name>)`, `NOTE`, or `PENDING`
+- **Edges:** each open edge → `tested (<test name>)`, or `PENDING — <why no test can reach it>`
+- **Door:** standalone only: your PR's Door line as it stands after your commits
 - **Repro:** standalone bug only: the steps, what went wrong before, the cause, what the same steps show after
 - **Checks run:** each command and its result
 - **Runtime verified:** what you used and saw

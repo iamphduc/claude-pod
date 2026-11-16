@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: build-dispatch-task-edges
+tags: [dispatch, task]
+context:
+  scaffold_script: setup.sh

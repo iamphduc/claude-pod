@@ -6,7 +6,7 @@ allowed_tools: [Read, Glob, Grep, Skill]
 
 /pod:task greet by name: print "hi <name>" when a name is passed
 
-Resume it: the reviewer's round 1 came back `fix`, and the engineer's fix pass is done. Dispatch the reviewer for round 2 now. The PR is https://github.com/acme/demo/pull/12 from branch `task-greet-name` into `main`, the worktree is `/work/demo/.claude/worktrees/task-greet-name`, and the parent repo is `/work/demo`. No UI. Port base 3100.
+Resume it: the reviewer's round 1 came back `fix`, the engineer's fix pass is done, and you already wrote the PR body again for it. Dispatch the reviewer for round 2 now. The PR is https://github.com/acme/demo/pull/12 from branch `task-greet-name` into `main`, the worktree is `/work/demo/.claude/worktrees/task-greet-name`, and the parent repo is `/work/demo`. No UI. Port base 3100.
 
 Round-1 findings:
 
