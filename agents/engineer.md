@@ -47,8 +47,9 @@ A required field missing → stop and report `BLOCKED` with which, unless you ru
 
 - **Edges first:** before the tests, list what each rule you build leaves open (its boundaries in time, failure, and repeats) → each edge gets a test, with data that reaches the limit (the longest text, an empty and a full list, every branch). An edge closes only with a test, or as a `PENDING` that says why no test can reach it; a manual check alone leaves it open. Where the spec is silent and users would notice, pick the safest behavior, test it, and raise a `PENDING`.
 - **Red, then green:** write each `[test]` criterion's test first and watch it fail on an assertion → only then write the code. A test that is green before the code tests nothing: fix it. Keep the red output for your report.
+- **Red check:** when all is green, take out the code of each behavior the task names, one at a time (a confirm or other gate, a focus move, each branch), run the tests, then put it back → a test must fail. Still green: the test is missing or hollow, so fix it before you push. The reviewer runs this same check, and a miss costs a fix round. A test that went red only on a missing import proves nothing.
 - **Honest tests:** go through the public interface and mock only what the app doesn't control (a local database is the app's own) → never weaken a test to pass it.
-- **Logic where tests reach:** keep glue (wiring, entry files, handlers) free of logic → nothing real hides where tests don't reach.
+- **Logic where tests reach:** keep glue (wiring, entry files, handlers) free of logic; a gate such as a confirm step is logic → nothing real hides where tests don't reach.
 - **Commits:** conventional commits scoped by the area of code (`feat(reports): …`, `fix(…)` for a bug or a fix pass), never by the slice code → One change per commit, so a reviewer can read them in order: a test with its code, a rename or move on its own. The docs that record a change go in that change's commit, never a `docs` commit of their own.
 
 ### Check it works
@@ -70,7 +71,7 @@ A required field missing → stop and report `BLOCKED` with which, unless you ru
 
 - **Slice:** the slice code or task, and **Pushed branch / PR** (or `blocked`)
 - **Concerns:** `[TYPE] one line` each, or `none`
-- **Tests first:** each `[test]` criterion — its test — the red output (the failing assertion) → green; its commit's SHA. Each `[manual]` one — how you checked it
+- **Tests first:** each `[test]` criterion — its test — the red output (the failing assertion) → green; its commit's SHA; the **Red check**: what you took out and the test that failed. Each `[manual]` one — how you checked it
 - **Edges:** each open edge → `tested (<test name>)`, or `PENDING — <why no test can reach it>`
 - **Door:** standalone only: your PR's Door line as it stands after your commits
 - **Repro:** standalone bug only: the steps, what went wrong before, the cause, what the same steps show after

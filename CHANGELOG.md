@@ -2,6 +2,10 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.10.17 — 2026-11-16
+
+- **The engineer runs the reviewer's Red check before it pushes.** When all is green, it takes out the code of each behavior the task names, one at a time, and a test must fail. Still green means a missing or hollow test, which the engineer fixes before the push. On a bench of 10 `/pod:task` runs whose first review asked for a fix, the feature worked in all 10. The fix was for a missing test in 8, mostly a confirm step left in an untested click handler, and for a hollow test in 3. A fix round about doubles a run's time and cost. **Logic where tests reach** now names a gate, such as a confirm step, as logic. The **Tests first** output lists what was taken out and which test failed. The effect on fix rounds and run time is not measured yet: the A/B runs were spoiled by permission blocks in the test bench. ([#120](https://github.com/iamphduc/claude-pod/issues/120))
+
 ## pod 0.10.16 — 2026-11-13
 
 - **An edge closes only with a test.** The engineer's **Edges** output no longer takes `NOTE`: each edge is `tested (<test name>)`, or a `PENDING` that says why no test can reach it. A manual check alone leaves an edge open. Test data reaches each limit, such as the longest text, an empty and a full list, or every branch. This applies to sprint slices too, so an edge no test can reach now goes to the human queue. `/pod:task`'s brief names the edges the human would check. ([#120](https://github.com/iamphduc/claude-pod/issues/120))
