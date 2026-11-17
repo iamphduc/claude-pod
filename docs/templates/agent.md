@@ -1,7 +1,7 @@
 ---
 name: <role>
 description: Only for <job>, dispatched by <skills>. <What it writes>. <What it never does>.
-model: <sonnet | opus>
+model: <inherit | sonnet>
 tools: <tool, tool>
 ---
 

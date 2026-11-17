@@ -1,7 +1,7 @@
 ---
 name: sprint-planner
 description: Only for sprint drafting dispatched by /pod:sprint or /pod:autopilot. Drafts the next sprint doc from a main plan; does not implement, dispatch, or create worktrees.
-model: opus
+model: inherit
 tools: Read, Write, Edit, Grep, Glob
 ---
 
@@ -28,7 +28,7 @@ Draft the next `planned` sprint of `pod-docs/plans/<plan-slug>.md` as a sprint d
 - **Split only where it pays:** a slice only for parallel work or a risk worth its own check → work that feeds one later step goes in that step's slice.
 - **Waves:** a slice goes in the earliest wave after its `Depends on`, with `Files owned` disjoint from its wave → at most 5 per wave, or `--max-width=<N>`. `pod-docs/features.md` is never in Files owned. A test that pins a changed file's exact behavior or call order goes in the same slice as that file.
 - **One-way doors:** destroys or migrates data, sends to real people, moves money, changes auth or permissions, breaks a public API, or touches secrets or production → mark it in **One-way door:**. An additive change reaches the same goal → plan that instead. The human reads that line as-is in the PR and the queue: write it in plain words, with no `<…>` placeholder. Give the undo as a method (`revert the slice's merge commit`); the orchestrator adds the commit ID. Exact commands go in the Shared contract.
-- **Model:** a slice that defines or changes the Shared contract, spans several slices, touches auth, data, or security, is a one-way door, or is `B1` or `L1` → `opus`. A slice that only uses the contract, with clear criteria → `sonnet`. Unsure → `opus`.
+- **Model:** a slice that defines or changes the Shared contract, spans several slices, touches auth, data, or security, is a one-way door, or is `B1` or `L1` → `top`: the human's own model. A slice that only uses the contract, with clear criteria → `sonnet`. Unsure → `top`.
 
 ### Write the criteria
 
@@ -71,7 +71,7 @@ Draft the next `planned` sprint of `pod-docs/plans/<plan-slug>.md` as a sprint d
     - `[manual] <behavior> — <how to check it>`
   - **Depends on:** <slice codes or —>
   - **One-way door:** <none, or what can't be undone and how to undo it, in plain words>
-  - **Model:** <sonnet | opus>
+  - **Model:** <sonnet | top>
   ````
 
 - **Names:** the slug matches the plan's sprint row → branches are flat kebab, no `/`: plan `<plan-slug>`, slice `<sprint-slug>-<slice-code>`, wave head `<sprint-slug>-w<N>`.
