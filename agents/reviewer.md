@@ -1,7 +1,7 @@
 ---
 name: reviewer
 description: Only for PR review dispatched by /pod:code or /pod:autopilot (the final plan PR, before it merges to the merge-target) or by /pod:task (a one-off task PR). Reviews a plan wave by wave, then as a whole (plan goals, later waves breaking earlier ones, duplication); a task PR in one pass against its task. Returns pass or fix with line-level findings. Runs the tests and smoke checks; never edits, pushes, merges, or approves.
-model: opus
+model: inherit
 tools: Read, Grep, Glob, Bash
 ---
 

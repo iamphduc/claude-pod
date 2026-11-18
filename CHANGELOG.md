@@ -2,6 +2,10 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.11.0 — 2026-11-17
+
+- **pod runs on your own model, and never on a stronger one.** The engineer, reviewer, and sprint-planner now use `model: inherit`: the model you run Claude Code on, as set with `/model`. Before, they were pinned to `opus`, so a user who could only use Sonnet could not run pod fully. Your model is the ceiling: pod still runs small, clear work on `sonnet` when your model is above it, and on your model otherwise. A sprint slice's **Model:** is now `sonnet` or `top` (your model); an older sprint's `opus` reads as `top`. `/pod:code` retries a failed `sonnet` slice and runs fixes on your model. `/pod:task`'s `--model=<model>` takes any model Claude Code accepts and sets every agent of that task, the reviewer included. No step picks Haiku on its own; set it as your model to use it. The scout, researcher, and reporter stay on `sonnet`. **On Fable, pod now runs on Fable too, at about twice the cost of Opus**: switch to Opus with `/model` to keep the old cost. New evals: `build-dispatch-task-ceiling` (hard work names no model; 0.50 on 0.10.18, which named `opus`), `build-dispatch-task-small` (small work on an Opus session names `sonnet`), `build-dispatch-task-small-on-sonnet` (small work on a Sonnet session names no model), and `code-dispatch-models` (a `top` slice names no model, a `sonnet` slice names `sonnet`, no slice names `opus` or `fable`).
+
 ## pod 0.10.18 — 2026-11-16
 
 - **A task PR's body is written once, plus once per fix pass.** The engineer pushes only. `/pod:task` opens the PR with the whole body, and writes it again only when a fix pass adds commits. The review verdict stays in the reviewer's PR comment. Before, the body was written 3–4 times: a stub from the engineer, the full body, then once per review round. ([#120](https://github.com/iamphduc/claude-pod/issues/120))
