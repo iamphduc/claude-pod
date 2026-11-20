@@ -42,3 +42,5 @@ description: Use when the user types /pod:<command> [args] or asks to <job>.
 
 <!-- Leave out `## Hand back` when the skill ends in a dispatch or a file write. -->
 <!-- A skill that hands back at several points leaves it out too, and keeps each hand-back in the rule or step that gives it. -->
+
+<!-- A support file the skill links (such as `skills/autopilot/policy.md`) has no frontmatter: `# <title>`, a goal paragraph, then `## <part>` sections of `## Work` rules. The checker doesn't check it yet. -->
