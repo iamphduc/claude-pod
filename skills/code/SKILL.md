@@ -30,7 +30,7 @@ You are the orchestrator. Each wave's engineers build in parallel; you combine t
 
 - **Wave PR:** from the wave head to `<plan-slug>`, titled as a conventional commit for what the wave adds, ending `(wave <N>/<waves in the sprint>)`, e.g. `feat(reports): record who edited a published report (wave 1/2)`. Its body follows `${CLAUDE_PLUGIN_ROOT}/skills/code/pr-template.md`, written again after a wave fix.
 - **Door line:** the body opens `Door: two-way`, or `Door: one-way — <what>, undo: <how>` per one-way slice → fill each undo with the slice's real merge commit, per the template's **Door line**, and check the revert applies on the wave head before you open the PR. The sprint doc's undo is only the method.
-- **Hand back for merge:** the PR link, its CI status (`passing`, `failing: <names>`, `pending`, or `no CI checks — nothing but the agents checked this`), any one-way door first, and "reply `continue`" → end the turn.
+- **Hand back for merge:** the PR link, its CI status (`passing`, `failing: <names>`, `pending`, or `no CI`), any one-way door first, and "reply `continue`" → end the turn.
 - **Door entry:** a one-way slice → a queue entry `PENDING · orchestrator → human` whose body starts `one-way door in PR #<n> — <what>, undo: <how>`, copied from the wave PR's Door line. That PR merged → resolve it `**Resolution:** <date> — accepted, PR #<n> merged`.
 - **Queue entries:** every entry you write during the plan, from any role, has `plan: <plan-slug>` in its header, per the queue's `Format:` line.
 - **For the human:** everything you write for the human (hand-backs, queue entries, halts) follows the PR template's **The human reads every slot**.
