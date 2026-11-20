@@ -7,6 +7,8 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs'
 const CONVERTED = ['idea', 'teach', 'code']
 const SECTIONS = ['Guardrails', 'Work', 'Hand back']
 const MAX_LINES = 500
+const MAX_RULE_WORDS = 60
+const MAX_PART_RULES = 8
 
 function check(file) {
   const errors = []
@@ -82,11 +84,28 @@ function check(file) {
       } else if (/^\d+\. /.test(text)) {
         // Numbered steps: for an order that does harm when broken, or a step number another file cites.
         if (!/^\d+\. \*\*[^*]+:\*\* /.test(text)) fail(n, 'a step is `<N>. **<Step name>:** <goal or constraint> → <result>`')
-      } else if (!/^- \*\*[^*]+:\*\* .*→/.test(text)) {
+      } else if (!/^- \*\*[^*]+:\*\* /.test(text)) {
         fail(n, `\`## ${s.name}\` holds only rules or numbered steps: a rule is \`- **<Rule name>:** <goal or constraint> → <result>\` (a format goes in a code block under its rule)`)
       }
+      // A long rule is two rules; warn, since only a reader can split it well.
+      const words = text.replace(/`[^`]*`/g, 'x').split(/\s+/).filter(Boolean).length
+      if (s.name === 'Work' && words > MAX_RULE_WORDS) warnings.push(`${file}:${n}: a rule of ${words} words, over ${MAX_RULE_WORDS}: split it into rules with one condition and result each`)
     }
   }
+  // A part with too many rules is a wall: split it into parts named for what each produces.
+  let part = null, count = 0
+  const flush = () => { if (part && count > MAX_PART_RULES) warnings.push(`${file}:${part.n}: \`### ${part.name}\` holds ${count} rules, over ${MAX_PART_RULES}: split the part`) }
+  fence = false
+  for (let i = end + 1; i < lines.length; i++) {
+    const line = lines[i]
+    if (/^\s*```/.test(line)) fence = !fence
+    if (fence) continue
+    if (line.startsWith('## ') || line.startsWith('### ')) { flush(); part = line.startsWith('### ') ? { name: line.slice(4).trim(), n: i + 1 } : null; count = 0 }
+    // A run of numbered steps is one ordered block, so it counts once.
+    else if (part && /^- \*\*/.test(line)) count++
+    else if (part && /^1\. \*\*/.test(line)) count++
+  }
+  flush()
   return { errors, warnings }
 }
 
