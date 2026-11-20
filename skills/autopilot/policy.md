@@ -29,8 +29,8 @@
 - **Reuse the choice:** no `--merge-target` given → reuse a `## <date> — merge target: <choice>` entry in `pod-docs/decisions.md`.
 - **Ask once:** no such entry → ask once, with the browser check: **Staging (recommended)** — merges land on `pod-staging` and the human moves them to the default branch after looking, so unattended code never reaches it alone — or **Default branch**. Record the answer there under that title.
 - **Staging:** staging chosen → bring `pod-staging` on origin up to date with origin's default branch (create it if missing), and use `pod-staging` as the merge-target everywhere.
-- **Append-only conflict:** every hunk of a conflict only appends lines to a `pod-docs/` file → keep both sides (a line both sides added word for word stays once), and name the files in your next hand-back.
-- **Other conflict:** any other conflict → gate 3.
+- **Append-only staging conflict:** bringing `pod-staging` up to date conflicts, and every hunk only appends lines to a `pod-docs/` file → keep both sides (a line both sides added word for word stays once), and name the files in your next hand-back.
+- **Other staging conflict:** any other conflict while bringing `pod-staging` up to date → gate 3.
 
 ## The wave check is a gate
 
@@ -57,7 +57,7 @@ Each gate is `<N>. **<name>:** <trigger> → <queue type>`.
 - **Queue type:** always the gate's, from the list above, never your own pick → a gate 3 is `BLOCKED` even when the fix is only "merge it after #27".
 - **Withheld final PR:** a withheld final plan PR starts `gate 6 (escalation-valve): final plan PR <url> withheld, ` → pod-flow reads that start as a PR for the human to merge, then resume.
 - **Plain words:** the rest of the entry is in plain words with real values, per the PR template's **The human reads every slot**.
-- **Only halts start that way:** Pod Board tells a halt from a note by that start → no other entry starts `gate <N> (<name>): `.
+- **Only halts start that way:** Pod Board tells a halt from a note by the `gate <N> (<name>): ` start → no entry but a halt starts that way.
 - **Then stop:** send a `PushNotification` and end the turn.
 - **Before resuming:** `BLOCKED` must be resolved; `PENDING` only needs acknowledging. A Pod Board answer (`**Answer (human):**`) acknowledges either.
 - **Answered `BLOCKED`:** it is resolved once `/pod:code`'s **Answers** rule applies it and finds the cause gone.
@@ -69,7 +69,7 @@ Each gate is `<N>. **<name>:** <trigger> → <queue type>`.
 - **Title:** a conventional commit for what its plans built, ending `(plan <slug>)` or `(plans <slug>, <slug>)`, e.g. `feat: friends list and invites (plan friends)`.
 - **Body:** per `${CLAUDE_PLUGIN_ROOT}/skills/code/pr-template.md`, with one `## <plan title> (<plan-slug>)` section per plan on it.
 - **Plan section:** the goal in a sentence, the features it added or changed (from `pod-docs/features.md`), its one-way doors and the decisions made for the human, loose ends, links to its final PR and report, and last, a `### Try it` with its final PR's **Try it** steps.
-- **Reuse an open PR:** one is open → rewrite the title to cover every plan, add this plan's section, and keep the others.
+- **Reuse an open PR:** a PR from `pod-staging` to the default branch is already open → rewrite the title to cover every plan, add this plan's section, and keep the others.
 
 ## Safety bounds
 
