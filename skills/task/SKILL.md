@@ -3,16 +3,47 @@ name: task
 description: Use when the user types /pod:task [task] or asks for an ad-hoc code change outside the sprint workflow.
 ---
 
-A one-off change straight to the merge-target, outside any plan: one engineer builds it test-first, the reviewer checks it, and the human merges. Never merge it yourself. Args: the task, `--merge-target=<branch>` (default: origin's default branch; pass it on), `--no-review` (for a change the human knows is trivial), and `--model=<model>` (any model Claude Code accepts; it sets the model of every agent in this run).
+Make one change straight to the merge-target, outside any plan: one engineer builds it test-first, the reviewer checks it, and the human gets a PR to merge. Args: the task; `--merge-target=<branch>` (default: origin's default branch; pass it on); `--no-review` (for a change the human knows is trivial); `--model=<model>` (any model Claude Code accepts; it sets every agent of this run).
 
-- **Docs version** first: check it per `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md`.
-- **Browser** (the project has a UI): as in `/pod:code`'s **Preflight** (`${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md`). Pass `browser: axi` to the engineer and reviewer with `axi`. With `devtools-mcp`, pass it to the engineer (it works alone), and before each reviewer dispatch run the app from the engineer's worktree on B/B+1, drive the browser rows the diff touches, and pass the reviewer `browser: none` with your results as **browser rows**.
-- **Ports:** claim a port base B as in `/pod:code`'s **Preflight**, with `<parent-repo> task-<slug>` in the file (free once that branch is gone). Pass the engineer ports B+10/B+11 and the reviewer B+20/B+21; your own checks run on B/B+1. Delete the file after the merge.
+## Guardrails
+
+- Never merge the PR: the human merges.
+- Never choose a model above your own: only the human's `--model` can name one.
+- Never delete a branch or worktree with `--force` or `-D`.
+
+## Work
+
+### Set up
+
+- **Docs version:** a new task → check it per `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md` first.
+- **Browser:** the project has a UI → pick it as in `/pod:code`'s **Preflight** (`${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md`); with `axi`, pass `browser: axi` to the engineer and reviewer.
+- **DevTools MCP:** the browser is `devtools-mcp` → pass it to the engineer, which works alone. Before each reviewer dispatch, run the app from its worktree on B/B+1, drive the browser rows the diff touches, and pass the reviewer `browser: none` with your results as **browser rows**.
+- **Ports:** claim a port base B as in **Preflight**, with `<parent-repo> task-<slug>` in the file → engineer B+10/B+11, reviewer B+20/B+21, your checks B/B+1. Delete the file after the merge.
 - **Parked ideas:** the task touches one in `pod-docs/ideas/` → bring it back per **Bringing ideas back** in `${CLAUDE_PLUGIN_ROOT}/skills/idea/SKILL.md`.
-- **Build:** dispatch `pod:engineer` with the task, on `--model`; else your own model is the ceiling, never to be passed: small work with a clear cause → `sonnet` when the ceiling is above Sonnet, otherwise or when unsure → no `model`, so it runs on the ceiling; it sets itself up per its **Standalone** rules and keeps its worktree until the merge. The task you pass names the edges the human would check in the result, as they apply: the longest text, an empty and a full list, both themes, each branch. Its `Concerns` go to `pod-docs/handoff-queue.md` (`from: engineer`, no `sprint:`); repeat any `BLOCKED` in your hand-back. The engineer pushes its branch; it never opens the PR. Then open the PR yourself, once, with the whole body per `${CLAUDE_PLUGIN_ROOT}/skills/code/pr-template.md`, from its report and the branch's commits, starting with its **Door** line.
-- **Review** (unless `--no-review`): once the full PR body is written (the reviewer checks it), dispatch `pod:reviewer` (on `--model`, else no `model`) with `kind: task` and every field in its **Required dispatch context** (`${CLAUDE_PLUGIN_ROOT}/agents/reviewer.md`), written as field lines, `- **<field>:** <value>`, with a long item (the task, the Repro) in an indented block under its label. `incomplete` → dispatch again with what it names; that isn't the fix pass. Its `PENDING`s go to the queue (`from: reviewer`, `to: human`). On `fix`, **one fix pass**: an engineer on the build's model in the same worktree and branch (the build engineer if it can still take a message, else a new one), with the task, its ports and browser, the PR URL, and **review findings** = the `FIX` lines. Before round 2, write the PR body again from its report, with its **Door** line and the fix commits (a one-way `undo:` also names them): the reviewer checks the body. Then the reviewer again with `round: 2`, its round-1 findings, and the engineer's summary. The verdict stays in the reviewer's PR comment, not the body. Hand back, whatever the verdict.
-- **Queue commit:** just before the hand-back, write this task's queue entries (the engineer's `Concerns`, the reviewer's `PENDING`s) in the task worktree, and commit them once to the task branch as one `docs(queue): …` commit. Each later round adds to that commit's entries in one new commit, never one commit per entry.
-- **Hand back for merge:** the PR URL; `Review: pass`, `Review still failing` with its `FIX` findings, or `Review: skipped (--no-review)`; and that the worktree is kept, so the human can merge, fix by hand, or ask for more changes before replying `continue`.
-- **More changes:** the human asks for more after the hand-back → an engineer makes them as in the fix pass, with no reviewer, and the hand-back says `Review: not run on the changes since <commit>`, so the human, who checks each change, isn't held up.
+
+### Build
+
+- **Model:** `--model` → the engineer runs on it. Else small work with a clear cause → `sonnet` when your model is above Sonnet; otherwise, or when unsure → no `model`, so it runs on your model.
+- **Engineer:** dispatch `pod:engineer` with the task → it sets itself up per its **Standalone** rules and keeps its worktree until the merge.
+- **Edges:** write the brief → it names the edges the human would check, as they apply: the longest text, an empty and a full list, both themes, each branch.
+- **Concerns:** the engineer reports `Concerns` → they go to `pod-docs/handoff-queue.md` (`from: engineer`, no `sprint:`).
+- **PR:** the engineer pushes its branch, never the PR → open the PR yourself, once, with the whole body per `${CLAUDE_PLUGIN_ROOT}/skills/code/pr-template.md`, from its report and commits, starting with its **Door** line.
+
+### Review
+
+- **Skip:** `--no-review` → no reviewer; hand back.
+- **Dispatch:** the full PR body is written, since the reviewer checks it → dispatch `pod:reviewer` (on `--model`, else no `model`) with `kind: task` and every field of its **Required dispatch context** (`${CLAUDE_PLUGIN_ROOT}/agents/reviewer.md`), as field lines `- **<field>:** <value>`, with a long item (the task, the Repro) in an indented block under its label.
+- **Incomplete:** `incomplete` → dispatch again with what it names; that isn't the fix pass.
+- **Pending:** the reviewer reports `PENDING`s → they go to the queue (`from: reviewer`, `to: human`).
+- **Fix pass:** `fix` → one fix pass: an engineer on the build's model in the same worktree and branch (the build engineer if it can still take a message, else a new one), with the task, its ports and browser, the PR URL, and **review findings** = the `FIX` lines.
+- **Round 2:** the fix pass is done → write the PR body again from its report, with its **Door** line and the fix commits (a one-way `undo:` also names them); then the reviewer again with `round: 2`, its round-1 findings, and the engineer's summary. Hand back, whatever the verdict.
+- **Verdict:** the reviewer returns one → it stays in its PR comment, never in the body.
+
+### Hand back
+
+- **Hand back:** the PR URL; `Review: pass`, `Review still failing` with its `FIX` findings, `Review: skipped (--no-review)`, or `Review: not run on the changes since <commit>`; any `BLOCKED` the engineer reported; and that the worktree is kept, so the human can merge, fix by hand, or ask for more changes before replying `continue`.
+- **Queue commit:** just before each hand-back, write this task's queue entries in the task worktree → one `docs(queue): …` commit on the task branch; a later round adds one new commit, never one per entry.
+- **More changes:** the human asks for more after the hand-back → an engineer makes them as in the **Fix pass**, with no reviewer, and the hand-back says `Review: not run on the changes since <commit>`, so the human, who checks each change, isn't held up.
 - **Review on request:** the human asks for a review of those changes → run **Review** again.
-- **After the merge:** not merged yet → end the turn again. Merged → from the parent repo, remove the worktree and delete the branch with `git branch -d`. No `--force` or `-D`; on failure, leave it and tell the human.
+- **Not merged:** the human hasn't merged yet → end the turn again.
+- **Merged:** from the parent repo, remove the worktree and delete the branch with `git branch -d` → on failure, leave it and tell the human.
