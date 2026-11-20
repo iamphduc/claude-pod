@@ -2,6 +2,10 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.11.3 — 2026-11-19
+
+- **`/pod:task` follows the skill template, in short rules.** Three guardrails (never merge, never choose a model above your own, never `--force` or `-D`), then `## Work` with four parts: **Set up**, **Build**, **Review**, and **Hand back**. The old Build and Review bullets, about 150 and 200 words, are now short rules with one condition each. The **Docs version** check is a rule in **Set up**, so a resumed task doesn't check it again. The hand-back is one rule, since the task hands back after the review, after `--no-review`, and after more changes. The third of twelve skill conversions.
+
 ## pod 0.11.2 — 2026-11-19
 
 - **`/pod:code` follows the skill template, in short rules.** Its rules are now `## Guardrails`, then `## Work` with nine parts: **Contracts**, **The wave PR**, **Preflight**, **Tidy the queue**, **Run the waves**, **Answers**, **Keep the queue and the board**, **Sprint complete**, and **Plan complete**. Sixteen rules of 60 to 120 words are now short rules with one condition each (2,729 → 2,567 words). The names other files cite stay, **Plan complete** keeps its seven numbered steps, and the sprint summary fields are a format block. The third of twelve skill conversions.
