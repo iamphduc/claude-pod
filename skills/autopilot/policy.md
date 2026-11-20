@@ -16,7 +16,7 @@ Merge with a merge commit (not squash) and leave the branches for teardown. Then
 
 ## Preflight (before `/pod:code`'s own)
 
-No CI (`## CI` is `none`) isn't a halt: say once, at the start, that merges rest on the wave check alone and that `/pod:init` can add CI. `B1`'s `medium` Confidence is expected; `low` still halts.
+No CI (`## CI` is `none`) isn't a halt: say once, at the start, that merges rest on the wave check alone. `B1`'s `medium` Confidence is expected; `low` still halts.
 
 **Browser:** settle `/pod:code`'s browser check first — once the run is unattended, a question nobody answers stalls it.
 

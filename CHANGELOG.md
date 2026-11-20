@@ -2,6 +2,12 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.11.4 — 2026-11-20
+
+- **A no to CI stays a no.** `/pod:init` records it in `pod-docs/decisions.md` as `## <date> — CI: none` and doesn't offer CI again; ask it for CI to add it later. Before, every `/pod:init` run offered CI again, and the docs tell you to run it after each update. New eval: `init-ci-declined` (on 0.11.3, `/pod:init` offered CI in 4 of 4 runs).
+- **No CI isn't nagged.** Autopilot says once that merges rest on the wave check, without pointing to `/pod:init`. The `/pod:code` hand-back shows `no CI`, not `no CI checks — nothing but the agents checked this`.
+- **Autopilot waits for close-out checks only with CI.** The rule said to wait for checks on the close-out commit even when the project has no CI.
+
 ## pod 0.11.3 — 2026-11-19
 
 - **`/pod:task` follows the skill template, in short rules.** Three guardrails (never merge, never choose a model above your own, never `--force` or `-D`), then `## Work` with four parts: **Set up**, **Build**, **Review**, and **Hand back**. The old Build and Review bullets, about 150 and 200 words, are now short rules with one condition each. The **Docs version** check is a rule in **Set up**, so a resumed task doesn't check it again. The hand-back is one rule, since the task hands back after the review, after `--no-review`, and after more changes. The third of twelve skill conversions.

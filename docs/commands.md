@@ -14,7 +14,7 @@ The details behind the [README](../README.md): every command, the pod-flow pane,
 
 ### `/pod:init`: set up a project
 
-Creates pod's files in `pod-docs/` and never overwrites one that already exists. Run it again after an update to bring an older project's files up to date. The **scout** agent reads your codebase and writes a short guide to it (`pod-docs/codebase-structure.md`), including a **smoke recipe**: the steps to start the app and check it works. It also starts `pod-docs/features.md`: for each main feature, how to drive it and what proves it works. Each wave adds rows for what it builds, and the reviewer re-runs them at the end of each plan. Read what the scout wrote and fill in anything it left open. It can also add a basic CI workflow if you don't have one.
+Creates pod's files in `pod-docs/` and never overwrites one that already exists. Run it again after an update to bring an older project's files up to date. The **scout** agent reads your codebase and writes a short guide to it (`pod-docs/codebase-structure.md`), including a **smoke recipe**: the steps to start the app and check it works. It also starts `pod-docs/features.md`: for each main feature, how to drive it and what proves it works. Each wave adds rows for what it builds, and the reviewer re-runs them at the end of each plan. Read what the scout wrote and fill in anything it left open. It can also add a basic CI workflow if you don't have one. Say no, and it records that and doesn't ask again.
 
 ### `/pod:ship <idea>`: everything in one go
 
