@@ -60,7 +60,7 @@ Run one plan per session: after a plan completes, run `/clear` before the next `
 
 ### `/pod:task <task>`: one change, outside any plan
 
-One engineer builds the change test-first, the reviewer checks it, and you merge the PR. It branches off `main` (or `--merge-target=<branch>`), never off a plan branch. Add `--no-review` for trivial changes. pod runs on your own model, as set with `/model`, and never on a stronger one: small, contained fixes run on Sonnet when your model is above it, the rest on your model. `--model=<model>` runs every agent of one task on that model instead. On Fable, pod runs on Fable too, at about twice the cost of Opus: switch to Opus with `/model` before a long run to save.
+One engineer builds the change test-first, the reviewer checks it, and you merge the PR. Ask for more changes before you merge, and an engineer makes them on the same PR, with no new review unless you ask for one. It branches off `main` (or `--merge-target=<branch>`), never off a plan branch. Add `--no-review` for trivial changes. pod runs on your own model, as set with `/model`, and never on a stronger one: small, contained fixes run on Sonnet when your model is above it, the rest on your model. `--model=<model>` runs every agent of one task on that model instead. On Fable, pod runs on Fable too, at about twice the cost of Opus: switch to Opus with `/model` before a long run to save.
 
 Every pod PR, this one included, opens with a review guide: the steps in the order they were built, each linked to its own diff and marked `Read` or `Skim`. The proof (tests, checks, browser rows) is folded below it. See [PR bodies](design.md#pr-bodies).
 
