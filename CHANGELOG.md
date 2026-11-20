@@ -2,9 +2,9 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
-## pod 0.11.4 — 2026-11-20
+## pod 0.11.4 — 2026-11-19
 
-- **A no to CI stays a no.** `/pod:init` records it in `pod-docs/decisions.md` as `## <date> — CI: none` and doesn't offer CI again; ask it for CI to add it later. Before, every `/pod:init` run offered CI again, and the docs tell you to run it after each update. New eval: `init-ci-declined` (on 0.11.3, `/pod:init` offered CI in 4 of 4 runs).
+- **A no to CI stays a no.** `/pod:init` records it in `pod-docs/decisions.md` as `## <date> — CI: none` and doesn't offer CI again; ask it for CI to add it later. Before, every `/pod:init` run offered CI again, and the docs tell you to run it after each update. New eval: `init-ci-declined` (on 0.11.3, `/pod:init` offered CI despite the recorded no).
 - **No CI isn't nagged.** Autopilot says once that merges rest on the wave check, without pointing to `/pod:init`. The `/pod:code` hand-back shows `no CI`, not `no CI checks — nothing but the agents checked this`.
 - **A new repo gets no CI unless you ask for it.** `/pod:plan` no longer asks about CI for an empty repo; it lists `CI: none (default)` in Key decisions, and `/pod:init` adds CI later. Before, every new prototype got the question, often with a recommended yes. New eval: `plan-empty-no-ci` (on 0.11.3, the interview asked about CI in 3 of 3 runs).
 - **Autopilot waits for close-out checks only with CI.** The rule said to wait for checks on the close-out commit even when the project has no CI.
