@@ -115,6 +115,7 @@ A `/pod:task` change skips the whole plan machinery — no sprint doc, no smoke 
 - **Reproduce first, fix the cause.** For a bug, the engineer reproduces it on the path the user hit before touching code, names the cause, and re-runs the same steps after the fix; the reviewer checks the diff fixes that cause, not just the symptom. A fix for the symptom passes its test and the bug comes back by another path ([pstack's Bug fix playbook](https://flaviocopes.com/pstack) makes the same demand).
 - **Same fix pass.** Blocking findings go to an engineer on the build's model in the retained worktree and branch, so `--model=sonnet` keeps the whole task on Sonnet; the PR updates in place; the reviewer re-checks just those fixes once.
 - **Then it's yours.** The PR comes back with the verdict — `Review still failing` if the fix pass didn't clear it — and you merge.
+- **Your later changes aren't reviewed again.** Changes you ask for after the hand-back go to an engineer, with no new review unless you ask for one: you are checking each change yourself ([#120](https://github.com/iamphduc/claude-pod/issues/120)).
 - **Skip it on purpose: `/pod:task --no-review <task>`.** For a typo or a one-line config value, a review costs more than it's worth, and you look at every task PR before merging anyway. The skip is a flag you choose, never automatic by diff size: small isn't the same as safe — a one-line auth change is tiny and dangerous.
 
 ## PR bodies
