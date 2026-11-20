@@ -5,9 +5,9 @@ Newest first. The `pod` and `pod-flow` plugins share this file. Each heading nam
 ## pod 0.11.5 — 2026-11-20
 
 - **`/pod:autopilot` follows the skill template, in short rules.** Three guardrails (read the policy every turn, merge only what clears the bar, never merge the staging PR), then `## Work` with three parts: **Start**, **What changes from `/pod:code`**, and **Plan complete**. The two long bullets, between sprints and at plan complete, are now short rules with one condition each. Its description shows the `[plan-slug]` arg.
-- **The autopilot policy is short rules too.** Each part of `policy.md` holds only `- **<Rule>:** <condition> → <result>` rules. The halt gates table is seven numbered lines, since other files cite the gate numbers. The **Every gate halts** paragraph is nine rules, and the **Merge target** steps are a part of their own. The names other files cite, the gate names, and every string pod-flow and the evals read stay.
+- **The autopilot policy is short rules too.** Each part of `policy.md` is a list of `- **<Rule>:** <condition> → <result>` rules. The halt gates table is seven numbered lines, since other files cite the gate numbers. The **Every gate halts** paragraph is nine rules, and the **Merge target** steps are a part of their own. The names other files cite, the gate names, and every string pod-flow and the evals read stay.
 - **The skill template covers support files.** A file a skill links has no frontmatter: a title, a goal paragraph, then parts of rules. The checker doesn't check it yet.
-- No behavior changes. The 4 autopilot evals (`gate7-final-pr-url`, `queue-gate-halt`, `staging-pr-new`, `staging-pr-reuse`) score 1.00 on both.
+- No behavior changes. The 4 autopilot evals (`gate7-final-pr-url`, `queue-gate-halt`, `staging-pr-new`, `staging-pr-reuse`) score 1.00 on both. New eval: `autopilot-next-sprint` (between sprints, autopilot dispatches the sprint-planner with `--max-width`, writes no sprint doc, and doesn't ask the human to continue).
 
 ## pod 0.11.4 — 2026-11-19
 
