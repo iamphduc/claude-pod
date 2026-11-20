@@ -10,7 +10,7 @@ Why pod checks work where it does, what each check covers, and what we chose not
 - **One fix pass, then merge.** An engineer fixes the blocking findings on one branch; the reviewer checks those fixes once; the PR comes back to you. No loops.
 - **Keep plans small.** A few sprints each, so the end-of-plan review stays readable and late fixes stay cheap.
 - **The plan branch keeps up with `main`.** At the start of each sprint, anything new on `main` is merged into the plan branch and smoke-tested, so conflicts show up small and early.
-- **CI is optional, and a real gate when it's there.** With CI, autopilot needs every check to pass and won't treat "no checks" as a pass; `/pod:init` and `/pod:plan` offer a minimal workflow but don't require it.
+- **CI is optional, and a real gate when it's there.** With CI, autopilot needs every check to pass and won't treat "no checks" as a pass; `/pod:init` offers a minimal workflow but doesn't require it, and a new repo gets CI only when you ask for it.
 - **Test first, real TDD.** Every success criterion names a test; engineers write it, watch it fail, then make it pass, and the tests decide when they're done. The reviewer checks the tests are honest and reviews what they don't cover.
 - **`/pod:task` PRs get the same reviewer.** They go straight to `main` with no plan around them, so each one is reviewed before it merges.
 
@@ -174,7 +174,7 @@ Before, autopilot's "every required check passes" rule was satisfied by a repo w
 
 - **The scout records CI** in the brief: what runs on pull requests, or `none`.
 - **`/pod:init` offers a minimal workflow** when there's none: the smoke recipe's `Verification:` command on every PR, plus a secret scan. You say yes before anything is written. A no is recorded in `pod-docs/decisions.md` as `CI: none`, so pod doesn't ask again; ask `/pod:init` for CI to add it later.
-- **Autopilot uses CI when it's there**: with CI, a PR with **zero** checks is not mergeable. Without it, the wave check is the gate. CI was required until the third run, where it ran 25 times and never failed: it repeats the wave check's `Verification:` command, and its own value — a clean-machine run and a secret scan — matters most once an app is hosted. So `/pod:plan` now asks whether the bootstrap should add it, recommending yes.
+- **Autopilot uses CI when it's there**: with CI, a PR with **zero** checks is not mergeable. Without it, the wave check is the gate. CI was required until the third run, where it ran 25 times and never failed: it repeats the wave check's `Verification:` command, and its own value — a clean-machine run and a secret scan — matters most once an app is hosted. So `/pod:plan` asked whether the bootstrap should add it, recommending yes. That question came on every new repo, and a new repo is often a throwaway prototype, so now the bootstrap adds CI only when you ask for it.
 - In `/pod:code` you merge, so there's no hard rule — but every hand-back shows the PR's CI status, or `no CI`.
 - **No CI isn't nagged.** A prototype without CI is a choice, not a fault: autopilot says once that merges rest on the wave check, and nothing else asks for CI.
 
