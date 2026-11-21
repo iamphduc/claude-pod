@@ -89,13 +89,13 @@ A plan's final PR is easily thousands of lines. The fix, used by GitHub itself, 
    - **Plan goals** — the plan's Goal and Verification criteria hold on the final code.
    - **Later waves breaking earlier ones** — a shared type, route, schema, or config reshaped after something already relied on it.
    - **Duplication across waves** — the same helper written twice by different slices.
-4. **Filter** ([like Claude Code Review](https://www.gend.co/blog/claude-code-review-ai-agents)): keep only findings it can point to by `file:line` with a concrete failure. Before calling anything non-blocking, it tries to write the steps that make it go wrong for a user; if it can, it's blocking. Rank them — security, then correctness, then unmet goals, then missing tests. Suspicions it checked and dropped are listed as **Dismissed**, with why, so you can overrule a call you'd otherwise never see ([pstack's `/interrogate`](https://flaviocopes.com/pstack) does the same).
+4. **Filter** ([like Claude Code Review](https://www.gend.co/blog/claude-code-review-ai-agents)): keep only findings it can point to by `file:line` with a concrete failure. Before calling anything non-blocking, it tries to build a repro — a user's steps, or a test through the code's own interface with fakes for what the app doesn't control; if it can, it's blocking. Rank them — security, then correctness, then unmet goals, then missing tests. Suspicions it checked and dropped are listed as **Dismissed**, with why, so you can overrule a call you'd otherwise never see ([pstack's `/interrogate`](https://flaviocopes.com/pstack) does the same).
 5. **Post** the verdict and findings as a comment on the final PR.
 
 Findings are either:
 
 - **`FIX`** (blocking) — a real bug, a security hole, an unmet plan goal or success criterion, a failing check, or new behavior with no test. Wrong logic is always blocking, even in an app that only runs locally; "local only" excuses missing hardening like rate limits, not bugs.
-- **`PENDING`** (non-blocking) — duplication, simpler shapes, risks it couldn't confirm. Each is tagged `now` / `before hosting` / `someday` and ends with why it isn't a `FIX`: `no repro — <what it tried>`, `product choice`, or `hardening — <what it needs>`. These go to the handoff queue and are listed for you at hand-back; the next plan can pick them up.
+- **`PENDING`** (non-blocking) — duplication, simpler shapes, risks it couldn't confirm. Its label says first why it isn't a `FIX` — `no repro`, `product choice`, or `hardening` — then when it matters: `now` / `before hosting` / `someday`, as in `[PENDING · no repro · someday]`. A `no repro` ends with what it tried, a `hardening` with what it needs. These go to the handoff queue and are listed for you at hand-back; the next plan can pick them up.
 
 ## The fix pass
 

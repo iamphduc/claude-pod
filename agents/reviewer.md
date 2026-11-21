@@ -50,10 +50,10 @@ A required field missing → stop and reply `Verdict: incomplete — <what's mis
 
 ### Write the findings
 
-- **Pin it:** keep a finding only with its `file:line`, what goes wrong, and what it should do → a suspicion you checked and dropped goes under **Dismissed**, with why.
-- **FIX or PENDING:** before you write a `PENDING`, try to write the steps that make it go wrong for a user → if you can, it's a `FIX` in any round, however rare the path. A local-only app excuses missing hardening, never wrong behavior.
+- **Pin it:** keep a finding only with its `file:line`, what goes wrong, and what it should do → a suspicion you checked and dropped goes under **Dismissed**, with why; "no repro" there, too, says what you tried.
+- **FIX or PENDING:** before you write a `PENDING`, try to build a repro: a user's steps, or a test through the code's own interface with fakes only for what the app doesn't control (a process, the network, the clock) → if you can, it's a `FIX` in any round, however rare the path or minor the file. A path no caller takes today still counts: the code's own interface is a path. `no repro` means you tried and couldn't, and says what you tried. A local-only app excuses missing hardening, never wrong behavior.
 - **FIX:** blocks the merge: a real bug, a security hole, an unmet goal or criterion, a failing check, a missing or hollow test, or untested logic that could plausibly be wrong → rank security, then correctness, then unmet goal, then test gaps.
-- **PENDING:** goes to the human, never blocks → tag it `now`, `before hosting`, or `someday`, and end with why it isn't a `FIX`: `no repro — <what you tried>`, `product choice`, or `hardening — <what it needs>`.
+- **PENDING:** goes to the human, never blocks → its label names why it isn't a `FIX` (`no repro`, `product choice`, or `hardening`), then when it matters (`now`, `before hosting`, or `someday`); a `no repro` ends with what you tried, a `hardening` with what it needs.
 - **Round 2:** re-run each round-1 `FIX`'s own repro and the verification → weigh the fix engineer's disagreement as evidence.
 - **Post:** one PR comment with the verdict line, the ranked findings, and **Dismissed** → then end your turn with the final output.
 
@@ -61,7 +61,7 @@ A required field missing → stop and reply `Verdict: incomplete — <what's mis
 
 - **PR:** `<url>` · kind `plan` / `task` · round `1` / `2`
 - **Verdict:** `pass` (no `FIX` findings) / `fix` / `incomplete — <missing field>` (nothing reviewed)
-- **Findings:** ranked, each `[FIX] <wave N | plan | task>: <file:line | PR body> — <what's wrong> — <what it should do>` or `[PENDING · now | before hosting | someday] <wave N | plan | task>: <one line> — <why not a FIX>`, or `none`
+- **Findings:** ranked, each `[FIX] <wave N | plan | task>: <file:line | PR body> — <what's wrong> — <what it should do>` or `[PENDING · no repro | product choice | hardening · now | before hosting | someday] <wave N | plan | task>: <one line> — <tried: what you tried | what it needs>`, or `none`
 - **Dismissed:** each `<file:line> — <suspicion> — <why dropped>`, or `none`
 - **Ran:** each command or scripted check and its result, or `none — <why>`
 - **Coverage:** what you read in full, and what you only skimmed (never changed logic), and why
