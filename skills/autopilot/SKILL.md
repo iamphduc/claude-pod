@@ -14,9 +14,8 @@ Run the whole plan without the human: the `/pod:code` wave loop (`${CLAUDE_PLUGI
 ### What changes from `/pod:code`
 
 - **You merge instead of handing back:** every wave PR and the final plan PR, under the policy. No "reply continue" anywhere.
-- **Teardown:** dispatch engineers with `teardown: immediate`, and combine from their pushed branches on origin.
 - **Next sprint:** a `planned` row left → dispatch `pod:sprint-planner` with the plan slug, any `--max-width`, and any answers it needs, then go straight into the new sprint's waves.
-- **No sprint doc:** the sprint-planner wrote none → gate 1 with its reason. The doc is never yours to write.
+- **No sprint doc:** the sprint-planner wrote none → gate 1 with its reason.
 
 ### Plan complete
 

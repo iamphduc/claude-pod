@@ -9,7 +9,7 @@
 - A slice in the wave reported `Confidence: low` → gate 6.
 - A wave with a one-way slice → gate 6; the human merges it.
 - Any wave carried a one-way slice, or the plan adds a migration → the final plan PR goes to gate 6 too, since its merge can deploy them.
-- The final plan PR also needs the reviewer's `pass`, on the first review or after the one fix pass. Still `fix` → gate 2.
+- The final plan PR also needs the reviewer's `pass`, on the first review or after the one fix pass.
 - Every criterion holds → merge with a merge commit (not squash).
 
 ## Preflight (before `/pod:code`'s own)
@@ -47,12 +47,11 @@
 - Pod Board tells a halt from a note by the `gate <N> (<name>): ` start → no other entry starts that way.
 - The queue type is the one after the gate's `→` above, never your own pick → a gate 3 is `BLOCKED` even when the fix is only "merge it after #27".
 - A withheld final plan PR starts `gate 6 (escalation-valve): final plan PR <url> withheld, ` → pod-flow reads that start as a PR for the human to merge, then resume.
-- Then end the turn.
-- To resume, a `PENDING` needs acknowledging, and a Pod Board answer (`**Answer (human):**`) does that. A `BLOCKED` needs resolving: an answered one is resolved once `/pod:code`'s **Answers** rule finds the cause gone.
+- To resume, a `PENDING` needs acknowledging, and a Pod Board answer (`**Answer (human):**`) does that. A `BLOCKED` needs resolving, per `/pod:code`'s **Answers**.
 - `/pod:code`'s **Plan complete** step 5 entry is a note → gate 2 and gate 7 still add their own halt entry.
 
 ## Safety bounds
 
 - `--max-sprints=<N>` (sprints completed, default unlimited), `--max-waves=<N>` (waves dispatched, default `20`), `--max-runtime=<duration>` (wall clock, e.g. `4h`, default unlimited).
-- Check them before each wave and after each sprint is archived → one hit is gate 5. A resume starts the clock and the counts again.
+- A resume starts the clock and the counts again.
 - Keep the counts in `<!-- autopilot-run: started=<ISO8601> sprints=<N> waves=<N> -->` in the active sprint doc, or in the plan doc while none is active (between sprints, after the last one, and after a gate 2 or 7 halt) → a new sprint doc takes it over.
