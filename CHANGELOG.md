@@ -4,7 +4,7 @@ Newest first. The `pod` and `pod-flow` plugins share this file. Each heading nam
 
 ## pod 0.11.6 — 2026-11-20
 
-- **pod reads CI from the repo, not only the brief.** CI config in the repo (such as `.github/workflows/`) counts as CI, even when the brief's `## CI` says `none` or `decisions.md` records `CI: none`. So you can add CI any way you like, and autopilot requires its checks without a new `/pod:init` run. `/pod:init` doesn't offer CI that the repo already has. Before, autopilot merged a PR with zero checks in a repo with a CI workflow, because the brief said `none`. New evals: `autopilot-ci-from-repo` (on 0.11.5, autopilot merged in 3 of 3 runs; now it halts in 3 of 3) and `autopilot-no-ci-merges` (with no CI, a PR with zero checks still merges, 3 of 3).
+- **pod reads CI from the repo, not only the brief.** CI config in the repo (such as `.github/workflows/`) counts as CI, even when the brief's `## CI` says `none` or `decisions.md` records `CI: none`. So you can add CI any way you like, and autopilot requires its checks without a new `/pod:init` run. `/pod:init` doesn't offer CI that the repo already has. Before, autopilot merged a PR with zero checks in a repo with a CI workflow, because the brief said `none`. New evals: `autopilot-ci-from-repo` (on 0.11.5, autopilot merged in 3 of 3 runs; now it halts in 3 of 3) `autopilot-ci-red-check` (a failed check halts, 3 of 3), and `autopilot-no-ci-merges` (with no CI, a PR with zero checks still merges, 3 of 3).
 - **Autopilot waits for checks only when the project has CI.** The wait for checks that haven't started after a push now applies only with CI, so a project without CI can't stall waiting for checks that never start.
 
 ## pod 0.11.5 — 2026-11-20
