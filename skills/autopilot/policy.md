@@ -4,8 +4,9 @@
 
 ## Auto-merge criteria
 
-- The brief's `## CI` isn't `none` → at least one check ran and every required check passes. Zero checks means CI didn't run, not a pass.
-- Checks are still running, or haven't started yet after a push (a close-out commit included) → wait for them; that is neither a pass nor a fail.
+- The project has CI: CI config in the repo (such as `.github/workflows/`), or the brief's `## CI` isn't `none`. The repo wins over the brief and a `CI: none` decision, since anyone can add CI without `/pod:init`.
+- The project has CI → at least one check ran and every required check passes. Zero checks means CI didn't run, not a pass.
+- The project has CI, and its checks are still running or haven't started yet after a push (a close-out commit included) → wait for them; that is neither a pass nor a fail.
 - GitHub reports the PR mergeable and clean, with no requested changes and no open review thread → anything else, a required human approval included, is gate 3.
 - A slice in the wave reported `Confidence: low` → gate 6.
 - A wave with a one-way slice → gate 6; the human merges it.
@@ -15,7 +16,7 @@
 
 ## Preflight (before `/pod:code`'s own)
 
-- The brief's `## CI` is `none` → the wave check is the gate. Say so once, at the start; it isn't a halt.
+- The project has no CI → the wave check is the gate. Say so once, at the start; it isn't a halt.
 - Settle `/pod:code`'s browser check and the **Merge target** before the run goes unattended → a question nobody answers stalls it.
 
 ## Merge target
