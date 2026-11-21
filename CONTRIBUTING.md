@@ -47,8 +47,10 @@ cd pod-flow && claude plugin test .
 Before a release, also run the eval cases in `evals/`. They run real Claude on small scratch repos (`/pod:init` on an empty and an old-layout repo and on a no to CI, said and recorded, `/pod:idea` and its board, the research page, queue entries mid-plan and at plan end, the one-way door entry at a wave hand-back, autopilot's halt entries, autopilot's merge with and without CI in the repo, answers from Pod Board applied at a wave start, kept blocked when they don't fix the cause, and ignored once resolved, the `/pod:plan` interview's first round, with no CI question for an empty repo, the reviewer dispatch from `/pod:code` and `/pod:task`, the task PR body `/pod:task` writes, the `run app` reply to a hand-back, autopilot's `pod-staging` PR, new and reused, the final plan PR's **Try it** list, the PR link in autopilot's gate 7 halt, autopilot's sprint-planner dispatch between sprints, the overview `/pod:plan` shows before any code, and `/pod:teach` on a whole system and on one feature) and check the files it writes, the dispatch it sends, or its answer. A reviewer dispatch and Bash aren't allowed to run, so no reviewer or app starts: those cases check only the dispatch text or the start command in the answer. They use your Claude login, so they aren't in CI:
 
 ```
-claude plugin eval . --scaffold --allow-tools Write Edit --ablation none --runs 1
+claude plugin eval . --scaffold --allow-tools Write Edit --ablation none --runs 1 --keep-temp
 ```
+
+The report shows only each grader's pass or fail, not what the agent said. `--keep-temp` keeps each run's folder, so you can read the agent's answer in `<folder>/out/trace.jsonl` and tell a real failure from a grader that matched the wrong text, without a paid re-run. The tool prints each folder's path and seals it as read-only: to delete one, run `chmod -R u+rwx <folder> && rm -rf <folder>`.
 
 The cases grant no shell, so they run on native Windows too. Longer flows (`/pod:ship`, `/pod:code`, autopilot) still need a manual run in a throwaway repo.
 
