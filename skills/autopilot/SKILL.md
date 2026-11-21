@@ -7,9 +7,7 @@ Run the whole plan without the human: the `/pod:code` wave loop (`${CLAUDE_PLUGI
 
 ## Guardrails
 
-- **Read the policy every turn.** It holds the merge bar, the halt gates, and the safety bounds.
-- **Merge only what clears the bar.** A PR that fails the policy's auto-merge criteria halts at its gate.
-- **Never merge the staging PR.** The human moves `pod-staging` to the default branch.
+- **Read the policy every turn.** It holds the merge bar, the halt gates, and the safety bounds; a PR that fails the bar halts at its gate.
 
 ## Work
 

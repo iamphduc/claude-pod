@@ -34,11 +34,11 @@
 
 1. **blocked-concern:** `BLOCKED` from any engineer or from you (incl. an agent that stalled twice) → `BLOCKED`.
 2. **plan-review-fail:** the final plan PR still has `FIX` findings, or any reproduced bug, after the fix pass → `BLOCKED`.
-3. **auto-merge-fail:** a PR fails the auto-merge criteria, or the merge fails → `BLOCKED`.
-4. **inter-wave-verify:** wave verification fails → `BLOCKED`.
+3. **auto-merge-fail:** a criterion fails, or the merge fails → `BLOCKED`.
+4. **inter-wave-verify:** the wave check fails → `BLOCKED`.
 5. **safety-bound:** a safety bound is hit → `PENDING`.
-6. **escalation-valve:** a mergeable PR withheld for a risk signal (`Confidence: low`, or a one-way door) → `PENDING`.
-7. **plan-complete:** no `planned` sprint row left; with staging, open (or reuse) a PR from `pod-staging` to the default branch and name it in the halt, and never merge it → `PENDING`.
+6. **escalation-valve:** a criterion withholds a mergeable PR → `PENDING`.
+7. **plan-complete:** no `planned` sprint row left; with staging, open (or reuse) the staging PR per `${CLAUDE_PLUGIN_ROOT}/skills/code/pr-template.md`'s **Staging PR**, and name it in the halt; never merge it → `PENDING`.
 
 - **Gate 1's one exception:** a `BLOCKED` fixed only by a test fixture or doc no other slice owns → give it to that engineer, resume it, and tell the human.
 
@@ -51,13 +51,6 @@
 - **Then stop:** send a `PushNotification` and end the turn.
 - **Before resuming:** `PENDING` needs acknowledging, and a Pod Board answer (`**Answer (human):**`) does that. `BLOCKED` needs resolving: an answered one is resolved once `/pod:code`'s **Answers** rule finds the cause gone.
 - **Notes are not halts:** `/pod:code`'s **Plan complete** step 5 entry is a note → gate 2 and gate 7 still add their own halt entry.
-
-## Staging PR (gate 7)
-
-- **Title:** the human reads this PR, not the branch, so it says what `pod-staging` holds: a conventional commit for what its plans built, ending `(plan <slug>)` or `(plans <slug>, <slug>)`, e.g. `feat: friends list and invites (plan friends)`.
-- **Body:** per `${CLAUDE_PLUGIN_ROOT}/skills/code/pr-template.md`, with one `## <plan title> (<plan-slug>)` section per plan on it.
-- **Plan section:** the goal in a sentence, the features it added or changed (from `pod-docs/features.md`), its one-way doors and the decisions made for the human, loose ends, links to its final PR and report, and last, a `### Try it` with its final PR's **Try it** steps.
-- **Reuse an open PR:** a PR from `pod-staging` to the default branch is already open → rewrite the title to cover every plan, add this plan's section, and keep the others.
 
 ## Safety bounds
 
