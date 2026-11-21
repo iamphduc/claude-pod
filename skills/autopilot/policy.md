@@ -10,7 +10,7 @@
 - A wave with a one-way slice → gate 6; the human merges it.
 - Any wave carried a one-way slice, or the plan adds a migration → the final plan PR goes to gate 6 too, since its merge can deploy them.
 - The final plan PR also needs the reviewer's `pass`, on the first review or after the one fix pass. Still `fix` → gate 2.
-- Every criterion holds → merge with a merge commit (not squash), and mark the wave `merged`/`done`.
+- Every criterion holds → merge with a merge commit (not squash).
 
 ## Preflight (before `/pod:code`'s own)
 
@@ -47,7 +47,7 @@
 - Pod Board tells a halt from a note by the `gate <N> (<name>): ` start → no other entry starts that way.
 - The queue type is the one after the gate's `→` above, never your own pick → a gate 3 is `BLOCKED` even when the fix is only "merge it after #27".
 - A withheld final plan PR starts `gate 6 (escalation-valve): final plan PR <url> withheld, ` → pod-flow reads that start as a PR for the human to merge, then resume.
-- Then send a `PushNotification` and end the turn.
+- Then end the turn.
 - To resume, a `PENDING` needs acknowledging, and a Pod Board answer (`**Answer (human):**`) does that. A `BLOCKED` needs resolving: an answered one is resolved once `/pod:code`'s **Answers** rule finds the cause gone.
 - `/pod:code`'s **Plan complete** step 5 entry is a note → gate 2 and gate 7 still add their own halt entry.
 
