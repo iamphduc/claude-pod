@@ -5,11 +5,12 @@
 ## Auto-merge criteria
 
 - The brief's `## CI` isn't `none` → at least one check ran and every required check passes. Zero checks means CI didn't run, not a pass.
+- Checks are still running, or haven't started yet after a push (a close-out commit included) → wait for them; that is neither a pass nor a fail.
 - GitHub reports the PR mergeable and clean, with no requested changes and no open review thread → anything else, a required human approval included, is gate 3.
 - A slice in the wave reported `Confidence: low` → gate 6.
 - A wave with a one-way slice → gate 6; the human merges it.
 - Any wave carried a one-way slice, or the plan adds a migration → the final plan PR goes to gate 6 too, since its merge can deploy them.
-- The final plan PR also needs the reviewer's `pass`, on the first review or after the one fix pass.
+- The final plan PR also needs the reviewer's `pass`, on the first review or after the one fix pass. Still `fix` → gate 2, not gate 3.
 - Every criterion holds → merge with a merge commit (not squash).
 
 ## Preflight (before `/pod:code`'s own)
