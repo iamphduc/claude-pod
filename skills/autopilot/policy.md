@@ -6,7 +6,7 @@
 
 - The brief's `## CI` isn't `none` → at least one check ran and every required check passes. Zero checks means CI didn't run, not a pass.
 - GitHub reports the PR mergeable and clean, with no requested changes and no open review thread → anything else, a required human approval included, is gate 3.
-- A slice in the wave reported `Confidence: low` → gate 6. `B1`'s `medium` Confidence is expected.
+- A slice in the wave reported `Confidence: low` → gate 6.
 - A wave with a one-way slice → gate 6; the human merges it.
 - Any wave carried a one-way slice, or the plan adds a migration → the final plan PR goes to gate 6 too, since its merge can deploy them.
 - The final plan PR also needs the reviewer's `pass`, on the first review or after the one fix pass. Still `fix` → gate 2.
@@ -27,12 +27,11 @@
 
 ## The wave check is a gate
 
-- `/pod:code`'s check of the combined wave exercises the merged slices' behavior, not just a clean merge. It fails → gate 4.
-- A defect a user would notice that nothing errors on → `/pod:code`'s **Wave fix**, not a halt.
+- A defect a user would notice that nothing errors on → `/pod:code`'s **Wave fix**, not gate 4.
 
 ## Halt gates
 
-1. **blocked-concern:** `BLOCKED` from any engineer or from you (incl. an agent that stalled twice) → `BLOCKED`.
+1. **blocked-concern:** `BLOCKED` from any engineer or from you → `BLOCKED`.
 2. **plan-review-fail:** the final plan PR still has `FIX` findings, or any reproduced bug, after the fix pass → `BLOCKED`.
 3. **auto-merge-fail:** a criterion fails, or the merge fails → `BLOCKED`.
 4. **inter-wave-verify:** the wave check fails → `BLOCKED`.
@@ -44,7 +43,7 @@
 
 ## Every gate halts
 
-- Each halt appends a one-line queue entry from `orchestrator` whose body starts `gate <N> (<name>): ` and names the artifact, e.g. `gate 6 (escalation-valve): wave 2 PR <url> withheld, one-way door`. The rest is plain words with real values, per the PR template's **The human reads every slot**.
+- Each halt appends a one-line queue entry from `orchestrator` whose body starts `gate <N> (<name>): ` and names the artifact, e.g. `gate 6 (escalation-valve): wave 2 PR <url> withheld, one-way door`.
 - Pod Board tells a halt from a note by the `gate <N> (<name>): ` start → no other entry starts that way.
 - The queue type is the one after the gate's `→` above, never your own pick → a gate 3 is `BLOCKED` even when the fix is only "merge it after #27".
 - A withheld final plan PR starts `gate 6 (escalation-valve): final plan PR <url> withheld, ` → pod-flow reads that start as a PR for the human to merge, then resume.
