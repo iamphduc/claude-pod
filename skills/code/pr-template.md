@@ -67,4 +67,8 @@ Take the proof from the agents' reports and your own checks, as written. A claim
 
 ## Staging PR
 
-One `## <plan title> (<plan-slug>)` section per plan, from `skills/autopilot/policy.md`, takes the place of `## Risks` and `## Try it`. Reusing the PR adds this plan's guide line and section and keeps the others.
+`/pod:autopilot`'s PR from `pod-staging` to the default branch, at gate 7. The human reads this PR, not the branch, so it says what `pod-staging` holds.
+
+- **Title:** a conventional commit for what its plans built, ending `(plan <slug>)` or `(plans <slug>, <slug>)`, e.g. `feat: friends list and invites (plan friends)`.
+- **Plan sections:** one `## <plan title> (<plan-slug>)` section per plan takes the place of `## Risks` and `## Try it`: the goal in a sentence, the features it added or changed (from `pod-docs/features.md`), its one-way doors and the decisions made for the human, loose ends, links to its final PR and report, and last, a `### Try it` with its final PR's **Try it** steps.
+- **Reuse:** a staging PR is already open → rewrite the title to cover every plan, add this plan's guide line and section, and keep the others.

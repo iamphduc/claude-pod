@@ -4,7 +4,7 @@
 // each conversion PR adds its skill.
 import { readFileSync, readdirSync, existsSync } from 'node:fs'
 
-const CONVERTED = ['idea', 'teach', 'code', 'task']
+const CONVERTED = ['idea', 'teach', 'code', 'task', 'autopilot']
 const SECTIONS = ['Guardrails', 'Work', 'Hand back']
 const MAX_LINES = 500
 const MAX_RULE_WORDS = 60

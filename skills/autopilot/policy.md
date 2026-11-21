@@ -1,55 +1,58 @@
 # Autonomous mode policy
 
-`/pod:autopilot` is the human's standing consent to merge PRs that clear the bar below. Anything that doesn't clear it halts the run for the human. (If `CLAUDE.md` forbids unattended merges, add an autopilot carve-out or use `/pod:code`.)
+`/pod:autopilot` is the human's standing consent to merge PRs that clear the bar below. A PR merges only when it meets every rule in **Auto-merge criteria**; anything else halts the run for the human. (If `CLAUDE.md` forbids unattended merges, add an autopilot carve-out or use `/pod:code`.)
 
 ## Auto-merge criteria
 
-A PR merges only if **all** hold:
-
-- **CI passed, if there is CI:** when the brief's `## CI` isn't `none`, at least one check ran and every required check passes — zero checks means CI didn't run, not a pass. No CI → the wave check is the gate.
-- **GitHub says it's clean:** `mergeable: MERGEABLE`, `mergeStateStatus: CLEAN`, no `CHANGES_REQUESTED` review, no unresolved review thread. Branch protection that requires a human approval keeps it `BLOCKED` → gate 3.
-- **No low confidence:** any slice in the wave reported `Confidence: low` → withhold and halt (gate 6).
-- **No one-way door:** a wave with a slice marked one-way → withhold and halt (gate 6); the human merges it. The final plan PR too, when any wave carried a one-way slice or the plan adds a migration: merging it to the merge-target can deploy them.
-- **Final plan PR only:** the reviewer's `pass`, on the first review or after the one fix pass. Still `fix` → gate 2.
-
-Merge with a merge commit (not squash) and leave the branches for teardown. Then mark the wave `merged`/`done`. Any merge failure → gate 3.
+- The brief's `## CI` isn't `none` → at least one check ran and every required check passes. Zero checks means CI didn't run, not a pass.
+- Checks are still running, or haven't started yet after a push (a close-out commit included) → wait for them; that is neither a pass nor a fail.
+- GitHub reports the PR mergeable and clean, with no requested changes and no open review thread → anything else, a required human approval included, is gate 3.
+- A slice in the wave reported `Confidence: low` → gate 6.
+- A wave with a one-way slice → gate 6; the human merges it.
+- Any wave carried a one-way slice, or the plan adds a migration → the final plan PR goes to gate 6 too, since its merge can deploy them.
+- The final plan PR also needs the reviewer's `pass`, on the first review or after the one fix pass. Still `fix` → gate 2, not gate 3.
+- Every criterion holds → merge with a merge commit (not squash).
 
 ## Preflight (before `/pod:code`'s own)
 
-No CI (`## CI` is `none`) isn't a halt: say once, at the start, that merges rest on the wave check alone. `B1`'s `medium` Confidence is expected; `low` still halts.
+- The brief's `## CI` is `none` → the wave check is the gate. Say so once, at the start; it isn't a halt.
+- Settle `/pod:code`'s browser check and the **Merge target** before the run goes unattended → a question nobody answers stalls it.
 
-**Browser:** settle `/pod:code`'s browser check first — once the run is unattended, a question nobody answers stalls it.
+## Merge target
 
-**Merge target:** no `--merge-target` given → reuse a `## <date> — merge target: <choice>` entry in `pod-docs/decisions.md`; none → ask once, with the browser check: **Staging (recommended)** — merges land on `pod-staging` and the human moves them to the default branch after looking, so unattended code never reaches it alone — or **Default branch**. Record it there under that title. With staging, bring `pod-staging` on origin up to date with origin's default branch (create it if missing). A conflict where every hunk only appends lines to a `pod-docs/` file → keep both sides (a line both sides added word for word stays once), and name the files in your next hand-back. Any other conflict → gate 3. Use `pod-staging` as the merge-target everywhere.
+- No `--merge-target` given → reuse a `## <date> — merge target: <choice>` entry in `pod-docs/decisions.md`.
+- No such entry → ask **Staging (recommended)** — merges land on `pod-staging` and the human moves them to the default branch after looking, so unattended code never reaches it alone — or **Default branch**, and record the answer there under that title.
+- Staging chosen → `pod-staging` exists on origin, holds origin's default branch, and is the merge-target everywhere.
+- Bringing `pod-staging` up to date conflicts, and every hunk only appends lines to a `pod-docs/` file → keep both sides (a line both sides added word for word stays once), and name the files in your next hand-back.
+- Any other conflict while bringing `pod-staging` up to date → gate 3.
 
 ## The wave check is a gate
 
-`/pod:code`'s check of the combined wave must exercise the merged slices' behavior, not just a clean merge. It fails → gate 4. A defect a user would notice that nothing errors on → `/pod:code`'s **Wave fix**, not a halt.
+- A defect a user would notice that nothing errors on → `/pod:code`'s **Wave fix**, not gate 4.
 
 ## Halt gates
 
-| # | Name | Trigger | Queue type |
-|---|---|---|---|
-| 1 | blocked-concern | `BLOCKED` from any engineer or from you (incl. an agent that stalled twice) | `BLOCKED` |
-| 2 | plan-review-fail | Final plan PR still has `FIX` findings, or any reproduced bug, after the fix pass | `BLOCKED` |
-| 3 | auto-merge-fail | A PR fails the auto-merge criteria, or the merge fails | `BLOCKED` |
-| 4 | inter-wave-verify | Wave verification fails | `BLOCKED` |
-| 5 | safety-bound | A safety bound is hit | `PENDING` |
-| 6 | escalation-valve | A mergeable PR withheld for a risk signal (`Confidence: low`, or a one-way door) | `PENDING` |
-| 7 | plan-complete | No `planned` sprint row left; with staging, open (or reuse) a PR from `pod-staging` to the default branch and name it in the halt — never merge it | `PENDING` |
+1. **blocked-concern:** `BLOCKED` from any engineer or from you → `BLOCKED`.
+2. **plan-review-fail:** the final plan PR still has `FIX` findings, or any reproduced bug, after the fix pass → `BLOCKED`.
+3. **auto-merge-fail:** a criterion fails, or the merge fails → `BLOCKED`.
+4. **inter-wave-verify:** the wave check fails → `BLOCKED`.
+5. **safety-bound:** a safety bound is hit → `PENDING`.
+6. **escalation-valve:** a criterion withholds a mergeable PR → `PENDING`.
+7. **plan-complete:** no `planned` sprint row left; with staging, open (or reuse) the staging PR per `${CLAUDE_PLUGIN_ROOT}/skills/code/pr-template.md`'s **Staging PR**, and name it in the halt; never merge it → `PENDING`.
 
-**Staging PR (gate 7):** the human reads this PR, not the branch, so it says what `pod-staging` holds. Title: a conventional commit for what its plans built, ending `(plan <slug>)` or `(plans <slug>, <slug>)`, e.g. `feat: friends list and invites (plan friends)`. Body per `${CLAUDE_PLUGIN_ROOT}/skills/code/pr-template.md`, with one `## <plan title> (<plan-slug>)` section per plan on it, each with the goal in a sentence, the features it added or changed (from `pod-docs/features.md`), its one-way doors and the decisions made for the human, loose ends, links to its final PR and report, and last, a `### Try it` with its final PR's **Try it** steps. Reusing an open PR → rewrite the title to cover every plan, add this plan's section, and keep the others.
+- Gate 1's one exception: a `BLOCKED` fixed only by a test fixture or doc no other slice owns → give it to that engineer, resume it, and tell the human.
 
-**Gate 1's one exception:** a `BLOCKED` fixed only by a test fixture or doc no other slice owns → give it to that engineer, resume it, and tell the human.
+## Every gate halts
 
-**Every gate halts:** append a one-line queue entry from `orchestrator`, of the table's queue type (never your own pick: a gate 3 is `BLOCKED` even when the fix is only "merge it after #27"), whose body starts `gate <N> (<name>): ` and then names the artifact, e.g. `gate 6 (escalation-valve): wave 2 PR <url> withheld, one-way door`. A withheld final plan PR starts `gate 6 (escalation-valve): final plan PR <url> withheld, `: pod-flow reads that start as a PR for the human to merge, then resume. The rest is in plain words with real values, per the PR template's **The human reads every slot**. Pod Board tells a halt from a note by that start, so no other entry starts that way. Then send a `PushNotification` and end the turn. `BLOCKED` must be resolved before resuming; `PENDING` only needs acknowledging. A Pod Board answer (`**Answer (human):**`) acknowledges either; an answered `BLOCKED` is resolved once `/pod:code`'s **Answers** rule applies it and finds the cause gone. `/pod:code`'s **Plan complete** step 5 entry is a note, written before the final merge; gate 2 and gate 7 each add their own halt entry when they halt.
+- Each halt appends a one-line queue entry from `orchestrator` whose body starts `gate <N> (<name>): ` and names the artifact, e.g. `gate 6 (escalation-valve): wave 2 PR <url> withheld, one-way door`.
+- Pod Board tells a halt from a note by the `gate <N> (<name>): ` start → no other entry starts that way.
+- The queue type is the one after the gate's `→` above, never your own pick → a gate 3 is `BLOCKED` even when the fix is only "merge it after #27".
+- A withheld final plan PR starts `gate 6 (escalation-valve): final plan PR <url> withheld, ` → pod-flow reads that start as a PR for the human to merge, then resume.
+- To resume, a `PENDING` needs acknowledging, and a Pod Board answer (`**Answer (human):**`) does that. A `BLOCKED` needs resolving, per `/pod:code`'s **Answers**.
+- `/pod:code`'s **Plan complete** step 5 entry is a note → gate 2 and gate 7 still add their own halt entry.
 
 ## Safety bounds
 
-Hitting any → gate 5. Check them before each wave and after each sprint is archived.
-
-- `--max-sprints=<N>` — sprints completed (default: unlimited).
-- `--max-waves=<N>` — waves dispatched (default `20`).
-- `--max-runtime=<duration>` — wall clock, e.g. `4h` (default: unlimited).
-
-Resuming after a halt starts the clock and the counts again. Keep the count in a line `<!-- autopilot-run: started=<ISO8601> sprints=<N> waves=<N> -->` in the active sprint doc (the plan doc between sprints and after the last sprint is archived, where it stays after a gate 2 or 7 halt; carry it over when the sprint-planner writes a new doc).
+- `--max-sprints=<N>` (sprints completed, default unlimited), `--max-waves=<N>` (waves dispatched, default `20`), `--max-runtime=<duration>` (wall clock, e.g. `4h`, default unlimited).
+- A resume starts the clock and the counts again.
+- Keep the counts in `<!-- autopilot-run: started=<ISO8601> sprints=<N> waves=<N> -->` in the active sprint doc, or in the plan doc while none is active (between sprints, after the last one, and after a gate 2 or 7 halt) → a new sprint doc takes it over.
