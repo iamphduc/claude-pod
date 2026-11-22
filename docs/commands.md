@@ -32,7 +32,7 @@ The **researcher** agent searches the web: what already exists, where it falls s
 **Options:**
 - `--deep`: research more angles (up to 5 researchers instead of 3).
 
-### `/pod:plan`: decide what to build
+### `/pod:plan [idea]`: decide what to build
 
 pod interviews you about goals, scope, stack, and risks. Choose the **fast path** to accept its suggested answer wherever there's a safe default. If your project has a UI, you pick a **look** from three options shown in an HTML page (`pod-docs/design-drafts/<slug>-look.html`). The plan is saved to `pod-docs/plans/<slug>.md`.
 
