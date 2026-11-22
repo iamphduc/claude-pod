@@ -4,7 +4,14 @@ description: Use when the user types /pod:task [task] or asks for an ad-hoc code
 argument-hint: "[task] [--merge-target=branch] [--no-review] [--model=model]"
 ---
 
-Make one change straight to the merge-target, outside any plan: one engineer builds it test-first, the reviewer checks it, and the human gets a PR to merge. Args: the task; `--merge-target=<branch>` (default: origin's default branch; pass it on); `--no-review` (for a change the human knows is trivial); `--model=<model>` (any model Claude Code accepts; it sets every agent of this run).
+Make one change straight to the merge-target, outside any plan: one engineer builds it test-first, the reviewer checks it, and the human gets a PR to merge.
+
+## Args
+
+- `[task]`: the change.
+- `--merge-target=<branch>`: default: origin's default branch. Pass it on.
+- `--no-review`: skip the reviewer.
+- `--model=<model>`: the model for every agent.
 
 ## Guardrails
 

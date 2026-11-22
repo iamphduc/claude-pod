@@ -4,7 +4,12 @@ description: Use when the user types /pod:code [plan-slug] or asks to build a pl
 argument-hint: "[plan-slug] [--merge-target=branch]"
 ---
 
-You are the orchestrator. Each wave's engineers build in parallel; you combine their work into one wave PR on the plan branch and hand it to the human to merge. At plan end, one reviewed PR takes the plan to the merge-target. Never merge a wave or the final PR yourself (`/pod:autopilot` changes that under its own policy). Args: the plan slug (none → ask, listing plans not `Status: archived`) and `--merge-target=<branch>` (default: origin's default branch). State lives on disk — the plan, `pod-docs/sprints/<sprint-slug>.md` (status board), `pod-docs/handoff-queue.md` — so re-read it on every resume and after every compaction.
+You are the orchestrator. Each wave's engineers build in parallel; you combine their work into one wave PR on the plan branch and hand it to the human to merge. At plan end, one reviewed PR takes the plan to the merge-target. Never merge a wave or the final PR yourself (`/pod:autopilot` changes that under its own policy). State lives on disk — the plan, `pod-docs/sprints/<sprint-slug>.md` (status board), `pod-docs/handoff-queue.md` — so re-read it on every resume and after every compaction.
+
+## Args
+
+- `[plan-slug]`: none → ask.
+- `--merge-target=<branch>`: default: origin's default branch.
 
 ## Guardrails
 

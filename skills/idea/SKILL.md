@@ -4,9 +4,13 @@ description: Use when the user types /pod:idea [idea] or asks to park, note, or 
 argument-hint: "[idea]"
 ---
 
-Park an idea in `pod-docs/ideas/<slug>.md` so it isn't lost, and so pod brings it back when the human starts on something it touches. Works in any folder, with or without pod set up. Args: the idea; none → list the parked ideas.
+Park an idea in `pod-docs/ideas/<slug>.md` so it isn't lost, and so pod brings it back when the human starts on something it touches. Works in any folder, with or without pod set up.
 
 **Docs version** first: check it per `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md`.
+
+## Args
+
+- `[idea]`: none → list the parked ideas.
 
 ## Guardrails
 

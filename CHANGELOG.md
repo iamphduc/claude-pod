@@ -6,6 +6,7 @@ Newest first. The `pod` and `pod-flow` plugins share this file. Each heading nam
 
 - **Commands show their options as you type.** Each command that takes arguments now has an `argument-hint`, so Claude Code shows them after the command name, such as `/pod:ship [idea] [--no-research] [--deep] [--max-sprints=N] …`. Before, the `/` menu showed only `[idea]` or `[plan-slug]`, and the flags were easy to miss.
 - **`docs/commands.md` lists each command's options in one place.** Every command with flags has an **Options** list, with each flag's default. Before, flags were spread across `Options:` lines, a `Limits:` line, and the prose, and `/pod:ship` named only `--max-*`.
+- **Each skill lists its args in an `## Args` section.** One short line per arg, right after the goal paragraph, so a maintainer or a curious user sees them at a glance. Before, the args sat in a long `Args:` sentence inside the goal. The skill template and its checker now have the section. `/pod:create-wave-prompts` moves what it does with a missing slug or a chosen wave to **The current wave**.
 - **Tests.** New eval: `ship-init-continues` (`/pod:ship` resumes at init and goes on to its go check, 3 of 3).
 
 ## pod 0.11.6 — 2026-11-21

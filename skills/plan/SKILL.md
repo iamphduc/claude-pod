@@ -6,6 +6,10 @@ argument-hint: "[idea]"
 
 Turn the human's idea into a strategic plan at `pod-docs/plans/<slug>.md` that the sprint-planner can split into sprints. Interview until you and the human agree on the path, pick the look with them, then write it. Don't build it or write sprint docs.
 
+## Args
+
+- `[idea]`: what to plan.
+
 ## Guardrails
 
 - **Nothing is on disk until the plan is written**, and a human who walks away thinks it's done. Post the interview summary with the look pick (*"Pick A, B, C or a mix — and correct anything in the summary above."*) and write the plan in the turn that answers it, or right after the summary when there's no UI. A turn that ends before the plan exists ends with `Plan not written yet — reply to continue.`
