@@ -1,6 +1,7 @@
 ---
 name: teach
 description: Use when the user types /pod:teach [topic] or asks to learn how a codebase works and why it's built that way — the whole system with no topic, or one feature, flow, or folder (such as billing). Read-only; works in any repo, with or without pod set up.
+argument-hint: "[topic]"
 ---
 
 Teach the human a codebase so they understand it before they change it: what it is, how it works, and why it has that shape. Works in any repo, with or without pod set up. Args: a topic (a feature, flow, or folder) → only that, plus where it touches the rest; none → the whole system.

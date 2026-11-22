@@ -1,6 +1,7 @@
 ---
 name: ship
 description: Use when the user types /pod:ship [idea] or asks to go from an idea to a shipped plan in one command — research, plan interview, setup, then autopilot.
+argument-hint: "[idea] [--no-research] [--deep] [--max-sprints=N] [--max-waves=N] [--max-runtime=4h]"
 ---
 
 Take one idea from research to autopilot in one command. Run each step's own skill. Args: the idea, `--no-research`, `--deep` (for research), and autopilot's `--max-*` bounds. **Docs version** first: check it per `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md`.

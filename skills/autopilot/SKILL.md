@@ -1,6 +1,7 @@
 ---
 name: autopilot
 description: Use when the user types /pod:autopilot [plan-slug] or asks to run the workflow autonomously across a plan. Also the resume command after a halt.
+argument-hint: "[plan-slug] [--merge-target=branch] [--max-sprints=N] [--max-waves=N] [--max-runtime=4h] [--max-width=N]"
 ---
 
 Run the whole plan without the human: the `/pod:code` wave loop (`${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md`), except that you merge what clears the bar in `${CLAUDE_PLUGIN_ROOT}/skills/autopilot/policy.md` and halt on everything else. Args: optional plan slug, the policy's `--max-*` bounds, and `--max-width=<N>` (passed to the sprint-planner).

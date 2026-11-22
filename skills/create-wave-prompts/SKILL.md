@@ -1,6 +1,7 @@
 ---
 name: create-wave-prompts
 description: Use when the user types /pod:create-wave-prompts or asks to emit per-wave dispatch prompts to run engineers in separate Claude Code sessions (session fan-out instead of subagent dispatch).
+argument-hint: "[sprint-slug] [wave] [--merge-target=branch]"
 ---
 
 For a human who wants to run each engineer in a terminal they can watch: find the sprint's current wave and print one paste-ready prompt per slice, then stop. You only write text — don't dispatch agents, create worktrees, write the queue, or merge. The one file you may change is the sprint doc's status board, and only to mark waves that are already finished.

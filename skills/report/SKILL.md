@@ -1,6 +1,7 @@
 ---
 name: report
 description: Use when the user types /pod:report [plan-slug] or asks for a report of what a plan built.
+argument-hint: "[plan-slug]"
 ---
 
 **Docs version** first: check it per `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md`.

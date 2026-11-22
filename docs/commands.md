@@ -20,11 +20,17 @@ Creates pod's files in `pod-docs/` and never overwrites one that already exists.
 
 Runs research → plan → init (only if needed) → autopilot, so you never retype the idea. If the idea is one small change, it first offers to run it as `/pod:task` instead (so does `/pod:plan`). You still answer the plan interview. Before autopilot starts, it shows you the plan and waits for `go`, because autopilot merges without you. If it stops partway, run `/pod:ship` again and it picks up where it left off.
 
-Options: `--no-research` skips research, `--deep` researches more, and `--max-*` sets autopilot's limits.
+**Options:**
+- `--no-research`: skip the web research.
+- `--deep`: research more angles (up to 5 researchers instead of 3).
+- `--max-sprints=N`, `--max-waves=N`, `--max-runtime=4h`: autopilot's limits. See [`/pod:autopilot`](#podautopilot-slug-build-without-stopping-for-you).
 
 ### `/pod:research <idea> [--deep]`: look before you build
 
 The **researcher** agent searches the web: what already exists, where it falls short, and how people build it. A narrow idea gets one researcher. A broad one gets up to 3 (`--deep`: up to 5), each looking at a different angle, working at the same time, and one more run combines their findings. Every claim links to its source. It ends with ideas and questions for your plan. The report is saved to `pod-docs/research/<slug>.md` for the agents, and pod opens `pod-docs/research/<slug>.html` for you: cards for what exists, with how close each is to your idea, and each question with its options side by side. This works in any folder, even before `/pod:init`.
+
+**Options:**
+- `--deep`: research more angles (up to 5 researchers instead of 3).
 
 ### `/pod:plan`: decide what to build
 
@@ -38,7 +44,8 @@ The interview goes in rounds. Each round asks every question pod can ask now, nu
 
 Writes `pod-docs/sprints/<slug>.md` with slices grouped into waves. **Read it before coding.** This is your best chance to catch two slices that touch the same files.
 
-Options: `--max-width=N` allows wider waves (default 5).
+**Options:**
+- `--max-width=N`: the most slices in one wave. Default: 5.
 
 ### `/pod:code [slug]`: build, one wave at a time
 
@@ -46,29 +53,43 @@ For each wave, pod starts one engineer per slice, combines their work into one P
 
 Each plan claims its own port range (3000, 3100, …) and records it in the plan doc, so two pod runs on one machine, such as two repos overnight, never fight over ports. In a new JavaScript project, engineers use pnpm, so each install reuses one shared store; an existing project keeps the package manager its lockfile names.
 
-Options: `--merge-target=<branch>` (default: your repo's default branch).
+**Options:**
+- `--merge-target=<branch>`: the branch the final PR goes to. Default: your repo's default branch.
 
 ### `/pod:autopilot [slug]`: build without stopping for you
 
 Does the same as `/pod:code`, but merges each wave PR itself and moves on to the next sprint. It **stops and notifies you** when something looks risky: a failed check, an engineer who isn't confident, a change that's hard to undo, or a limit you set. If a question comes up, it notifies you and keeps going with a default. Running it means you agree to the auto-merges.
 
-Before it starts, it asks once where to merge. The recommended choice is a `pod-staging` branch: autopilot merges there and, at the end, opens a PR from `pod-staging` to your default branch. The PR's title says what the plans built, and its body has a section per plan: the goal, the features, the decisions made for you, loose ends, and links to the plan's PR and report. A later plan that lands before you merge adds its own section. You merge that PR after a look, so nothing nobody read reaches `main` overnight. Pass `--merge-target=<branch>` to skip the question.
+Before it starts, it asks once where to merge. The recommended choice is a `pod-staging` branch: autopilot merges there and, at the end, opens a PR from `pod-staging` to your default branch. The PR's title says what the plans built, and its body has a section per plan: the goal, the features, the decisions made for you, loose ends, and links to the plan's PR and report. A later plan that lands before you merge adds its own section. You merge that PR after a look, so nothing nobody read reaches `main` overnight.
 
-Limits: `--max-sprints=N`, `--max-waves=N` (default 20), `--max-runtime=Nh`, and `--max-width=N` for wider waves. CI is optional but recommended. With CI, every check must pass before a merge. The full rules are in [`skills/autopilot/policy.md`](../skills/autopilot/policy.md).
+CI is optional but recommended. With CI, every check must pass before a merge. The full rules are in [`skills/autopilot/policy.md`](../skills/autopilot/policy.md).
 
 Run one plan per session: after a plan completes, run `/clear` before the next `/pod:autopilot`. State lives on disk, so nothing is lost, and the next plan starts with a fresh context.
 
+**Options:**
+- `--merge-target=<branch>`: where autopilot merges. It skips the merge question.
+- `--max-sprints=N`: stop after N sprints. Default: no limit.
+- `--max-waves=N`: stop after N waves. Default: 20.
+- `--max-runtime=4h`: stop after this much time. Default: no limit.
+- `--max-width=N`: the most slices in one wave. Default: 5.
+
 ### `/pod:task <task>`: one change, outside any plan
 
-One engineer builds the change test-first, the reviewer checks it, and you merge the PR. Ask for more changes before you merge, and an engineer makes them on the same PR, with no new review unless you ask for one. It branches off `main` (or `--merge-target=<branch>`), never off a plan branch. Add `--no-review` for trivial changes. pod runs on your own model, as set with `/model`, and never on a stronger one: small, contained fixes run on Sonnet when your model is above it, the rest on your model. `--model=<model>` runs every agent of one task on that model instead. On Fable, pod runs on Fable too, at about twice the cost of Opus: switch to Opus with `/model` before a long run to save.
+One engineer builds the change test-first, the reviewer checks it, and you merge the PR. Ask for more changes before you merge, and an engineer makes them on the same PR, with no new review unless you ask for one. It branches off `main`, never off a plan branch. pod runs on your own model, as set with `/model`, and never on a stronger one: small, contained fixes run on Sonnet when your model is above it, the rest on your model. On Fable, pod runs on Fable too, at about twice the cost of Opus: switch to Opus with `/model` before a long run to save.
 
 Every pod PR, this one included, opens with a review guide: the steps in the order they were built, each linked to its own diff and marked `Read` or `Skim`. The proof (tests, checks, browser rows) is folded below it. See [PR bodies](design.md#pr-bodies).
+
+**Options:**
+- `--merge-target=<branch>`: the branch the task branches off and merges to. Default: your repo's default branch.
+- `--no-review`: skip the reviewer, for a trivial change.
+- `--model=<model>`: run every agent of this task on that model.
 
 ### `/pod:create-wave-prompts [sprint] [wave]`: run engineers yourself
 
 Works out the current wave and prints the commands plus one ready-to-paste prompt per slice. Open a terminal per slice, run `claude --agent pod:engineer`, and paste the prompt. Combining the work and opening the PR is up to you.
 
-Options: `--merge-target=<branch>`.
+**Options:**
+- `--merge-target=<branch>`: the branch the plan merges to. Default: your repo's default branch.
 
 ### `/pod:report [slug]`: plan report
 
