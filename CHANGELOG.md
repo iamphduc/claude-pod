@@ -2,6 +2,13 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.11.7 — 2026-11-22
+
+- **Commands show their options as you type.** Each command that takes arguments now has an `argument-hint`, so Claude Code shows them after the command name, such as `/pod:ship [idea] [--no-research] [--deep] [--max-sprints=N] …`. Before, the `/` menu showed only `[idea]` or `[plan-slug]`, and the flags were easy to miss.
+- **`docs/commands.md` lists each command's options in one place.** Every command with flags has an **Options** list, with each flag's default. Before, flags were spread across `Options:` lines, a `Limits:` line, and the prose, and `/pod:ship` named only `--max-*`.
+- **Each skill lists its args in an `## Args` section.** One short line per arg, right after the goal paragraph, so a maintainer or a curious user sees them at a glance. Before, the args sat in a long `Args:` sentence inside the goal. The skill template and its checker now have the section. `/pod:create-wave-prompts` moves what it does with a missing slug or a chosen wave to **The current wave**.
+- **Tests.** New eval: `ship-init-continues` (`/pod:ship` resumes at init and goes on to its go check, 3 of 3).
+
 ## pod 0.11.6 — 2026-11-21
 
 - **pod reads CI from the repo, not only the brief.** CI config in the repo (such as `.github/workflows/`) counts as CI, even when the brief's `## CI` says `none` or `decisions.md` records `CI: none`. So you can add CI any way you like, and autopilot requires its checks without a new `/pod:init` run. `/pod:init` doesn't offer CI that the repo already has. Before, autopilot merged a PR with zero checks in a repo with a CI workflow, because the brief said `none`. New evals: `autopilot-ci-from-repo` (on 0.11.5, autopilot merged in 3 of 3 runs; now it halts in 3 of 3) `autopilot-ci-red-check` (a failed check halts, 3 of 3), and `autopilot-no-ci-merges` (with no CI, a PR with zero checks still merges, 3 of 3).

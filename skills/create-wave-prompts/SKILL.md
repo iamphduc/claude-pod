@@ -1,11 +1,16 @@
 ---
 name: create-wave-prompts
 description: Use when the user types /pod:create-wave-prompts or asks to emit per-wave dispatch prompts to run engineers in separate Claude Code sessions (session fan-out instead of subagent dispatch).
+argument-hint: "[sprint-slug] [wave] [--merge-target=branch]"
 ---
 
 For a human who wants to run each engineer in a terminal they can watch: find the sprint's current wave and print one paste-ready prompt per slice, then stop. You only write text — don't dispatch agents, create worktrees, write the queue, or merge. The one file you may change is the sprint doc's status board, and only to mark waves that are already finished.
 
-Args: the sprint slug (none → the only active sprint doc; several → list them and stop; none at all → point to `/pod:sprint`), an optional wave number (skips detection and the board sync — say it was chosen by hand), and `--merge-target=<branch>` (default: origin's default branch).
+## Args
+
+- `[sprint-slug]`: none → the only active sprint doc.
+- `[wave]`: optional. Default: the current wave.
+- `--merge-target=<branch>`: default: origin's default branch.
 
 ## Checks — warn at the top, don't halt
 
@@ -17,6 +22,8 @@ Args: the sprint slug (none → the only active sprint doc; several → list the
 
 Git and GitHub are the record here, not the board, because the human runs the waves by hand. After fetching, a wave is **done** when a merged PR from its wave head `<sprint-slug>-w<N>` targets the plan branch, or all its slice branches are already in the plan branch. The current wave is the first one not done.
 
+- No sprint slug and several active sprint docs → list them and stop; none at all → point to `/pod:sprint`.
+- A wave number given → use it, skip detection and the board sync, and say it was chosen by hand.
 - Mark done waves' slices `done` / `merged` on the board.
 - A current-wave slice already pushed to origin is built: list it as `pushed — not re-emitted`.
 - Every wave done → `/pod:code <plan-slug>` is next (it archives the sprint and, at plan end, opens and reviews the final PR); stop.

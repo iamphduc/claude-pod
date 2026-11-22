@@ -1,11 +1,17 @@
 ---
 name: research
 description: Use when the user types /pod:research [idea] or asks to research an idea or question on the web — has it been built, what similar things could be improved, what the best practices are. Also offered by /pod:plan before its interview.
+argument-hint: "[idea] [--deep]"
 ---
 
 Get a web research report on an idea before deciding what to build, written by `pod:researcher` to `pod-docs/research/<slug>.md` — one researcher for a narrow idea, several in parallel for a broad one. Works in any folder, with or without pod set up. Don't research it yourself — the agent keeps web pages, and anything hidden in them, out of this session.
 
-Args: the idea (none → ask for it) and `--deep`.
+## Args
+
+- `[idea]`: none → ask.
+- `--deep`: more researchers.
+
+## Work
 
 - **Docs version** first: check it per `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md`.
 - **Parked ideas:** the idea touches one in `pod-docs/ideas/` → bring it back per **Bringing ideas back** in `${CLAUDE_PLUGIN_ROOT}/skills/idea/SKILL.md`; yes → paste it into the brief.

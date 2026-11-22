@@ -5,7 +5,7 @@
 import { readFileSync, readdirSync, existsSync } from 'node:fs'
 
 const CONVERTED = ['idea', 'teach', 'code', 'task', 'autopilot']
-const SECTIONS = ['Guardrails', 'Work', 'Hand back']
+const SECTIONS = ['Args', 'Guardrails', 'Work', 'Hand back']
 const MAX_LINES = 500
 const MAX_RULE_WORDS = 60
 const MAX_PART_RULES = 8
@@ -65,11 +65,11 @@ function check(file) {
     fail(intro[1].n, 'before the first `##` section: the goal paragraph, then only the `**Docs version** first` line')
   }
 
-  // ## Work is required; ## Guardrails and ## Hand back are optional; the order is fixed.
+  // ## Work is required; ## Args, ## Guardrails, and ## Hand back are optional; the order is fixed.
   const names = sections.map(s => s.name)
   const order = SECTIONS.filter(x => names.includes(x))
   if (names.join('|') !== order.join('|') || !names.includes('Work')) {
-    fail(sections[0]?.line ?? end + 2, `the sections are \`## Guardrails\` (optional), \`## Work\`, \`## Hand back\` (optional), in that order; found ${names.map(x => `\`## ${x}\``).join(', ') || 'none'}`)
+    fail(sections[0]?.line ?? end + 2, `the sections are \`## Args\` (optional), \`## Guardrails\` (optional), \`## Work\`, \`## Hand back\` (optional), in that order; found ${names.map(x => `\`## ${x}\``).join(', ') || 'none'}`)
   }
 
   for (const s of sections) {
@@ -77,7 +77,9 @@ function check(file) {
       fail(n, `\`## ${s.name}\` has an indented line: each item is one bullet, with no nested bullets (a format goes in a code block under its rule)`)
     }
     for (const { text, n } of s.body.filter(b => !b.fenced && !/^\s/.test(b.text))) {
-      if (s.name === 'Guardrails') {
+      if (s.name === 'Args') {
+        if (!/^- `[^`]+`(, `[^`]+`)*: /.test(text)) fail(n, 'an arg is `- `<arg>`: <a few words>`')
+      } else if (s.name === 'Guardrails') {
         if (!text.startsWith('- ')) fail(n, 'a guardrail is a bullet, not prose')
       } else if (s.name === 'Hand back') {
         if (!/^- \*\*[^*]+:\*\*/.test(text)) fail(n, 'a hand-back field is `- **<field>:** <what the human sees>`')

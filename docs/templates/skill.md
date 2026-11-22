@@ -6,12 +6,18 @@ description: Use when the user types /pod:<command> [args] or asks to <job>.
 <!-- The description says only when to use the skill, never how it works: an agent that reads a workflow summary there skips the body. -->
 <!-- Write args as `[arg]`; `<arg>` shows as `&lt;arg&gt;` in the skill list. -->
 
-<The goal: one paragraph. What the command does, end to end, and what the human gets at the end. Args: each arg and its default.>
+<The goal: one paragraph. What the command does, end to end, and what the human gets at the end.>
 
 **Docs version** first: check it per `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md`.
 
 <!-- Keep the Docs version line only if the skill reads or writes `pod-docs/`. -->
 <!-- A skill that resumes mid-run puts it in the part that runs once at the start, as a rule, so a resume doesn't check it again. -->
+
+## Args
+
+- `<arg>`: <a few words>. Default: <default>.
+
+<!-- Leave out `## Args` when the command takes none. One short line per arg; a rule that acts on an arg goes under `## Work`. -->
 
 ## Guardrails
 
