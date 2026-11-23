@@ -15,7 +15,7 @@ Take one idea from research to autopilot in one command. Run each step's own ski
 
 ## Work
 
-1. **Resume:** autopilot already started on this plan → step 7. Plan written but not started → step 5.
+1. **Resume:** autopilot already started on this plan → step 7. Plan written but not started → step 5. A research report on this idea but no plan → step 4.
 2. **Size check:** run `/pod:plan`'s **Size check** now, before research. Yes → it sets pod up if needed and runs `/pod:task` instead, and this command stops.
 3. **Research** (unless `--no-research`): run `${CLAUDE_PLUGIN_ROOT}/skills/research/SKILL.md`, without asking first. The repo has code but no filled brief → in the same message, copy init's scaffold per its **Docs** step and dispatch `pod:scout` in the background, so the plan starts from the map. Init's questions wait for step 5.
 4. **Plan:** run `${CLAUDE_PLUGIN_ROOT}/skills/plan/SKILL.md` once the scout you started has finished (its size check is already done, and its overview check waits for step 6), then keep going.
