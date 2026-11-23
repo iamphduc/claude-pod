@@ -27,6 +27,8 @@ You need Claude Code, `git`, and the GitHub CLI (`gh`), logged in. For apps with
 
 pod researches the idea, interviews you, shows you an overview of what it will build, and waits for you to reply `go`. Then it builds. A small change runs as one fix instead of a plan. After a stop, run `/pod:ship` again to pick up where it left off.
 
+In a monorepo, run pod from the repo root too. pod treats the whole repo as one project, and a plan can still target one package.
+
 *Optional:* install `pod-flow@pod` to watch a run as a live tree beside the transcript; see [pod-flow](docs/commands.md#pod-flow).
 
 ## Which command do I use?
