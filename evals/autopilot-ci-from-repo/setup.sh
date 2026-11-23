@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # Autopilot at a wave merge. The brief says no CI, but someone added a CI workflow to the repo since.
 set -e
+. "$(dirname "$0")/../_fixtures/pod-project.sh"
 git init -q -b main
 mkdir -p pod-docs/plans pod-docs/sprints/archive src .github/workflows
-printf '# pod docs\n\npod docs: 2\n' > pod-docs/README.md
+pod_readme
 printf '# Codebase structure\n\n## What it is\n\nA command-line tool with no UI.\n\n## CI\n\nnone\n\n## Smoke recipe\n\n`node src/index.js` prints hi.\nVerification: `node --test`\n' > pod-docs/codebase-structure.md
-printf '# Handoff Queue\n\nFormat: `` - `[YYYY-MM-DD · TYPE · from → to · plan: <slug> · sprint: <slug> · slice: <code>]` <body> **Resolution:** pending ``\n\n---\n' > pod-docs/handoff-queue.md
+pod_queue
 printf '# Features\n\n| Feature | How to prove it |\n|---|---|\n| greet | `node src/index.js` prints hi |\n' > pod-docs/features.md
 printf '# Decisions\n\n## 2026-10-19 — merge target: default branch\n\nAutopilot merges to main.\n\n## 2026-10-19 — CI: none\nContext: a prototype.\nDecision: no CI for now.\nConsequences: merges rest on the wave check.\n' > pod-docs/decisions.md
 cat > pod-docs/plans/demo.md <<'PLAN'
@@ -49,4 +50,4 @@ jobs:
       - run: node --test
 YML
 printf 'console.log("hi")\n' > src/index.js
-git add -A && git -c user.name=t -c user.email=t@t commit -qm init
+pod_commit

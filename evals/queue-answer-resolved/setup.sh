@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # A pod project at the start of wave 2. The only answered entry is already resolved: pod applied it before wave 1 by adding slice Q1.
 set -e
+. "$(dirname "$0")/../_fixtures/pod-project.sh"
 git init -q -b main
 mkdir -p pod-docs/plans pod-docs/sprints src
-printf '# pod docs\n\npod docs: 2\n' > pod-docs/README.md
+pod_readme
 printf '# Codebase structure\n\n## What it is\n\nA command-line tool with no UI.\n\n## Smoke recipe\n\n`node src/index.js` prints hi.\n' > pod-docs/codebase-structure.md
 printf '# Features\n\n| Feature | User reaches it by | Drive | Proof |\n|---|---|---|---|\n| greet | the command line | `node src/index.js` | prints hi |\n' > pod-docs/features.md
-printf '# Decisions\n' > pod-docs/decisions.md
+pod_decisions
 cat > pod-docs/handoff-queue.md <<'QUEUE'
 # Handoff Queue
 
@@ -62,4 +63,4 @@ _From plan: pod-docs/plans/demo.md · Slug: one · Status: active · Generated: 
 SPRINT
 printf 'console.log("Hi")\n' > src/index.js
 printf 'module.exports = { greet: () => "Hi" }\n' > src/greet.js
-git add -A && git -c user.name=t -c user.email=t@t commit -qm init
+pod_commit

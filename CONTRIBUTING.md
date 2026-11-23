@@ -52,6 +52,8 @@ claude plugin eval . --scaffold --allow-tools Write Edit --ablation none --runs 
 
 The report shows only each grader's pass or fail, not what the agent said. `--keep-temp` keeps each run's folder, so you can read the agent's answer in `<folder>/out/trace.jsonl` and tell a real failure from a grader that matched the wrong text, without a paid re-run. The tool prints each folder's path and seals it as read-only: to delete one, run `chmod -R u+rwx <folder> && rm -rf <folder>`.
 
+A case's `setup.sh` builds its scratch repo. The shared parts are in `evals/_fixtures/`: `pod-project.sh` writes the files most cases share, such as the `pod docs: <N>` line, so a docs layout change edits one line. Cases that start from the same repo source one fixture file. `case.yaml` stays: the eval tool reads `scaffold_script` only there.
+
 The cases grant no shell, so they run on native Windows too. Longer flows (`/pod:ship`, `/pod:code`, autopilot) still need a manual run in a throwaway repo.
 
 To typecheck pod-flow, load it in a session once so Claude Code writes its types (`claude --plugin-dir ./pod-flow`), then run `npx -p typescript tsc --noEmit -p .` from `pod-flow/`.

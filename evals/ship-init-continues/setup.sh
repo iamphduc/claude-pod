@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # An empty repo with a written plan, but pod not set up: /pod:ship resumes at init (step 5).
 set -e
+. "$(dirname "$0")/../_fixtures/pod-project.sh"
 git init -q -b main
 git remote add origin https://github.com/acme/todo.git
 mkdir -p pod-docs/plans pod-docs/design-drafts
@@ -62,4 +63,4 @@ none — no UI
 - CI: none (default)
 PLAN
 printf '<!doctype html><title>todo-cli overview</title><h1>todo CLI</h1>\n' > pod-docs/design-drafts/todo-cli-overview.html
-git add -A && git -c user.name=t -c user.email=t@t commit -qm init
+pod_commit
