@@ -7,7 +7,7 @@ body:
     attributes:
       label: pod version
       description: From `/plugin` or `.claude-plugin/plugin.json`. Add the pod-flow version if you use it.
-      placeholder: pod 0.11.9 · pod-flow 0.2.1
+      placeholder: pod X.Y.Z · pod-flow X.Y.Z
     validations:
       required: true
   - type: input
