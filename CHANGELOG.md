@@ -2,6 +2,12 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.11.8 — 2026-11-22
+
+- **The reviewer blocks a bug it can reproduce, wherever the code lives.** Before it calls a finding non-blocking, it tries to build a repro: a user's steps, or a test through the code's own interface with fakes only for what the app doesn't control (a process, the network, the clock). A path no caller takes today still counts. Before, it asked only for "steps that make it go wrong for a user", so a bug in code no user runs directly, such as a dev script, came back `PENDING · someday` with "no repro". On a seeded real plan, a crash in a calibration script was filed `FIX` in 2 of 6 runs before and in 8 of 9 after; the other three seeded bugs stayed `FIX` in every run, with no clear change in time or cost.
+- **A `no repro` says what was tried**, under `PENDING` and **Dismissed** alike, so you can see when a "no repro" call was never tested.
+- **A `PENDING` label names why first:** `[PENDING · no repro | product choice | hardening · now | before hosting | someday]`, such as `[PENDING · no repro · someday]`. Before, the reason came at the end of the line. In the handoff queue, `/pod:code` and `/pod:task` open each reviewer entry with the label as `<when> (<why>):`, such as `someday (no repro):`, the form Pod Board reads to tell a decision from a note. New eval: `queue-review-label` (given the new labels without this rule, the orchestrator opened both entries with "Final PR …", so Pod Board would miss the product choice).
+
 ## pod 0.11.7 — 2026-11-22
 
 - **Commands show their options as you type.** Each command that takes arguments now has an `argument-hint`, so Claude Code shows them after the command name, such as `/pod:ship [idea] [--no-research] [--deep] [--max-sprints=N] …`. Before, the `/` menu showed only `[idea]` or `[plan-slug]`, and the flags were easy to miss.

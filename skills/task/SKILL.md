@@ -42,7 +42,7 @@ Make one change straight to the merge-target, outside any plan: one engineer bui
 - **Skip:** `--no-review` → no reviewer; hand back.
 - **Dispatch:** the full PR body is written, since the reviewer checks it → dispatch `pod:reviewer` (on `--model`, else no `model`) with `kind: task` and every field of its **Required dispatch context** (`${CLAUDE_PLUGIN_ROOT}/agents/reviewer.md`), as field lines `- **<field>:** <value>`, with a long item (the task, the Repro) in an indented block under its label.
 - **Incomplete:** `incomplete` → dispatch again with what it names; that isn't the fix pass.
-- **Pending:** the reviewer reports `PENDING`s → they go to the queue (`from: reviewer`, `to: human`).
+- **Pending:** the reviewer reports `PENDING`s → they go to the queue (`from: reviewer`, `to: human`), each body opening with the reviewer's label as `<when> (<why>):`, such as `someday (no repro):`.
 - **Fix pass:** `fix` → one fix pass: an engineer on the build's model in the same worktree and branch (the build engineer if it can still take a message, else a new one), with the task, its ports and browser, the PR URL, and **review findings** = the `FIX` lines.
 - **Round 2:** the fix pass is done → write the PR body again from its report, with its **Door** line and the fix commits (a one-way `undo:` also names them); then the reviewer again with `round: 2`, its round-1 findings, and the engineer's summary. Hand back, whatever the verdict.
 - **Verdict:** the reviewer returns one → it stays in its PR comment, never in the body.
