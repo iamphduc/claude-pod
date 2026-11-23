@@ -6,7 +6,7 @@ body:
     id: pod-version
     attributes:
       label: pod version
-      description: From `/plugin` or `.claude-plugin/plugin.json`. Add the pod-flow version if you use it.
+      description: Run `claude plugin list` in a shell. Add the pod-flow version if you use it.
       placeholder: pod X.Y.Z · pod-flow X.Y.Z
     validations:
       required: true
