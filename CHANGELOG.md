@@ -2,6 +2,15 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.11.10 — 2026-11-23
+
+- **The orchestrator commits `pod-docs/` only at setup, sprint end, and plan end.** `/pod:code` now says *only*, and why: uncommitted edits survive a compaction or a reboot. Before, the rule gave no limit, and one 4-sprint autopilot run made 38 `docs` commits on the plan branch where about 5 were expected. Each extra push to `pod-staging` also ran CI again. At gate 7, autopilot puts its docs edits in one commit. No eval: the eval sandbox blocks git, so a case can't count commits.
+
+## pod 0.11.9 — 2026-11-22
+
+- **`/pod:ship` resumes after research.** A run that stopped after research but before the plan, for example in the interview, now goes straight to the plan when you run `/pod:ship` again. Before, it asked about the existing report first: research offers only "update" or "a new slug", both of which research again, so the model invented a "use as is" choice and asked about it. New eval: `ship-resume-research` (on 0.11.8, 1 of 3 runs went straight to the interview; now 3 of 3, with no research re-run in any run).
+- **Evals match an interview's first question in any format.** `ship-no-research` and `ship-resume-research` accept `**Q1 - …**` as well as `**Q1**`.
+
 ## pod 0.11.8 — 2026-11-22
 
 - **The reviewer blocks a bug it can reproduce, wherever the code lives.** Before it calls a finding non-blocking, it tries to build a repro: a user's steps, or a test through the code's own interface with fakes only for what the app doesn't control (a process, the network, the clock). A path no caller takes today still counts. Before, it asked only for "steps that make it go wrong for a user", so a bug in code no user runs directly, such as a dev script, came back `PENDING · someday` with "no repro". On a seeded real plan, a crash in a calibration script was filed `FIX` in 2 of 6 runs before and in 8 of 9 after; the other three seeded bugs stayed `FIX` in every run, with no clear change in time or cost.
