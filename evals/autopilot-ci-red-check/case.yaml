@@ -1,5 +1,0 @@
-schema_version: "1.1"
-name: autopilot-ci-red-check
-tags: [autopilot]
-context:
-  scaffold_script: setup.sh

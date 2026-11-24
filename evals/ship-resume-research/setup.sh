@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # A set-up pod project where an earlier /pod:ship run finished research and stopped in the interview: a report, no plan.
 set -e
+. "$(dirname "$0")/../_fixtures/pod-project.sh"
 git init -q -b main
 git remote add origin https://github.com/acme/notes.git
 mkdir -p pod-docs/plans pod-docs/sprints/archive pod-docs/research pod-docs/ideas pod-docs/known-issues pod-docs/feature-details src/routes src/db
-printf '# pod docs\n\npod docs: 2\n' > pod-docs/README.md
+pod_readme
 printf '# Codebase structure\n\n## What it is\n\nA JSON API in Node for shared notes. No UI. No user accounts yet: every note is public.\n\n## Parts\n\n- `src/routes/`: HTTP routes\n- `src/db/`: SQLite access\n\n## CI\n\nnone\n\n## Smoke recipe\n\n`node src/server.js` serves on port 3000.\nVerification: `node --test`\n' > pod-docs/codebase-structure.md
 printf '# Handoff Queue\n\n---\n' > pod-docs/handoff-queue.md
 printf '# Features\n\n| Feature | How to prove it |\n|---|---|\n| notes | GET /notes lists every note |\n' > pod-docs/features.md
@@ -48,4 +49,4 @@ printf '<!doctype html><title>user accounts research</title><h1>Research: user a
 printf 'require("./routes/notes")\n' > src/server.js
 printf 'module.exports = {}\n' > src/routes/notes.js
 printf 'module.exports = {}\n' > src/db/index.js
-git add -A && git -c user.name=t -c user.email=t@t commit -qm init
+pod_commit

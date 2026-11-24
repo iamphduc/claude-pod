@@ -1,5 +1,0 @@
-schema_version: "1.1"
-name: queue-review-pending
-tags: [queue]
-context:
-  scaffold_script: setup.sh

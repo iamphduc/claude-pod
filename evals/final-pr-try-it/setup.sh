@@ -2,11 +2,12 @@
 # A pod project at Plan complete: sprint one is archived, and the plan branch `books` holds 3 changes a person can
 # see, one that changes nothing they can see (a reworded features.md row), and an internal test helper.
 set -e
+. "$(dirname "$0")/../_fixtures/pod-project.sh"
 git init -q -b main
 mkdir -p pod-docs/plans pod-docs/sprints/archive src
-printf '# pod docs\n\npod docs: 2\n' > pod-docs/README.md
+pod_readme
 printf '# Codebase structure\n\n## What it is\n\nA small web app that keeps a reading list.\n\n## CI\n\nnone\n\n## Smoke recipe\n\n`node src/server.js` serves on http://localhost:3000.\n' > pod-docs/codebase-structure.md
-printf '# Handoff Queue\n\nFormat: `` - `[YYYY-MM-DD · TYPE · from → to · plan: <slug> · sprint: <slug> · slice: <code>]` <body> **Resolution:** pending ``\n\n---\n' > pod-docs/handoff-queue.md
+pod_queue
 cat > pod-docs/features.md <<'FEATURES'
 # Features
 
@@ -67,5 +68,5 @@ _From plan: pod-docs/plans/books.md · Slug: one · Status: archived · Generate
 - **Queue entries:** resolved 0, deferred 0
 SPRINT
 printf 'console.log("serving on 3000")\n' > src/server.js
-git add -A && git -c user.name=t -c user.email=t@t commit -qm init
+pod_commit
 git branch books
