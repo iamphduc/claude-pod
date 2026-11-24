@@ -9,7 +9,7 @@ printf '# todo\n' > README.md
 cat > pod-docs/plans/todo-cli.md <<'PLAN'
 # Plan: todo CLI
 
-_Generated: 2026-11-20 · Status: active · Grilled-with: pod (fast)_
+_Generated: 2026-11-20 · Status: active · Grilled-with: pod_
 
 ## Goal
 A command-line todo list: add, list, and finish items, saved in a JSON file.
