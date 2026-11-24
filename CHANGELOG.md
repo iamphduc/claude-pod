@@ -2,6 +2,11 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.12.1 — 2026-11-24
+
+- **`/pod:plan` follows the skill template.** `SKILL.md` now has the guardrails first, then six parts under `## Work`: **Size check**, **What's decided**, **Research**, **Interview**, **Look**, and **Write the plan**. Each "unless" or "skip if" is now its own rule, such as the size check that `/pod:ship` already ran. The description shows the `[idea]` arg. The rules, the strings pod-flow and the evals read, and the names other files cite stay the same.
+- **The plan interview is short rules.** `interview.md` keeps its goal, its question format, and its license. The rest is now three parts of `- <condition> → <result>` rules: **Rounds**, **Facts and decisions**, and **Done**. The plan evals pass in 9 of 9 runs, as before, in a little less time (123 s → 116 s a suite).
+
 ## pod 0.12.0 — 2026-11-23
 
 - **pod no longer offers the Chrome DevTools MCP as a browser.** When `agent-browser` fails its probe, pod now offers only to install it, to use chrome-devtools-axi, or to stop. An MCP server is one browser for the whole session, so with it the engineers and the reviewer skipped their own page checks, and the orchestrator ran them and passed the results on as browser rows. axi gives each agent its own browser, so the MCP option added a second check path to `/pod:code`, `/pod:task`, and the engineer and reviewer for fewer checks. A project that recorded `browser: devtools-mcp` in `pod-docs/decisions.md` is asked again.
