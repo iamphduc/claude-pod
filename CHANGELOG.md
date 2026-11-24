@@ -5,7 +5,7 @@ Newest first. The `pod` and `pod-flow` plugins share this file. Each heading nam
 ## pod 0.13.0 — 2026-11-24
 
 - **`/pod:plan` no longer asks "fast path or full interview?".** It always asks what changes what gets built or how it looks, each question with its recommended answer, and takes a safe default for the rest. Each default is listed in the plan's Key decisions, marked `(default)`, so you can change it at the overview check. Replying `ok` to a round already takes every recommendation, so the choice only cost you a question at the start of each plan. On 0.12.1 the choice was also a format risk: one run numbered it `Q0` and broke the question format. The plan header's `Grilled-with:` no longer ends in `(fast)`.
-- **The plan interview is shorter.** `interview.md` is now one part of six plain rules, from 567 to 376 words, most of them the license. It no longer explains its method as a "design tree" and its "frontier", and it drops the rules `SKILL.md` already has: look facts up yourself, and the summary before the plan. The question format, the plain replies, and "never guess" stay. Round 1 still asks 7 to 9 questions.
+- **The plan interview is shorter.** `interview.md` is now one part of six plain rules, from 567 to 376 words, most of them the license. It no longer explains its method as a "design tree" and its "frontier", and it drops the rules `SKILL.md` already has: look facts up yourself, and the summary before the plan. The question format, the plain replies, and "never guess" stay. Round 1 still asks 8 to 10 questions, now all about the idea, and the plan evals pass 9 of 9 on both sides at about the same time and cost (122 s → 124 s, $0.730 → $0.705 a suite).
 
 ## pod 0.12.1 — 2026-11-24
 
