@@ -29,7 +29,7 @@ You are the orchestrator. Each wave's engineers build in parallel; you combine t
 - **Names:** worktrees at `<parent-repo>/.claude/worktrees/<branch>`; slice branches from the sprint doc; wave head `<sprint-slug>-w<N>`, wave fix `<sprint-slug>-w<N>-fix`, sync `<plan-slug>-sync`, review `<plan-slug>-review`, plan fix `<plan-slug>-fix`.
 - **Ports:** yours `3000`/`3001`; slice *i* (its status-board row) `3000 + 10i`/`3001 + 10i`; a fix engineer `3010`/`3011`; the reviewer `3020`/`3021`; the reporter `3040`/`3041`. These are for port base `3000`: with another base (see **Preflight**), add the difference.
 - **Dispatch:** all of a wave's `pod:engineer` calls in one message, no `isolation`, each with the engineer's **Required dispatch context**: merge-target `<plan-slug>`, `teardown: defer`, its dev ports, any `NOTE for <slice-code>:` from earlier slices, and the **Browser field**.
-- **Browser field:** `axi` → every engineer, reviewer, and reporter dispatch gets `browser: axi`. `devtools-mcp` → they get `browser: none`, since they'd share your one MCP browser; you drive their page checks and pass the results as **browser rows**.
+- **Browser field:** `axi` → every engineer, reviewer, and reporter dispatch gets `browser: axi`.
 - **Model:** the ceiling is your own model; never name one above it. A slice's **Model:** `top` (or `opus` in an older sprint, or none) → no `model`. `sonnet` → `model: sonnet` when the ceiling is above Sonnet, else no `model`. Fixes run on the ceiling.
 - **Model retry:** a `sonnet` slice reports `BLOCKED` or `Confidence: low`, and the ceiling is above Sonnet → dispatch it once more on the ceiling in its worktree before you act; the new report replaces the first.
 ### The wave PR
@@ -47,7 +47,7 @@ You are the orchestrator. Each wave's engineers build in parallel; you combine t
 - **Before the first wave:** the **docs version** is current (per `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md`), the merge-target is on `origin` (none → point to `/pod:init`), and the `## Smoke recipe` is filled in. A lone `B1` in wave 1 writes it → check again before wave 2.
 - **Shell:** run pod's commands through Bash (Git Bash on Windows), and PowerShell only for the project's own scripts → `agent-browser` hangs when PowerShell captures its output.
 - **Browser:** the project has a UI → prove a headless browser opens and closes a page twice, each call under 30 seconds; the hang shows after a close, and `--version` proves nothing. It passes → `browser: agent-browser`.
-- **Browser choice:** the probe fails → reuse a `## <date> — browser: <choice>` entry in `pod-docs/decisions.md`. None → ask once with `AskUserQuestion` (**Install agent-browser**, **Use chrome-devtools-axi**, **Use Chrome DevTools MCP** if its tools are connected, or **Stop**), prove the choice the same way, and record it under that title.
+- **Browser choice:** the probe fails → reuse a `## <date> — browser: <choice>` entry in `pod-docs/decisions.md`. None → ask once with `AskUserQuestion` (**Install agent-browser**, **Use chrome-devtools-axi**, or **Stop**), prove the choice the same way, and record it under that title. A recorded `devtools-mcp` is no longer offered → ask again.
 - **Port base:** reuse the plan doc's `Port base:` line. None → claim a 100-port block B from `3000`, `3100`, … `9900` (never `3900`, the agents' defaults) that is free, claimed by no other run, and reserved by no `pod-docs/known-issues/` entry → write its **Claim file**, and add `Port base: <B>` under the plan doc's header.
 - **Claim file:** the block's claim is `<temp>/pod-ports/<B>` (`<temp>` is the system temp folder) naming `<parent-repo> <plan-slug>`. A claim whose plan is archived or whose repo is gone is free.
 - **Long paths:** on Windows, `git config core.longpaths true`, or worktree removal fails.
@@ -64,7 +64,7 @@ You are the orchestrator. Each wave's engineers build in parallel; you combine t
 - **Each wave:** the last wave PR is merged and torn down before you dispatch → merge the slices into the wave head without squash, check it, open the wave PR, and hand back.
 - **Merge commits:** each slice merges with `--no-ff`, so it has its own merge commit for its Review guide link and undo. A lone slice → `git merge --ff-only`, so no empty merge commit; a refused fast-forward → a normal merge.
 - **Resume:** re-dispatch only `blocked` and `pending` slices, in their worktrees.
-- **Check the combined wave as a user would:** in your own browser session (`pod-orch`; with `devtools-mcp`, the MCP tools), run the `## Smoke recipe` and drive every `pod-docs/features.md` row the wave touched → add or update the rows (in the parent repo) for features it added or changed, and run the **Look check**.
+- **Check the combined wave as a user would:** in your own browser session (`pod-orch`), run the `## Smoke recipe` and drive every `pod-docs/features.md` row the wave touched → add or update the rows (in the parent repo) for features it added or changed, and run the **Look check**.
 - **Wave fix — once per wave, before its PR:** a defect a user would notice, proven by a measurement on the wave head → one engineer on the wave-fix branch (**review findings** = the defects, files owned = where they live). Still there → `PENDING`.
 - **Bootstrap wave:** `B1` alone writes the smoke recipe → it is checked with it, and its `medium` Confidence is expected.
 
@@ -108,7 +108,6 @@ You are the orchestrator. Each wave's engineers build in parallel; you combine t
 6. **Leave nothing behind:** no worktree of this plan left, parent repo clean → name anything you couldn't clear.
 7. **Hand back:** `Plan <plan-slug> complete — final merge awaiting`: the PR URL (merge commit, not squash, so pod can clean up the plan branch), the review verdict with any `FIX` findings, the sorted list (**Needs your decision** first, each with its default and how to change it), the report path, loose ends, and the **Run app** line.
 
-- **Reviewer's browser:** with `devtools-mcp`, drive every browser row of `pod-docs/features.md` yourself on the review worktree's app (`3000`/`3001`) and pass them as **browser rows**.
 - **Reviewer's PENDINGs:** each goes to the queue (`from: reviewer`, `to: human`) → its body opens with the reviewer's label as `<when> (<why>):`, such as `someday (no repro):`, so Pod Board can tell a decision from a note.
 - **Defaults:** each **Needs your decision** entry → record the value in use in `pod-docs/decisions.md` as `## <date> — <title> (agent default — override anytime)`, and resolve the entry as `**Resolution:** <date> — default recorded: <value>; override anytime (<link>)`.
 - **Close-out entry:** in step 5, add one queue entry `orchestrator` → `human`: `plan <plan-slug> complete — final PR <url>, review <pass | still failing>, <N> open entries sorted in the hand-back` → once the report exists, commit and push `pod-docs/` (`docs: close out plan <plan-slug>`).

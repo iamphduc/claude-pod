@@ -10,7 +10,7 @@ idea → research → plan → sprints → waves of parallel engineers → revie
 
 ## Quick start
 
-You need Claude Code, `git`, and the GitHub CLI (`gh`), logged in. For apps with a UI, also install `agent-browser` (`npm i -g agent-browser`) so agents can check pages. If it doesn't work on your machine, pod offers other options; see [Browser setup](docs/commands.md#browser-setup).
+You need Claude Code, `git`, and the GitHub CLI (`gh`), logged in. For apps with a UI, agents check pages in a browser: install [Node.js](https://nodejs.org/) 22 or later, then `npm i -g agent-browser && agent-browser install`. Claude Code's native installer doesn't include Node, and `agent-browser install` downloads the Chrome it uses. If it doesn't work on your machine, pod offers other options; see [Browser setup](docs/commands.md#browser-setup).
 
 **1. Install** (inside Claude Code):
 
