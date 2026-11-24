@@ -123,7 +123,16 @@ pod-flow only reads your `pod-docs/` files (or `docs/`, before you upgrade) and 
 
 ## Browser setup
 
-For apps with a UI, agents check pages with [`agent-browser`](https://github.com/vercel-labs/agent-browser), headless: `npm i -g agent-browser`. On Windows, agents run it from Git Bash, because it can hang under PowerShell. When it's missing or doesn't respond, pod offers to install it, to use [chrome-devtools-axi](https://www.npmjs.com/package/chrome-devtools-axi) (`npm i -g chrome-devtools-axi`), or to use the [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp) instead. To connect the MCP, follow its README, then restart Claude Code. With the MCP, only one agent can use the browser at a time, so during a plan the engineers skip their own page checks and the orchestrator does them. You get fewer checks.
+For apps with a UI, agents check pages with [`agent-browser`](https://github.com/vercel-labs/agent-browser), headless. It needs [Node.js](https://nodejs.org/) 22 or later, which Claude Code's native installer doesn't include. Then install it and the Chrome it uses:
+
+```
+npm i -g agent-browser
+agent-browser install
+```
+
+On Linux, `agent-browser install --with-deps` also installs the system libraries Chrome needs. On Windows, agents run it from Git Bash, because it can hang under PowerShell.
+
+When it's missing or doesn't respond, pod offers to install it or to use [chrome-devtools-axi](https://www.npmjs.com/package/chrome-devtools-axi) (`npm i -g chrome-devtools-axi`, Node.js 20 or later) instead. axi doesn't download a browser: it needs Google Chrome installed, or `CHROME_DEVTOOLS_AXI_EXECUTABLE_PATH` set to another Chrome, such as the one `agent-browser install` put in `~/.agent-browser/browsers/`. Without a Chrome, axi gives no error: the page check waits until pod's time limit stops it.
 
 ## The agents
 

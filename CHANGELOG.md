@@ -2,6 +2,12 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.12.0 — 2026-11-23
+
+- **pod no longer offers the Chrome DevTools MCP as a browser.** When `agent-browser` fails its probe, pod now offers only to install it, to use chrome-devtools-axi, or to stop. An MCP server is one browser for the whole session, so with it the engineers and the reviewer skipped their own page checks, and the orchestrator ran them and passed the results on as browser rows. axi gives each agent its own browser, so the MCP option added a second check path to `/pod:code`, `/pod:task`, and the engineer and reviewer for fewer checks. A project that recorded `browser: devtools-mcp` in `pod-docs/decisions.md` is asked again.
+- **The setup docs name everything a new laptop needs for browser checks.** The README and **Browser setup** now say to install Node.js 22 or later and to run `agent-browser install`. Tested on a clean Debian container with only Claude Code from its native installer: it had no Node, npm, or Chrome, and `agent-browser` failed with `Chrome not found` until `agent-browser install` ran. **Browser setup** also says that axi needs Google Chrome or `CHROME_DEVTOOLS_AXI_EXECUTABLE_PATH`, since without one it waits with no error. When the browser probe fails, `/pod:init` now names each missing piece in install order (Node.js 22 or later, `agent-browser`, its Chrome), each with its command. Before, it gave one example fix, and on a laptop without Node that fix failed.
+- **`/pod:init` checks `git` and `gh` first.** A missing tool, or a `gh` that isn't logged in, is reported with its fix before init creates a GitHub repo or pushes. Before, a missing `gh` showed up only when that step failed.
+
 ## pod 0.11.10 — 2026-11-23
 
 - **The orchestrator commits `pod-docs/` only at setup, sprint end, and plan end.** `/pod:code` now says *only*, and why: uncommitted edits survive a compaction or a reboot. Before, the rule gave no limit, and one 4-sprint autopilot run made 38 `docs` commits on the plan branch where about 5 were expected. Each extra push to `pod-staging` also ran CI again. At gate 7, autopilot puts its docs edits in one commit. No eval: the eval sandbox blocks git, so a case can't count commits.

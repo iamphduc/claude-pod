@@ -52,4 +52,4 @@ Git and GitHub are the record here, not the board, because the human runs the wa
    - browser:          <agent-browser | axi | none>
    ```
 
-   Print ports as numbers per `/pod:code`'s **Contracts** (base `3000`, row 1 → `3010`/`3011`); B/B+1 stay free for checking the wave head. `axi` → print `axi`; `devtools-mcp` → print `none` (check the wave's pages yourself).
+   Print ports as numbers per `/pod:code`'s **Contracts** (base `3000`, row 1 → `3010`/`3011`); B/B+1 stay free for checking the wave head. `axi` → print `axi`.

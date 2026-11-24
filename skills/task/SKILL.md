@@ -25,7 +25,6 @@ Make one change straight to the merge-target, outside any plan: one engineer bui
 
 - **Docs version:** a new task → check it per `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md` first.
 - **Browser:** the project has a UI → pick it as in `/pod:code`'s **Preflight** (`${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md`); with `axi`, pass `browser: axi` to the engineer and reviewer.
-- **DevTools MCP:** the browser is `devtools-mcp` → pass it to the engineer, which works alone. Before each reviewer dispatch, run the app from its worktree on B/B+1, drive the browser rows the diff touches, and pass the reviewer `browser: none` with your results as **browser rows**.
 - **Ports:** claim a port base B as in **Preflight**, with `<parent-repo> task-<slug>` in the file → engineer B+10/B+11, reviewer B+20/B+21, your checks B/B+1. Delete the file after the merge.
 - **Parked ideas:** the task touches one in `pod-docs/ideas/` → bring it back per **Bringing ideas back** in `${CLAUDE_PLUGIN_ROOT}/skills/idea/SKILL.md`.
 
