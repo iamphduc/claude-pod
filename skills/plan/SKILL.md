@@ -33,10 +33,9 @@ Turn the human's idea into a strategic plan at `pod-docs/plans/<slug>.md` that t
 
 ### What's decided
 
-- **Project docs:** read `pod-docs/codebase-structure.md`, `pod-docs/known-issues/`, and `pod-docs/feature-details/` for the features the idea changes → don't ask what they settle.
+- **What's decided:** know it before you ask → read `pod-docs/codebase-structure.md`, `pod-docs/known-issues/`, `pod-docs/feature-details/` for the features the idea changes, and the other active plans (overlap). Don't ask what they settle.
 - **Decisions:** `pod-docs/decisions.md` is authoritative → a plan that contradicts it says so in Key decisions, with the reason.
-- **Other plans:** check the other active plans for overlap.
-- **Queue:** `pod-docs/handoff-queue.md` has open `PENDING`s → bring them into the interview. A pending `BLOCKED` → resolve it first.
+- **Queue:** bring the open `PENDING`s in `pod-docs/handoff-queue.md` into the interview → resolve a pending `BLOCKED` first.
 - **Parked ideas:** the idea touches a parked idea in `pod-docs/ideas/` that research didn't bring back → bring it back per **Bringing ideas back** in `${CLAUDE_PLUGIN_ROOT}/skills/idea/SKILL.md`.
 
 ### Research
