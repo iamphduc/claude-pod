@@ -76,11 +76,9 @@ skills/code/pr-template.md|<details><summary>Proof</summary>
 skills/code/pr-template.md|**`Read`**
 skills/code/pr-template.md|**`Skim`**
 skills/code/pr-template.md|**`Done`**
-skills/code/pr-template.md|## <plan title> (<plan-slug>)
 skills/code/SKILL.md|skills/code/pr-template.md
 skills/code/SKILL.md|git merge --ff-only
 skills/task/SKILL.md|skills/code/pr-template.md
-skills/autopilot/policy.md|skills/code/pr-template.md
 agents/reviewer.md|**PR body:**
 agents/reviewer.md|**Red check:**
 agents/engineer.md|One change per commit
@@ -130,13 +128,8 @@ skills/autopilot/policy.md|auto-merge-fail
 skills/autopilot/policy.md|inter-wave-verify
 skills/autopilot/policy.md|safety-bound
 skills/autopilot/policy.md|escalation-valve
-skills/autopilot/policy.md|`gate 6 (escalation-valve): final plan PR <url> withheld, `
 skills/autopilot/policy.md|plan-complete
 skills/autopilot/policy.md|**Answers**
-skills/autopilot/policy.md|## <date> — merge target: <choice>
-skills/autopilot/policy.md|**Staging (recommended)**
-skills/code/pr-template.md|(plan <slug>)
-skills/code/pr-template.md|(plans <slug>, <slug>)
 skills/autopilot/policy.md|<!-- autopilot-run: started=<ISO8601> sprints=<N> waves=<N> -->
 skills/autopilot/policy.md|`gate <N> (<name>): `
 skills/create-wave-prompts/SKILL.md|claude --agent pod:engineer

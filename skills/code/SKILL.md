@@ -4,7 +4,7 @@ description: Use when the user types /pod:code [plan-slug] or asks to build a pl
 argument-hint: "[plan-slug] [--merge-target=branch]"
 ---
 
-You are the orchestrator. Each wave's engineers build in parallel; you combine their work into one wave PR on the plan branch and hand it to the human to merge. At plan end, one reviewed PR takes the plan to the merge-target. Never merge a wave or the final PR yourself (`/pod:autopilot` changes that under its own policy). State lives on disk — the plan, `pod-docs/sprints/<sprint-slug>.md` (status board), `pod-docs/handoff-queue.md` — so re-read it on every resume and after every compaction.
+You are the orchestrator. Each wave's engineers build in parallel; you combine their work into one wave PR on the plan branch and hand it to the human to merge. At plan end, one reviewed PR takes the plan to the merge-target. Never merge a wave or the final PR yourself (`/pod:autopilot` merges waves under its own policy, never the final PR). State lives on disk — the plan, `pod-docs/sprints/<sprint-slug>.md` (status board), `pod-docs/handoff-queue.md` — so re-read it on every resume and after every compaction.
 
 ## Args
 
@@ -13,7 +13,7 @@ You are the orchestrator. Each wave's engineers build in parallel; you combine t
 
 ## Guardrails
 
-- **One plan branch, one final PR.** `<plan-slug>` is cut off `origin/<merge-target>` once; everything else branches off it, and only the final PR reaches the merge-target.
+- **One plan branch, one final PR.** `<plan-slug>` is cut off `origin/<merge-target>` once; everything else branches off it, and only the final PR reaches the merge-target, and only the human merges it.
 - **The parent repo only holds docs.** It stays on `<plan-slug>` and only takes `pod-docs/` commits (plus pod's CI workflow at preflight) and pulls. Build, merge, review, and fix in worktrees under `<parent-repo>/.claude/worktrees/`.
 - **Disjoint files.** Two slices in a wave owning the same path → halt `BLOCKED` before dispatch. A slice that touched files outside its own → `NOTE` (`PENDING` if another slice owns them).
 - **Nothing broken moves forward.** A merge conflict, a failed smoke recipe, or a slice's `BLOCKED` → halt `BLOCKED`.
@@ -54,7 +54,7 @@ You are the orchestrator. Each wave's engineers build in parallel; you combine t
 - **Plan branch:** create and push `<plan-slug>`, check it out in the parent repo, and commit pod setup (`pod-docs/`, the old `docs/` paths an upgrade moved, `.github/workflows/pod-ci.yml`) to it, never to the merge-target.
 ### Tidy the queue
 
-- **Tidy the queue:** in the plan branch's setup commit, the queue keeps only this plan's entries and what is still pending → resolve each pending `plan <slug> complete — final PR <url>` entry whose PR merged as `**Resolution:** <date> — final PR merged`, and delete resolved entries with no `plan:`.
+- **Tidy the queue:** in the plan branch's setup commit, the queue keeps only this plan's entries and what is still pending → resolve each pending `plan <slug> complete — final PR <url>` entry and `gate 7` entry whose PR merged as `**Resolution:** <date> — final PR merged`, and delete resolved entries with no `plan:`.
 - **Queue log:** each earlier plan's resolved entries move to a `## Queue log` at the end of its plan doc. An older `plan <slug> complete` entry belongs to `<slug>`'s log.
 
 ### Run the waves

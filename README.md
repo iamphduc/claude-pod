@@ -2,7 +2,7 @@
 
 pod is a Claude Code plugin that turns an idea into working code using a small team of Claude agents.
 
-You describe what you want. pod interviews you, writes a plan, splits it into small pieces, and has several Claude engineers build those pieces **at the same time**, each in its own copy of the repo. Every batch of work becomes one pull request. You decide what gets merged, or let autopilot merge for you.
+You describe what you want. pod interviews you, writes a plan, splits it into small pieces, and has several Claude engineers build those pieces **at the same time**, each in its own copy of the repo. Every batch of work becomes one pull request. You decide what gets merged, or let autopilot merge each batch for you. The final merge to `main` is always yours.
 
 ```
 idea → research → plan → sprints → waves of parallel engineers → review → merged to main
@@ -63,7 +63,7 @@ Each command is explained in [docs/commands.md](docs/commands.md).
 │   │  → you merge it (or autopilot does)                  │  │
 │   └──────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
-then: one final PR (plan branch → main), reviewed, then merged
+then: one final PR (plan branch → main), reviewed, then you merge it
 ```
 
 Engineers work **test-first** and check UI work in a real browser. The code is reviewed once, on the final PR. pod keeps its files in `pod-docs/`, and the pages meant for you are HTML: the plan overview, research, reports, and explanations of your code.

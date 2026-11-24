@@ -17,7 +17,7 @@ cat > pod-docs/features.md <<'FEATURES'
 | Sort | the Sort menu over the list | pick Title | the books show A to Z |
 | Dark theme | Settings → Theme | pick Dark | every page turns dark, and stays dark after a reload |
 FEATURES
-printf '# Decisions\n\n## 2026-11-01 — merge target: default branch\n\nPlans merge to main.\n' > pod-docs/decisions.md
+printf '# Decisions\n\n' > pod-docs/decisions.md
 cat > pod-docs/plans/books.md <<'PLAN'
 # Plan: Books
 

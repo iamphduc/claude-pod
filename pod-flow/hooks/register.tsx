@@ -205,7 +205,7 @@ async function buildLines($: Dollar) {
   const known = await read($, spawns)
   const spent = await read($, tokens)
   const now = await $.clock.now()
-  const steps = pull ? tryItSteps(bodyOf[Number(pull[1])] ?? '', plan.slug) : []
+  const steps = pull ? tryItSteps(bodyOf[Number(pull[1])] ?? '') : []
   const isHandBackClosed = pull !== null && pull !== undefined && (await read($, handBackClosed)) === Number(pull[1])
   const app = { steps, ticked: await read($, ticked), isAppRunning: await read($, isAppRunning), isHandBackClosed }
   await update($, lines, () => buildTree({ plan, sprints, spawns: known, live, halt: halt?.body, haltType: halt?.type, now, lastSeen, queue, tokens: spent, merged: [...merged], ...app }))
@@ -241,7 +241,6 @@ export const register: Register = on => {
   })
 
   // Your `continue` after the hand-back's PR merged: the plan is done, so its hand-back part folds to one line.
-  // Not at gate 6's withheld final plan PR: its merged row still waits on your resume, so it is not done.
   on('prompt.submit', async ($, e, next) => {
     if (/^\s*continue\b/i.test(e.text) && (await read($, isActive))) {
       const done = (await read($, lines)).map(l => (l.kind === 'halt' && l.status === 'done' ? /^PR #(\d+) merged$/.exec(l.text)?.[1] : undefined)).find(Boolean)

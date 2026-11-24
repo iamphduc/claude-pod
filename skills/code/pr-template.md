@@ -1,6 +1,6 @@
 # PR body
 
-Every PR pod opens uses this body: `/pod:code` writes the wave, `Review fixes`, and final plan PRs, `/pod:task` the task PR, and `/pod:autopilot` the staging PR. Write it with `gh pr create --body-file` or `gh pr edit --body-file`. When the code changes (a fix pass, a new head), or a plan PR gets its review verdict, write the whole body again: it describes the end state, never a log of edits. A task PR's verdict stays in the reviewer's PR comment.
+Every PR pod opens uses this body: `/pod:code` writes the wave, `Review fixes`, and final plan PRs, and `/pod:task` the task PR. Write it with `gh pr create --body-file` or `gh pr edit --body-file`. When the code changes (a fix pass, a new head), or a plan PR gets its review verdict, write the whole body again: it describes the end state, never a log of edits. A task PR's verdict stays in the reviewer's PR comment.
 
 ```markdown
 <Door line>
@@ -26,7 +26,7 @@ Every PR pod opens uses this body: `/pod:code` writes the wave, `Review fixes`, 
 
 **The human reads every slot.** Fill each slot in plain words. The filled text has no `<…>` placeholder: name the thing (`a tag named after each commit`) or give its real value. A placeholder reads as a template left unfilled. To make a body plainer, rewrite inside the same sections; never drop a section or a Proof part.
 
-**Door line:** `Door: two-way`, or one `Door: one-way — <what>, undo: <how>` per one-way change. The staging PR has none; its plan sections name the doors. `undo:` gives every step that undoes the change. Steps outside git, such as restoring a backup, stay in plain words. The step that removes the code names this PR's real commit IDs, with the check that shows they are the right ones: a slice merged with a merge commit → `git revert -m 1 <its merge commit ID>` (check: `git show <ID> --stat`); a fast-forwarded slice or a task → `git revert <its commit IDs>`. Say whether the revert applies clean on this PR's head. When the PR gets new commits, update the IDs. A part that can't exist yet (such as tags a later deploy creates) says so and names the command that lists it then.
+**Door line:** `Door: two-way`, or one `Door: one-way — <what>, undo: <how>` per one-way change. `undo:` gives every step that undoes the change. Steps outside git, such as restoring a backup, stay in plain words. The step that removes the code names this PR's real commit IDs, with the check that shows they are the right ones: a slice merged with a merge commit → `git revert -m 1 <its merge commit ID>` (check: `git show <ID> --stat`); a fast-forwarded slice or a task → `git revert <its commit IDs>`. Say whether the revert applies clean on this PR's head. When the PR gets new commits, update the IDs. A part that can't exist yet (such as tags a later deploy creates) says so and names the command that lists it then.
 
 ## Review guide
 
@@ -38,7 +38,6 @@ One numbered line per step, in the order it was built. A PR with one step gets o
 | Wave | each slice, then the wave fix | `pull/<n>/files/<wave head before its merge>..<its merge commit>`; a fast-forwarded lone slice → `compare/<wave base>...<wave head>` |
 | `Review fixes` | each `FIX` finding: its test, then its fix | `pull/<n>/files/<commit before its test>..<its fix commit>` |
 | Final plan | each wave PR in order, then `Review fixes` and each sync | an earlier PR → its PR link; new commits → a range on this PR |
-| Staging | each plan | its final PR |
 
 A range starts at the commit **before** the step: GitHub leaves out the first commit of `<a>..<b>`. Short SHAs work. A `pull/<n>/files/` range opens only when both ends are commits of this PR. A step whose start is on the base branch (the first step of a wave or `Review fixes` PR, and a lone slice) links to `https://github.com/<owner>/<repo>/compare/<start>...<end>` instead.
 
@@ -61,14 +60,5 @@ The final plan PR only, after `## Risks`: a `## Try it` heading, then at most 8 
 | Wave | Per slice: **Tests first** as above, its `NOTE`s, stray paths · then the **wave check**: checks run, browser rows, the Look check line, the wave fix · **Sent to the queue**: each entry, one line |
 | `Review fixes` | Each `FIX` finding → its fix commit → the check that now passes · checks run |
 | Final plan | **Review**: verdict and round · the regression pass: rows driven and results · a link to each wave PR, which holds its own proof |
-| Staging | A link to each plan's final PR |
 
 Take the proof from the agents' reports and your own checks, as written. A claim the reports don't back stays out.
-
-## Staging PR
-
-`/pod:autopilot`'s PR from `pod-staging` to the default branch, at gate 7. The human reads this PR, not the branch, so it says what `pod-staging` holds.
-
-- **Title:** a conventional commit for what its plans built, ending `(plan <slug>)` or `(plans <slug>, <slug>)`, e.g. `feat: friends list and invites (plan friends)`.
-- **Plan sections:** one `## <plan title> (<plan-slug>)` section per plan takes the place of `## Risks` and `## Try it`: the goal in a sentence, the features it added or changed (from `pod-docs/features.md`), its one-way doors and the decisions made for the human, loose ends, links to its final PR and report, and last, a `### Try it` with its final PR's **Try it** steps.
-- **Reuse:** a staging PR is already open → rewrite the title to cover every plan, add this plan's guide line and section, and keep the others.
