@@ -6,6 +6,7 @@ Newest first. The `pod` and `pod-flow` plugins share this file. Each heading nam
 
 - **`/pod:plan` follows the skill template.** `SKILL.md` now has the guardrails first, then six parts under `## Work`: **Size check**, **What's decided**, **Research**, **Interview**, **Look**, and **Write the plan**. Each "unless" or "skip if" is now its own rule, such as the size check that `/pod:ship` already ran. The description shows the `[idea]` arg. The rules, the strings pod-flow and the evals read, and the names other files cite stay the same.
 - **The plan interview is short rules.** `interview.md` keeps its goal, its question format, and its license. The rest is now three parts of `- <condition> → <result>` rules: **Rounds**, **Facts and decisions**, and **Done**. The plan evals pass in 9 of 9 runs, as before, in a little less time (123 s → 116 s a suite).
+- **The plan form is now `skills/plan/plan-template.md`.** It was `skills/plan/template.md`. The new name says what it is a template of, as `skills/code/pr-template.md` does. Its content is the same.
 
 ## pod 0.12.0 — 2026-11-23
 

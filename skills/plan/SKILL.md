@@ -66,7 +66,7 @@ Turn the human's idea into a strategic plan at `pod-docs/plans/<slug>.md` that t
 
 ### Write the plan
 
-- **Plan:** write it from `${CLAUDE_PLUGIN_ROOT}/skills/plan/template.md`; `<slug>` is short kebab-case. Its **How it fits together** is what the human approves before any code.
+- **Plan:** write it from `${CLAUDE_PLUGIN_ROOT}/skills/plan/plan-template.md`; `<slug>` is short kebab-case. Its **How it fits together** is what the human approves before any code.
 - **Idea status:** the plan builds on a parked idea → set that idea's status.
 - **Park the rest:** the plan is written → once, offer to park what the human set aside for later (Scope's out-of-scope items, research ideas they passed on) with one multi-select `AskUserQuestion`. Write each pick per `${CLAUDE_PLUGIN_ROOT}/skills/idea/SKILL.md`, without asking more.
 - **Overview check:** the human reads HTML, not Markdown → draw **How it fits together** in `pod-docs/design-drafts/<slug>-overview.html` from the same Mermaid blocks (Mermaid from a CDN, pinned to a version), with the goal and parts table on top, and open it.
