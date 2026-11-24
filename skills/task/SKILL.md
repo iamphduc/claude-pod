@@ -9,7 +9,7 @@ Make one change straight to the merge-target, outside any plan: one engineer bui
 ## Args
 
 - `[task]`: the change.
-- `--merge-target=<branch>`: default: origin's default branch. Pass it on.
+- `--merge-target=<branch>`: default: the parent repo's current branch, so a task mid-plan goes into the plan branch. Pass it on.
 - `--no-review`: skip the reviewer.
 - `--model=<model>`: the model for every agent.
 
@@ -48,7 +48,7 @@ Make one change straight to the merge-target, outside any plan: one engineer bui
 
 ### Hand back
 
-- **Hand back:** the PR URL; `Review: pass`, `Review still failing` with its `FIX` findings, `Review: skipped (--no-review)`, or `Review: not run on the changes since <commit>`; any `BLOCKED` the engineer reported; and that the worktree is kept, so the human can merge, fix by hand, or ask for more changes before replying `continue`.
+- **Hand back:** the PR URL and the branch it goes into; `Review: pass`, `Review still failing` with its `FIX` findings, `Review: skipped (--no-review)`, or `Review: not run on the changes since <commit>`; any `BLOCKED` the engineer reported; and that the worktree is kept, so the human can merge, fix by hand, or ask for more changes before replying `continue`.
 - **Queue commit:** just before each hand-back, write this task's queue entries in the task worktree → one `docs(queue): …` commit on the task branch; a later round adds one new commit, never one per entry.
 - **More changes:** the human asks for more after the hand-back → an engineer makes them as in the **Fix pass**, with no reviewer, and the hand-back says `Review: not run on the changes since <commit>`, so the human, who checks each change, isn't held up.
 - **Review on request:** the human asks for a review of those changes → run **Review** again.

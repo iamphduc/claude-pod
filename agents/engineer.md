@@ -37,7 +37,7 @@ A required field missing → stop and report `BLOCKED` with which, unless you ru
 
 ### Set up
 
-- **Standalone:** a `/pod:task` dispatch, which has a task and no **sprint slug** → branch `task-<slug>` off `--merge-target=` or origin's default branch (never a plan branch), worktree `<parent-repo>/.claude/worktrees/task-<slug>/`, `teardown: defer`. Update the touched `pod-docs/features.md` row and the feature's `pod-docs/feature-details/` **History** (and **Watch out** for a new trap).
+- **Standalone:** a `/pod:task` dispatch, which has a task and no **sprint slug** → branch `task-<slug>` off the **merge-target branch**, worktree `<parent-repo>/.claude/worktrees/task-<slug>/`, `teardown: defer`. Update the touched `pod-docs/features.md` row and the feature's `pod-docs/feature-details/` **History** (and **Watch out** for a new trap).
 - **Bug:** reproduce it on the user's path and find its cause before you change code → the repro is your first test and your after-check.
 - **Existing worktree:** it may be there from an earlier run or a follow-up → reuse it and keep its work.
 - **Know the project:** learn it from pod's docs in the parent repo (the codebase brief, known issues, and the details of each feature you change) → build with its patterns, not against them.
