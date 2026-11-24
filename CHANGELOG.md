@@ -4,7 +4,7 @@ Newest first. The `pod` and `pod-flow` plugins share this file. Each heading nam
 
 ## pod 0.11.10 — 2026-11-23
 
-- **The orchestrator commits `pod-docs/` only at sprint end and plan end.** `/pod:code` now says *only*, and why: uncommitted edits survive a compaction or a reboot. Before, the rule gave no limit, and one 4-sprint autopilot run made 38 `docs` commits on the plan branch where about 5 were expected. Each extra push to `pod-staging` also ran CI again. At gate 7, autopilot puts its docs edits in one commit. No eval: the eval sandbox blocks git, so a case can't count commits.
+- **The orchestrator commits `pod-docs/` only at setup, sprint end, and plan end.** `/pod:code` now says *only*, and why: uncommitted edits survive a compaction or a reboot. Before, the rule gave no limit, and one 4-sprint autopilot run made 38 `docs` commits on the plan branch where about 5 were expected. Each extra push to `pod-staging` also ran CI again. At gate 7, autopilot puts its docs edits in one commit. No eval: the eval sandbox blocks git, so a case can't count commits.
 
 ## pod 0.11.9 — 2026-11-22
 
