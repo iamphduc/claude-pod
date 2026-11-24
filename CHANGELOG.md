@@ -2,6 +2,10 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.11.10 — 2026-11-23
+
+- **The orchestrator commits `pod-docs/` only at sprint end and plan end.** `/pod:code` now says *only*, and why: uncommitted edits survive a compaction or a reboot. Before, the rule gave no limit, and one 4-sprint autopilot run made 38 `docs` commits on the plan branch where about 5 were expected. Each extra push to `pod-staging` also ran CI again. At gate 7, autopilot puts its docs edits in one commit. No eval: the eval sandbox blocks git, so a case can't count commits.
+
 ## pod 0.11.9 — 2026-11-22
 
 - **`/pod:ship` resumes after research.** A run that stopped after research but before the plan, for example in the interview, now goes straight to the plan when you run `/pod:ship` again. Before, it asked about the existing report first: research offers only "update" or "a new slug", both of which research again, so the model invented a "use as is" choice and asked about it. New eval: `ship-resume-research` (on 0.11.8, 1 of 3 runs went straight to the interview; now 3 of 3, with no research re-run in any run).

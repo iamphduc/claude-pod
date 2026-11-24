@@ -20,7 +20,7 @@ You are the orchestrator. Each wave's engineers build in parallel; you combine t
 - **No known bug reaches the merge-target.** A reproduced bug is fixed before the final merge, or the final PR stays `Review still failing`; it is never a decision, default, or someday item.
 - **No force.** No `--force` (`git worktree remove --force` included), `-D`, force-push, or recursive delete of a worktree or repo. A safe command refuses → find out why; leave a failed teardown and name it. Tear down from the parent repo with nothing holding the worktree open (Windows won't remove a folder in use).
 - **Clean up when you stop.** Before ending any turn (except after `run app`), stop your servers, free the ports, and close your browser session. Start dev servers as a background command ending in `; exit 0`, so a planned stop never reads as a failure, and prove the server that answers is yours.
-- **The paper trail rides the plan branch.** Commit `pod-docs/` (with the old `docs/` paths a `/pod:init` upgrade moved, never other `docs/` changes) to `<plan-slug>` at each sprint's end and at plan end, before the final merge.
+- **The paper trail rides the plan branch.** Edit `pod-docs/` freely during the plan, but commit and push it (with the old `docs/` paths a `/pod:init` upgrade moved, never other `docs/` changes) to `<plan-slug>` only at each sprint's end and at plan end, before the final merge. Uncommitted edits survive a compaction or a reboot, and engineers read `pod-docs/` from the parent repo, so a commit after each update only adds noise and CI runs.
 
 ## Work
 
