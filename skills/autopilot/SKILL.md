@@ -29,3 +29,4 @@ Run the whole plan without the human: the `/pod:code` wave loop (`${CLAUDE_PLUGI
 
 - **Close out:** run `/pod:code`'s **Plan complete** steps 1–6 whatever the verdict, in place of its step 7 hand-back.
 - **Gate 7:** after the final merge, clean up as `/pod:code`'s **On resume** does for a merged final PR, then halt at gate 7 with the URL of the PR left for the human (the staging PR, or else the merged final PR), the sorted list, the report's path, `Loose ends:`, and the **Run app** line.
+- **Gate 7 commit:** the halt entry and any other `pod-docs/` edits after the final merge → one commit, not one per edit.
