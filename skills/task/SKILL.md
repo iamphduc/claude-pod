@@ -9,7 +9,7 @@ Make one change straight to the merge-target, outside any plan: one engineer bui
 ## Args
 
 - `[task]`: the change.
-- `--merge-target=<branch>`: default: the parent repo's current branch, so a task mid-plan goes into the plan branch. Pass it on.
+- `--merge-target=<branch>`: default: the parent repo's current branch, so a task mid-plan goes into the plan branch; a detached HEAD or a branch not on origin → origin's default branch, said in the hand-back. Pass it on.
 - `--no-review`: skip the reviewer.
 - `--model=<model>`: the model for every agent.
 
@@ -24,7 +24,7 @@ Make one change straight to the merge-target, outside any plan: one engineer bui
 ### Set up
 
 - **Docs version:** a new task → check it per `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md` first.
-- **Browser:** the project has a UI → pick it as in `/pod:code`'s **Preflight** (`${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md`); with `axi`, pass `browser: axi` to the engineer and reviewer.
+- **Browser:** the project has a UI → pick it as in `/pod:code`'s **Preflight** (`${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md`); with `axi` or `none`, pass that value to the engineer and reviewer.
 - **Ports:** claim a port base B as in **Preflight**, with `<parent-repo> task-<slug>` in the file → engineer B+10/B+11, reviewer B+20/B+21, your checks B/B+1. Delete the file after the merge.
 - **Parked ideas:** the task touches one in `pod-docs/ideas/` → bring it back per **Bringing ideas back** in `${CLAUDE_PLUGIN_ROOT}/skills/idea/SKILL.md`.
 
