@@ -2,6 +2,12 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.13.0 — 2026-11-24
+
+- **`/pod:plan` no longer asks "fast path or full interview?".** It always asks what changes what gets built or how it looks, each question with its recommended answer, and takes a safe default for the rest. Each default is listed in the plan's Key decisions, marked `(default)`, so you can change it at the overview check. Replying `ok` to a round already takes every recommendation, so the choice only cost you a question at the start of each plan. On 0.12.1 the choice was also a format risk: one run numbered it `Q0` and broke the question format.
+- **The plan interview is shorter.** `interview.md` is now one part of six plain rules, from 567 to 376 words, most of them the license. It no longer explains its method as a "design tree" and its "frontier", and each rule now lives in one file: the summary before the plan in `SKILL.md`, and looking facts up yourself in `interview.md`. The question format, the plain replies, and "never guess" stay. Round 1 still asks 8 to 10 questions, now all about the idea, and the plan evals pass 9 of 9 on both sides at about the same time and cost (122 s → 124 s, $0.730 → $0.705 a suite).
+- **The plan header has no `Grilled-with:` field.** It only said whether you ran `/grill-me` first, and nothing read it. `/pod:plan` still skips what you already settled, in a grilling session or anywhere else. Old plans that keep the field still work.
+
 ## pod 0.12.1 — 2026-11-24
 
 - **`/pod:plan` follows the skill template.** `SKILL.md` now has the guardrails first, then four parts under `## Work`: **Before the interview**, **Interview**, **Look**, and **Write the plan**. Rules that share one subject are joined, so the skill has fewer, fuller rules. The description shows the `[idea]` arg. The rules, the strings pod-flow and the evals read, and the names other files cite stay the same.
