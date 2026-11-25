@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # A pod project on autopilot, sprint one, wave 1: A1's PR came back with low confidence, A2's merge needs #11 first.
 set -e
+. "$(dirname "$0")/../_fixtures/pod-project.sh"
 git init -q -b main
 mkdir -p pod-docs/plans pod-docs/sprints/archive src
-printf '# pod docs\n\npod docs: 2\n' > pod-docs/README.md
+pod_readme
 printf '# Codebase structure\n\n## What it is\n\nA command-line tool with no UI.\n\n## CI\n\nnone\n\n## Smoke recipe\n\n`node src/index.js` prints hi.\n' > pod-docs/codebase-structure.md
-printf '# Handoff Queue\n\nFormat: `` - `[YYYY-MM-DD · TYPE · from → to · plan: <slug> · sprint: <slug> · slice: <code>]` <body> **Resolution:** pending ``\n\n---\n' > pod-docs/handoff-queue.md
+pod_queue
 printf '# Features\n\n| Feature | How to prove it |\n|---|---|\n| greet | `node src/index.js` prints hi |\n' > pod-docs/features.md
 printf '# Decisions\n\n' > pod-docs/decisions.md
 cat > pod-docs/plans/demo.md <<'PLAN'
@@ -36,4 +37,4 @@ _From plan: pod-docs/plans/demo.md · Slug: one · Status: active · Generated: 
 | 1 | A2 | Greet in French | one-A2 | https://github.com/acme/demo/pull/13 | in review | high | — |
 SPRINT
 printf 'console.log("hi")\n' > src/index.js
-git add -A && git -c user.name=t -c user.email=t@t commit -qm init
+pod_commit
