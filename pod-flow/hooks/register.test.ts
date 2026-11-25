@@ -556,9 +556,14 @@ test('gate 7 with the final plan PR open: merge it, then continue closes the pla
   expect(open).toContain('Run app')
   state = 'MERGED'
   await clock.advance(31_000)
-  expect((await run($, 'text')).text).toContain('✓ PR #16 merged')
+  const merged = (await run($, 'text')).text
+  expect(merged).toContain('✓ PR #16 merged')
+  // pod still deletes the plan branch and frees its ports on your continue.
+  expect(merged).toContain('continue to clean up')
   await $.prompt.submit({ text: 'continue' } as never)
-  expect((await run($, 'text')).text).toContain('✓ plan done · checked 0/1')
+  const done = (await run($, 'text')).text
+  expect(done).toContain('✓ plan done · checked 0/1')
+  expect(done).not.toContain('continue to clean up')
 })
 
 test('the first /pod-flow text already has the checklist, as under -p, where there is no second call', async ($, on) => {

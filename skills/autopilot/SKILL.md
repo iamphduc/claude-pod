@@ -27,7 +27,8 @@ Run the whole plan without the human: the `/pod:code` wave loop (`${CLAUDE_PLUGI
 
 ### Plan complete
 
-- **Close out:** run `/pod:code`'s **Plan complete** steps 1–6 whatever the verdict, in place of its step 7 hand-back.
-- **Gate 7:** halt at gate 7 with the URL of the PR left for the human (the final plan PR, open and unmerged), the sorted list, the report's path, `Loose ends:`, and the **Run app** line. A review still failing → gate 2 instead.
-- **Gate 7 commit:** after step 6, write the halt entry, then make step 5's close-out commit with it, so the commit holds the real `Loose ends:`.
+- **Close out:** run `/pod:code`'s **Plan complete** steps 1–6 as written, whatever the verdict, in place of its step 7 hand-back.
+- **Check the final PR:** after step 6, wait for CI on its head, the close-out commit included, per the policy → a review still failing → gate 2; a criterion fails → gate 3; else gate 7.
+- **Gate 7:** halt at gate 7 with the URL of the PR left for the human (the final plan PR, open and unmerged), the sorted list, the report's path, `Loose ends:`, and the **Run app** line.
+- **Halt commit:** the gate 2, 3, or 7 entry is the plan's last commit, `docs(queue): …` with only the queue in it, pushed to `<plan-slug>`; a queue-only commit doesn't restart the check.
 - **After the merge:** the human merges the final PR and resumes → clean up as `/pod:code`'s **On resume** does for a merged final PR.

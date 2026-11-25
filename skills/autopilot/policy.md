@@ -29,7 +29,7 @@
 4. **inter-wave-verify:** the wave check fails → `BLOCKED`.
 5. **safety-bound:** a safety bound is hit → `PENDING`.
 6. **escalation-valve:** a criterion withholds a mergeable PR → `PENDING`.
-7. **plan-complete:** no `planned` sprint row left, and the final plan PR has the reviewer's `pass` and meets the CI and GitHub criteria above (else gate 3); never merge it → `PENDING`.
+7. **plan-complete:** no `planned` sprint row left, and the final plan PR has the reviewer's `pass` and meets the CI and GitHub criteria above on its close-out head (else gate 3); never merge it → `PENDING`.
 
 - Gate 1's one exception: a `BLOCKED` fixed only by a test fixture or doc no other slice owns → give it to that engineer, resume it, and tell the human.
 
