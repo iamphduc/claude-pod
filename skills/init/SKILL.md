@@ -24,7 +24,7 @@ Every pod skill reads this before touching pod's files. The current version is *
 
 - **Missing:** no file, or an empty value → the default.
 - **Which value wins:** for a plan, its plan doc's `Merge target:` line, then a flag, then this file, then the default. A plan branch already on origin with no line (started before it existed) → the flag, else origin's default branch. `/pod:task` uses neither the plan line nor this file's `merge-target`: it has its own default.
-- **Writing:** write a value only when the human answers its question and the value is empty, no longer offered (`browser: devtools-mcp`), or failed its check; no file → create it from `${CLAUDE_PLUGIN_ROOT}/skills/init/scaffold/pod-docs/config.md` first. A flag never writes here, and never change a value the human set.
+- **Writing:** write a value only as the human's answer to its question, asked when the value is empty, no longer offered (`browser: devtools-mcp`), or failed its check; no file → create it from `${CLAUDE_PLUGIN_ROOT}/skills/init/scaffold/pod-docs/config.md` first. A flag never writes here.
 - **Old entries:** `browser` or `ci` is empty, and `pod-docs/decisions.md` has an older `## <date> — browser: <choice>` or `## <date> — CI: none` entry → write `browser: <choice>` or `ci: off` here, once.
 
 ## Upgrade

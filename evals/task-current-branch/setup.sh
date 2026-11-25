@@ -14,3 +14,8 @@ git add -A && git -c user.name=t -c user.email=t@t commit -qm init
 git checkout -q -b friends
 printf 'console.log("Helo")\n' > greet.js
 git add -A && git -c user.name=t -c user.email=t@t commit -qm "feat: greet"
+# Both branches are on origin, as in a real mid-plan repo.
+git remote add origin https://github.com/acme/greeter.git
+git update-ref refs/remotes/origin/main main
+git update-ref refs/remotes/origin/friends friends
+git symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/main
