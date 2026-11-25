@@ -400,6 +400,22 @@ test('a hand-back whose PR has merged shows it merged, waiting on your resume to
   expect(after).not.toContain('continue to clean up')
 })
 
+test('resuming with the command after the merge keeps the archived plan in view, and shows it done', async ($, on) => {
+  const files = handBack(11)
+  world(on, [], true, [], files)
+  on('process.run', () => ({ value: { exitCode: 0, stdout: 'MERGED\n', stderr: '' } as never }))
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'demo' })
+  await run($, 'text')
+  // What the close-out leaves: the plan archived before its final PR merges.
+  files['pod-docs/plans/demo.md'] = PLAN.replace('Status: active', 'Status: archived').replace('| one | First | active |', '| one | First | done |')
+  expect((await run($, 'text')).text).toContain('◐ PR #11 merged')
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'demo' })
+  const after = (await run($, 'text')).text
+  expect(after).not.toContain('Plan finished')
+  expect(after).toContain('✓ PR #11 merged')
+  expect(after).toContain('✓ plan done')
+})
+
 test('a hand-back stays waiting when gh cannot tell', async ($, on) => {
   world(on, [], true, [], handBack(10))
   on('process.run', () => ({ value: { exitCode: 1, stdout: '', stderr: 'gh: not logged in' } as never }))

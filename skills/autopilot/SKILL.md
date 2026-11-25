@@ -28,4 +28,4 @@ Run the whole plan without the human: the `/pod:code` wave loop (`${CLAUDE_PLUGI
 ### Plan complete
 
 - **The plan ends as in `/pod:code`:** run its **Plan complete** as written, steps 1–7, whatever the verdict. Its close-out entry and step 7 hand-back are the end of the run; write no halt entry of your own, and never merge the final PR.
-- **Wait for CI first:** before step 7, wait for CI on the final PR's head, the close-out commit included, per the policy → a criterion fails → gate 3 in place of step 7.
+- **Wait for CI first:** the project has CI → before step 7, wait for it on the final PR's head, the close-out commit included → no check ran, or a required check failed → gate 3 in place of step 7. Approvals, review threads, and mergeability are the human's: they never halt here.

@@ -1,5 +1,5 @@
 ---
 type: regex
-# The run ends with /pod:code's hand-back: the final PR is the human's to merge.
-pattern: '(pull/20|PR #20)[\s\S]*[Mm]erge'
+# The run ends with /pod:code's hand-back ("Plan <slug> complete — final merge awaiting"), in any wording that leaves the merge to the human.
+pattern: '[Ff]inal merge (is )?(awaiting|waiting)'
 ---

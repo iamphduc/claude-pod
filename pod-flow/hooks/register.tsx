@@ -221,13 +221,13 @@ async function startRefreshing($: Dollar) {
 }
 
 /** Your resume after the hand-back's PR merged, `continue` or the command again: pod cleans up, and the plan is done, so its hand-back part folds to one line. */
-async function closeMergedHandBack($: Dollar) {
-  if (!(await read($, isActive))) return
+async function closeMergedHandBack($: Dollar): Promise<boolean> {
+  if (!(await read($, isActive))) return false
   const done = (await read($, lines)).map(l => (l.kind === 'halt' ? /^PR #(\d+) merged$/.exec(l.text)?.[1] : undefined)).find(Boolean)
-  if (done) {
-    await update($, handBackClosed, () => Number(done))
-    await refresh($)
-  }
+  if (!done) return false
+  await update($, handBackClosed, () => Number(done))
+  await refresh($)
+  return true
 }
 
 async function activate($: Dollar) {
@@ -256,9 +256,17 @@ export const register: Register = on => {
   })
 
   on('skill.prompt', async ($, e, next) => {
-    if (/(^|:)(autopilot|code)$/.test(e.skill)) await closeMergedHandBack($)
+    const shown = await read($, planShown)
+    const isClosed = /(^|:)(autopilot|code)$/.test(e.skill) && (await closeMergedHandBack($))
     const result = await next(e)
-    if (RUN_SKILL.test(e.skill)) await activate($)
+    if (RUN_SKILL.test(e.skill)) {
+      await activate($)
+      // A resume of the plan on screen keeps it, though its close-out archived it: a new run's tree comes from the docs.
+      if (shown && (isClosed || e.text.trim().split(/\s+/)[0] === shown)) {
+        await update($, planShown, () => shown)
+        await refresh($)
+      }
+    }
     return result
   })
 
