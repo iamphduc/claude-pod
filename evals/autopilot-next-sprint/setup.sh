@@ -8,7 +8,7 @@ pod_readme
 printf '# Codebase structure\n\n## What it is\n\nA command-line tool with no UI that keeps a list of books.\n\n## CI\n\nnone\n\n## Smoke recipe\n\n`node src/index.js` prints the books.\n' > pod-docs/codebase-structure.md
 pod_queue
 printf '# Features\n\n| Feature | How to prove it |\n|---|---|\n| list books | `node src/index.js` prints the books |\n| search books | `node src/index.js --search dune` prints only Dune |\n' > pod-docs/features.md
-printf '# Decisions\n\n## 2026-10-01 — merge target: default branch\n\nAutopilot merges to main.\n' > pod-docs/decisions.md
+printf '# Decisions\n\n' > pod-docs/decisions.md
 cat > pod-docs/plans/demo.md <<'PLAN'
 # Plan: Demo
 

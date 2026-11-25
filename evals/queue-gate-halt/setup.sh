@@ -8,7 +8,7 @@ pod_readme
 printf '# Codebase structure\n\n## What it is\n\nA command-line tool with no UI.\n\n## CI\n\nnone\n\n## Smoke recipe\n\n`node src/index.js` prints hi.\n' > pod-docs/codebase-structure.md
 pod_queue
 printf '# Features\n\n| Feature | How to prove it |\n|---|---|\n| greet | `node src/index.js` prints hi |\n' > pod-docs/features.md
-printf '# Decisions\n\n## 2026-10-19 — merge target: default branch\n\nAutopilot merges to main.\n' > pod-docs/decisions.md
+printf '# Decisions\n\n' > pod-docs/decisions.md
 cat > pod-docs/plans/demo.md <<'PLAN'
 # Plan: Demo
 

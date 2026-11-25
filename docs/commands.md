@@ -60,14 +60,14 @@ Each plan claims its own port range (3000, 3100, …) and records it in the plan
 
 Does the same as `/pod:code`, but merges each wave PR itself and moves on to the next sprint. It **stops and notifies you** when something looks risky: a failed check, an engineer who isn't confident, a change that's hard to undo, or a limit you set. If a question comes up, it notifies you and keeps going with a default. Running it means you agree to the auto-merges.
 
-Before it starts, it asks once where to merge. The recommended choice is a `pod-staging` branch: autopilot merges there and, at the end, opens a PR from `pod-staging` to your default branch. The PR's title says what the plans built, and its body has a section per plan: the goal, the features, the decisions made for you, loose ends, and links to the plan's PR and report. A later plan that lands before you merge adds its own section. You merge that PR after a look, so nothing nobody read reaches `main` overnight.
+Autopilot never merges the final PR to `main`. At the end it opens that PR, has it reviewed, and stops for you to merge it, so nothing nobody read reaches `main` overnight. After you merge, reply `continue` (or run `/pod:autopilot` again) and pod cleans up the plan branch.
 
 CI is optional but recommended. With CI, every check must pass before a merge. The full rules are in [`skills/autopilot/policy.md`](../skills/autopilot/policy.md).
 
 Run one plan per session: after a plan completes, run `/clear` before the next `/pod:autopilot`. State lives on disk, so nothing is lost, and the next plan starts with a fresh context.
 
 **Options:**
-- `--merge-target=<branch>`: where autopilot merges. It skips the merge question.
+- `--merge-target=<branch>`: the branch the final PR goes to. Default: your repo's default branch.
 - `--max-sprints=N`: stop after N sprints. Default: no limit.
 - `--max-waves=N`: stop after N waves. Default: 20.
 - `--max-runtime=4h`: stop after this much time. Default: no limit.
@@ -113,7 +113,7 @@ You get an HTML page, `pod-docs/teach/<topic>.html` (`system.html` with no topic
 /plugin install pod-flow@pod
 ```
 
-The tree opens beside the transcript when you start `/pod:autopilot` or `/pod:ship`. Its first group, **needs you**, lists the queue entries waiting on your answer: a `BLOCKED`, a decision, a product choice, or a one-way door. At the plan's hand-back, and when gate 6 withholds the final plan PR for you to merge, a **Run app** button starts the app for you to look at (it sends `run app`, as if you typed it), above a short checklist: the one-way doors still pending, then the final PR's **Try it** steps, each an action and what you should see. To open it again, run `/pod-flow`. Other commands:
+The tree opens beside the transcript when you start `/pod:autopilot` or `/pod:ship`. Its first group, **needs you**, lists the queue entries waiting on your answer: a `BLOCKED`, a decision, a product choice, or a one-way door. At the plan's hand-back, when the final PR waits for you to merge, a **Run app** button starts the app for you to look at (it sends `run app`, as if you typed it), above a short checklist: the one-way doors still pending, then the final PR's **Try it** steps, each an action and what you should see. To open it again, run `/pod-flow`. Other commands:
 
 - `/pod-flow preview`: open the tree on this project's docs without a run.
 - `/pod-flow text`: print the tree as a few lines, for a narrow terminal.

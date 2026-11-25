@@ -1,5 +1,5 @@
 schema_version: "1.1"
-name: gate7-final-pr-url
+name: autopilot-plan-end-approval
 tags: [autopilot, queue, plan-complete]
 context:
   scaffold_script: setup.sh

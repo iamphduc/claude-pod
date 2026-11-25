@@ -4,7 +4,7 @@ description: Use when the user types /pod:code [plan-slug] or asks to build a pl
 argument-hint: "[plan-slug] [--merge-target=branch]"
 ---
 
-You are the orchestrator. Each wave's engineers build in parallel; you combine their work into one wave PR on the plan branch and hand it to the human to merge. At plan end, one reviewed PR takes the plan to the merge-target. Never merge a wave or the final PR yourself (`/pod:autopilot` changes that under its own policy). State lives on disk — the plan, `pod-docs/sprints/<sprint-slug>.md` (status board), `pod-docs/handoff-queue.md` — so re-read it on every resume and after every compaction.
+You are the orchestrator. Each wave's engineers build in parallel; you combine their work into one wave PR on the plan branch and hand it to the human to merge. At plan end, one reviewed PR takes the plan to the merge-target. Never merge a wave or the final PR yourself (`/pod:autopilot` merges waves under its own policy, never the final PR). State lives on disk — the plan, `pod-docs/sprints/<sprint-slug>.md` (status board), `pod-docs/handoff-queue.md` — so re-read it on every resume and after every compaction.
 
 ## Args
 
@@ -13,7 +13,7 @@ You are the orchestrator. Each wave's engineers build in parallel; you combine t
 
 ## Guardrails
 
-- **One plan branch, one final PR.** `<plan-slug>` is cut off `origin/<merge-target>` once; everything else branches off it, and only the final PR reaches the merge-target.
+- **One plan branch, one final PR.** `<plan-slug>` is cut off `origin/<merge-target>` once; everything else branches off it, and only the final PR reaches the merge-target, and only the human merges it.
 - **The parent repo only holds docs.** It stays on `<plan-slug>` and only takes `pod-docs/` commits (plus pod's CI workflow at preflight) and pulls. Build, merge, review, and fix in worktrees under `<parent-repo>/.claude/worktrees/`.
 - **Disjoint files.** Two slices in a wave owning the same path → halt `BLOCKED` before dispatch. A slice that touched files outside its own → `NOTE` (`PENDING` if another slice owns them).
 - **Nothing broken moves forward.** A merge conflict, a failed smoke recipe, or a slice's `BLOCKED` → halt `BLOCKED`.
@@ -49,7 +49,7 @@ You are the orchestrator. Each wave's engineers build in parallel; you combine t
 - **Browser:** the project has a UI → prove a headless browser opens and closes a page twice, each call under 30 seconds; the hang shows after a close, and `--version` proves nothing. It passes → `browser: agent-browser`.
 - **Browser choice:** the probe fails → reuse a `## <date> — browser: <choice>` entry in `pod-docs/decisions.md`. None → ask once with `AskUserQuestion` (**Install agent-browser**, **Use chrome-devtools-axi**, or **Stop**), prove the choice the same way, and record it under that title. A recorded `devtools-mcp` is no longer offered → ask again.
 - **Port base:** reuse the plan doc's `Port base:` line. None → claim a 100-port block B from `3000`, `3100`, … `9900` (never `3900`, the agents' defaults) that is free, claimed by no other run, and reserved by no `pod-docs/known-issues/` entry → write its **Claim file**, and add `Port base: <B>` under the plan doc's header.
-- **Claim file:** the block's claim is `<temp>/pod-ports/<B>` (`<temp>` is the system temp folder) naming `<parent-repo> <plan-slug>`. A claim whose plan is archived or whose repo is gone is free.
+- **Claim file:** the block's claim is `<temp>/pod-ports/<B>` (`<temp>` is the system temp folder) naming `<parent-repo> <plan-slug>`. A claim is free when its plan is archived and its plan branch is gone from origin, or its repo is gone: a plan is archived before its final PR merges, and its branch is pushed after the claim.
 - **Long paths:** on Windows, `git config core.longpaths true`, or worktree removal fails.
 - **Plan branch:** create and push `<plan-slug>`, check it out in the parent repo, and commit pod setup (`pod-docs/`, the old `docs/` paths an upgrade moved, `.github/workflows/pod-ci.yml`) to it, never to the merge-target.
 ### Tidy the queue

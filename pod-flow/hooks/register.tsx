@@ -205,7 +205,7 @@ async function buildLines($: Dollar) {
   const known = await read($, spawns)
   const spent = await read($, tokens)
   const now = await $.clock.now()
-  const steps = pull ? tryItSteps(bodyOf[Number(pull[1])] ?? '', plan.slug) : []
+  const steps = pull ? tryItSteps(bodyOf[Number(pull[1])] ?? '') : []
   const isHandBackClosed = pull !== null && pull !== undefined && (await read($, handBackClosed)) === Number(pull[1])
   const app = { steps, ticked: await read($, ticked), isAppRunning: await read($, isAppRunning), isHandBackClosed }
   await update($, lines, () => buildTree({ plan, sprints, spawns: known, live, halt: halt?.body, haltType: halt?.type, now, lastSeen, queue, tokens: spent, merged: [...merged], ...app }))
@@ -218,6 +218,16 @@ async function startRefreshing($: Dollar) {
     $.clock.every(REFRESH_MS, () => void refresh($))
   }
   await refresh($)
+}
+
+/** Your resume after the hand-back's PR merged, `continue` or the command again: pod cleans up, and the plan is done, so its hand-back part folds to one line. */
+async function closeMergedHandBack($: Dollar): Promise<boolean> {
+  if (!(await read($, isActive))) return false
+  const done = (await read($, lines)).map(l => (l.kind === 'halt' ? /^PR #(\d+) merged$/.exec(l.text)?.[1] : undefined)).find(Boolean)
+  if (!done) return false
+  await update($, handBackClosed, () => Number(done))
+  await refresh($)
+  return true
 }
 
 async function activate($: Dollar) {
@@ -240,22 +250,23 @@ export const register: Register = on => {
     return next(e)
   })
 
-  // Your `continue` after the hand-back's PR merged: the plan is done, so its hand-back part folds to one line.
-  // Not at gate 6's withheld final plan PR: its merged row still waits on your resume, so it is not done.
   on('prompt.submit', async ($, e, next) => {
-    if (/^\s*continue\b/i.test(e.text) && (await read($, isActive))) {
-      const done = (await read($, lines)).map(l => (l.kind === 'halt' && l.status === 'done' ? /^PR #(\d+) merged$/.exec(l.text)?.[1] : undefined)).find(Boolean)
-      if (done) {
-        await update($, handBackClosed, () => Number(done))
-        await refresh($)
-      }
-    }
+    if (/^\s*continue\b/i.test(e.text)) await closeMergedHandBack($)
     return next(e)
   })
 
   on('skill.prompt', async ($, e, next) => {
+    const shown = await read($, planShown)
+    const isClosed = /(^|:)(autopilot|code)$/.test(e.skill) && (await closeMergedHandBack($))
     const result = await next(e)
-    if (RUN_SKILL.test(e.skill)) await activate($)
+    if (RUN_SKILL.test(e.skill)) {
+      await activate($)
+      // A resume of the plan on screen keeps it, though its close-out archived it: a new run's tree comes from the docs.
+      if (shown && (isClosed || e.text.trim().split(/\s+/)[0] === shown)) {
+        await update($, planShown, () => shown)
+        await refresh($)
+      }
+    }
     return result
   })
 

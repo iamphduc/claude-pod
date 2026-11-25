@@ -25,7 +25,7 @@ Take one idea from research to autopilot in one command. Run each step's own ski
    - the bounds
    - choices you made for the human (such as the look)
    - what init left open
-   - the answers, asked here and recorded so autopilot never asks, to `/pod:code`'s **Browser** check and the autopilot policy's **Merge target**
+   - the answer, asked here and recorded so autopilot never asks, to `/pod:code`'s **Browser** check
 
    End the turn with *"Check that the overview matches what you want built, then reply `go` to start autopilot."* Apply any other reply and ask again.
 7. **Autopilot:** run `${CLAUDE_PLUGIN_ROOT}/skills/autopilot/SKILL.md` with the slug and bounds.
