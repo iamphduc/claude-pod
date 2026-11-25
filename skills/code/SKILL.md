@@ -9,7 +9,7 @@ You are the orchestrator. Each wave's engineers build in parallel; you combine t
 ## Args
 
 - `[plan-slug]`: none → ask.
-- `--merge-target=<branch>`: when a plan starts. Default: `merge-target` in `pod-docs/config.md` (per **Config** in `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md`).
+- `--merge-target=<branch>`: default: `merge-target` in `pod-docs/config.md` (per **Config** in `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md`).
 
 ## Guardrails
 
@@ -46,12 +46,12 @@ You are the orchestrator. Each wave's engineers build in parallel; you combine t
 
 - **Before the first wave:** the **docs version** is current (per `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md`), the merge-target is on `origin` (none → tell the human to push it, `git push origin <default branch>:<merge-target>`, or to fix **Config**), and the `## Smoke recipe` is filled in. A lone `B1` in wave 1 writes it → check again before wave 2.
 - **Shell:** run pod's commands through Bash (Git Bash on Windows), and PowerShell only for the project's own scripts → `agent-browser` hangs when PowerShell captures its output.
-- **Browser:** **Config**'s `browser` is `none` → no browser. Else the project has a UI → prove its browser (`axi` if set, else `agent-browser`) opens and closes a page twice, each call under 30 seconds; the hang shows after a close, and `--version` proves nothing.
-- **Browser choice:** the probe fails → ask once with `AskUserQuestion` (**Install agent-browser**, **Use chrome-devtools-axi**, or **Stop**), prove the choice the same way, and write it to **Config**.
+- **Browser:** **Config**'s `browser` is `none` → no page checks: no probe, and the wave check and **Look check** skip pages and say so. Else the project has a UI → prove its browser (`axi` if set, else `agent-browser`) opens and closes a page twice, each call under 30 seconds; the hang shows after a close, and `--version` proves nothing.
+- **Browser choice:** the probe fails → ask once with `AskUserQuestion` (**Install agent-browser**, **Use chrome-devtools-axi**, or **Stop**), prove the choice the same way, and write it to **Config** (`agent-browser` or `axi`); **Stop** writes nothing.
 - **Port base:** reuse the plan doc's `Port base:` line. None → claim a 100-port block B from `3000`, `3100`, … `9900` (never `3900`, the agents' defaults) that is free, claimed by no other run, and reserved by no `pod-docs/known-issues/` entry → write its **Claim file**, and add `Port base: <B>` under the plan doc's header.
 - **Claim file:** the block's claim is `<temp>/pod-ports/<B>` (`<temp>` is the system temp folder) naming `<parent-repo> <plan-slug>`. A claim is free when its plan is archived and its plan branch is gone from origin, or its repo is gone: a plan is archived before its final PR merges, and its branch is pushed after the claim.
 - **Long paths:** on Windows, `git config core.longpaths true`, or worktree removal fails.
-- **Plan branch:** the merge-target is per **Config** → write it as the plan doc's `Merge target:` line if it's missing. Create and push `<plan-slug>`, check it out in the parent repo, and commit pod setup (`pod-docs/`, the old `docs/` paths an upgrade moved, `.github/workflows/pod-ci.yml`) to it, never to the merge-target.
+- **Plan branch:** create and push `<plan-slug>`, check it out in the parent repo, and commit pod setup (`pod-docs/`, the old `docs/` paths an upgrade moved, `.github/workflows/pod-ci.yml`) to it, never to the merge-target.
 ### Tidy the queue
 
 - **Tidy the queue:** in the plan branch's setup commit, the queue keeps only this plan's entries and what is still pending → resolve each pending `plan <slug> complete — final PR <url>` entry whose PR merged as `**Resolution:** <date> — final PR merged`, and delete resolved entries with no `plan:`.

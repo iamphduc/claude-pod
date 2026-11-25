@@ -48,7 +48,7 @@ Make one change into the branch the human is on, outside a plan's waves: one eng
 
 ### Hand back
 
-- **Into a reviewed plan:** the PR goes into a plan branch whose final PR is already reviewed → say so in the hand-back: that review doesn't cover this change.
+- **Into a plan:** the PR goes into a plan branch → say so in the hand-back: the plan's final review covers this change only if it runs after the merge.
 - **Hand back:** the PR URL and the branch it goes into; `Review: pass`, `Review still failing` with its `FIX` findings, `Review: skipped (--no-review)`, or `Review: not run on the changes since <commit>`; any `BLOCKED` the engineer reported; and that the worktree is kept, so the human can merge, fix by hand, or ask for more changes before replying `continue`.
 - **Queue commit:** just before each hand-back, write this task's queue entries in the task worktree → one `docs(queue): …` commit on the task branch; a later round adds one new commit, never one per entry.
 - **More changes:** the human asks for more after the hand-back → an engineer makes them as in the **Fix pass**, with no reviewer, and the hand-back says `Review: not run on the changes since <commit>`, so the human, who checks each change, isn't held up.

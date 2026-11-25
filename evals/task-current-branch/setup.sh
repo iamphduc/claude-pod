@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
 # A pod project mid-plan: the parent repo is on the plan branch `friends`, and config sets no merge target.
 set -e
+. "$(dirname "$0")/../_fixtures/pod-project.sh"
 git init -q -b main
 mkdir -p pod-docs/plans
-printf '# pod docs\n\npod docs: 2\n' > pod-docs/README.md
-printf '# pod config\n\nmerge-target:\nbrowser:\nci: off\n' > pod-docs/config.md
+pod_readme
+pod_config '' '' off
 printf '# Codebase structure\n\n## What it is\n\nA small CLI.\n\n## Smoke recipe\n\n`node --test`\n' > pod-docs/codebase-structure.md
-printf '# Decisions\n' > pod-docs/decisions.md
-printf '# Handoff Queue\n\n---\n' > pod-docs/handoff-queue.md
-printf '# Plan: Friends\n\n_Generated: 2026-11-20 · Status: active_\n\nMerge target: main\nPort base: 3100\n\n## Goal\n\nLet users add friends.\n' > pod-docs/plans/friends.md
+pod_decisions
+pod_queue
+printf '# Plan: Friends\n\n_Generated: 2026-11-20 · Status: active_\n\nPort base: 3100\n\n## Goal\n\nLet users add friends.\n' > pod-docs/plans/friends.md
 printf '# Greeter\n\nRun `node greet.js`.\n' > README.md
-git add -A && git -c user.name=t -c user.email=t@t commit -qm init
+pod_commit
 git checkout -q -b friends
 printf 'console.log("Helo")\n' > greet.js
 git add -A && git -c user.name=t -c user.email=t@t commit -qm "feat: greet"

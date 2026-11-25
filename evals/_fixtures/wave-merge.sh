@@ -8,7 +8,8 @@ pod_readme
 printf '# Codebase structure\n\n## What it is\n\nA command-line tool with no UI.\n\n## CI\n\nnone\n\n## Smoke recipe\n\n`node src/index.js` prints hi.\nVerification: `node --test`\n' > pod-docs/codebase-structure.md
 pod_queue
 printf '# Features\n\n| Feature | How to prove it |\n|---|---|\n| greet | `node src/index.js` prints hi |\n' > pod-docs/features.md
-printf '# Decisions\n\n## 2026-10-19 — CI: none\nContext: a prototype.\nDecision: no CI for now.\nConsequences: merges rest on the wave check.\n' > pod-docs/decisions.md
+pod_decisions
+pod_config '' '' off
 cat > pod-docs/plans/demo.md <<'PLAN'
 # Plan: Demo
 
