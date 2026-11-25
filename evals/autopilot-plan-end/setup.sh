@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# A pod project whose autopilot plan `friends` is closed out: its final PR #20 to main is reviewed and open for the human.
+# A pod project whose autopilot plan `friends` is closed out: the close-out entry names the final PR #20 to main, reviewed and open.
 set -e
 git init -q -b friends
 mkdir -p pod-docs/plans pod-docs/sprints/archive pod-docs/reports src

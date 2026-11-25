@@ -105,7 +105,7 @@ One review pass, one fix pass, then merge — no endless loops ([Tembo](https://
 2. One `pod:engineer` fixes **exactly** the `FIX` findings, runs its usual checks, and pushes. A finding it thinks is wrong, it leaves and explains.
 3. The orchestrator opens a PR from `<plan-slug>-fix` into the plan branch and merges it; the final PR updates in place.
 4. The reviewer re-checks **only those fixes** (round 2).
-5. Pass → you merge the final PR. Still failing → it comes to you marked `review still failing` (autopilot halts at gate 2). You decide: fix by hand, merge as is, or re-plan.
+5. Pass → you merge the final PR. Still failing → it comes to you marked `review still failing` (autopilot stops there too). You decide: fix by hand, merge as is, or re-plan.
 
 ## Reviewing `/pod:task` PRs
 

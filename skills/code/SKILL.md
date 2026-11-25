@@ -49,7 +49,7 @@ You are the orchestrator. Each wave's engineers build in parallel; you combine t
 - **Browser:** the project has a UI → prove a headless browser opens and closes a page twice, each call under 30 seconds; the hang shows after a close, and `--version` proves nothing. It passes → `browser: agent-browser`.
 - **Browser choice:** the probe fails → reuse a `## <date> — browser: <choice>` entry in `pod-docs/decisions.md`. None → ask once with `AskUserQuestion` (**Install agent-browser**, **Use chrome-devtools-axi**, or **Stop**), prove the choice the same way, and record it under that title. A recorded `devtools-mcp` is no longer offered → ask again.
 - **Port base:** reuse the plan doc's `Port base:` line. None → claim a 100-port block B from `3000`, `3100`, … `9900` (never `3900`, the agents' defaults) that is free, claimed by no other run, and reserved by no `pod-docs/known-issues/` entry → write its **Claim file**, and add `Port base: <B>` under the plan doc's header.
-- **Claim file:** the block's claim is `<temp>/pod-ports/<B>` (`<temp>` is the system temp folder) naming `<parent-repo> <plan-slug>`. A claim whose plan is archived or whose repo is gone is free.
+- **Claim file:** the block's claim is `<temp>/pod-ports/<B>` (`<temp>` is the system temp folder) naming `<parent-repo> <plan-slug>`. A claim whose plan branch is gone from origin, or whose repo is gone, is free: a plan is archived before its final PR merges.
 - **Long paths:** on Windows, `git config core.longpaths true`, or worktree removal fails.
 - **Plan branch:** create and push `<plan-slug>`, check it out in the parent repo, and commit pod setup (`pod-docs/`, the old `docs/` paths an upgrade moved, `.github/workflows/pod-ci.yml`) to it, never to the merge-target.
 ### Tidy the queue

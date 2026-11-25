@@ -1,6 +1,6 @@
 # Autonomous mode policy
 
-`/pod:autopilot` is the human's standing consent to merge wave PRs and `Review fixes` PRs into the plan branch when they clear the bar below. Such a PR merges only when it meets every rule in **Auto-merge criteria**; anything else halts the run for the human. Autopilot never merges the final plan PR: the human merges it at gate 7. (If `CLAUDE.md` forbids unattended merges, add an autopilot carve-out or use `/pod:code`.)
+`/pod:autopilot` is the human's standing consent to merge wave PRs and `Review fixes` PRs into the plan branch when they clear the bar below. Such a PR merges only when it meets every rule in **Auto-merge criteria**; anything else halts the run for the human. Autopilot never merges the final plan PR: the human merges it after `/pod:code`'s plan-end hand-back. (If `CLAUDE.md` forbids unattended merges, add an autopilot carve-out or use `/pod:code`.)
 
 ## Auto-merge criteria
 
@@ -23,13 +23,12 @@
 
 ## Halt gates
 
-1. **blocked-concern:** `BLOCKED` from any engineer or from you → `BLOCKED`.
-2. **plan-review-fail:** the final plan PR still has `FIX` findings, or any reproduced bug, after the fix pass → `BLOCKED`.
-3. **auto-merge-fail:** a criterion fails, or the merge fails → `BLOCKED`.
-4. **inter-wave-verify:** the wave check fails → `BLOCKED`.
-5. **safety-bound:** a safety bound is hit → `PENDING`.
-6. **escalation-valve:** a criterion withholds a mergeable PR → `PENDING`.
-7. **plan-complete:** no `planned` sprint row left, and the final plan PR has the reviewer's `pass` and meets the CI and GitHub criteria above on its close-out head (else gate 3); never merge it → `PENDING`.
+- **Gate 1, blocked-concern:** `BLOCKED` from any engineer or from you → `BLOCKED`.
+- **Gate 3, auto-merge-fail:** a criterion fails, or the merge fails → `BLOCKED`.
+- **Gate 4, inter-wave-verify:** the wave check fails → `BLOCKED`.
+- **Gate 5, safety-bound:** a safety bound is hit → `PENDING`.
+- **Gate 6, escalation-valve:** a criterion withholds a mergeable PR → `PENDING`.
+- The plan's end is not a gate: it is `/pod:code`'s close-out entry and hand-back. Gates 2 and 7 are retired.
 
 - Gate 1's one exception: a `BLOCKED` fixed only by a test fixture or doc no other slice owns → give it to that engineer, resume it, and tell the human.
 
@@ -39,10 +38,9 @@
 - Pod Board tells a halt from a note by the `gate <N> (<name>): ` start → no other entry starts that way.
 - The queue type is the one after the gate's `→` above, never your own pick → a gate 3 is `BLOCKED` even when the fix is only "merge it after #27".
 - To resume, a `PENDING` needs acknowledging, and a Pod Board answer (`**Answer (human):**`) does that. A `BLOCKED` needs resolving, per `/pod:code`'s **Answers**.
-- `/pod:code`'s **Plan complete** step 5 entry is a note → gate 2 and gate 7 still add their own halt entry.
 
 ## Safety bounds
 
 - `--max-sprints=<N>` (sprints completed, default unlimited), `--max-waves=<N>` (waves dispatched, default `20`), `--max-runtime=<duration>` (wall clock, e.g. `4h`, default unlimited).
 - A resume starts the clock and the counts again.
-- Keep the counts in `<!-- autopilot-run: started=<ISO8601> sprints=<N> waves=<N> -->` in the active sprint doc, or in the plan doc while none is active (between sprints, after the last one, and after a gate 2 or 7 halt) → a new sprint doc takes it over.
+- Keep the counts in `<!-- autopilot-run: started=<ISO8601> sprints=<N> waves=<N> -->` in the active sprint doc, or in the plan doc while none is active (between sprints and after the last one) → a new sprint doc takes it over.

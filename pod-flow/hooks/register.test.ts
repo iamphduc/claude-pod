@@ -378,7 +378,7 @@ test('at the hand-back, a short pane drops the finished sprints and keeps the re
   expect(await tall.find({ type: 'Button', text: /^Run app$/ })).toBeDefined()
 })
 
-test('a hand-back whose PR has merged shows it merged, with nothing left to do', async ($, on) => {
+test('a hand-back whose PR has merged shows it merged, waiting on your resume to clean up', async ($, on) => {
   const asked: string[][] = []
   world(on, [], true, [], handBack(9))
   on('process.run', (_$, e) => {
@@ -388,9 +388,16 @@ test('a hand-back whose PR has merged shows it merged, with nothing left to do',
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
   const text = (await run($, 'text')).text
   expect(asked[0]).toEqual(['gh', 'pr', 'view', '9', '--json', 'state', '--jq', '.state'])
-  expect(text).toContain('✓ PR #9 merged')
+  expect(text).toContain('◐ PR #9 merged')
+  expect(text).toContain('continue to clean up')
   expect(text).not.toContain('merge PR #9')
-  expect(text).not.toContain('waiting')
+  expect(text).toContain('waiting on you')
+  // Resuming with the command again, not `continue`, also lets pod clean up, so the plan is done.
+  await $.skill.prompt({ skill: 'pod:autopilot', text: 'demo' })
+  const after = (await run($, 'text')).text
+  expect(after).toContain('✓ PR #9 merged')
+  expect(after).toContain('✓ plan done')
+  expect(after).not.toContain('continue to clean up')
 })
 
 test('a hand-back stays waiting when gh cannot tell', async ($, on) => {
@@ -539,8 +546,8 @@ test('the merge brings one soft reminder of the checks left; continue after it f
   expect(text).not.toContain('Run app')
 })
 
-// Autopilot never merges the final plan PR: gate 7 halts with it open, you merge it, then continue.
-test('gate 7 with the final plan PR open: merge it, then continue closes the plan', async ($, on) => {
+// Autopilot never merges the final plan PR. An older run's gate 7 halt reads as the hand-back too: merge, then continue.
+test('an older gate 7 halt with the final plan PR open: merge it, then continue closes the plan', async ($, on) => {
   const files = {
     ...docs(),
     'pod-docs/handoff-queue.md': '- `[2026-11-10 · PENDING · orchestrator → human · plan: demo]` gate 7 (plan-complete): plan demo is reviewed and waits for you in final PR https://github.com/me/demo/pull/16. **Resolution:** pending',
@@ -557,11 +564,12 @@ test('gate 7 with the final plan PR open: merge it, then continue closes the pla
   state = 'MERGED'
   await clock.advance(31_000)
   const merged = (await run($, 'text')).text
-  expect(merged).toContain('✓ PR #16 merged')
+  expect(merged).toContain('◐ PR #16 merged')
   // pod still deletes the plan branch and frees its ports on your continue.
   expect(merged).toContain('continue to clean up')
   await $.prompt.submit({ text: 'continue' } as never)
   const done = (await run($, 'text')).text
+  expect(done).toContain('✓ PR #16 merged')
   expect(done).toContain('✓ plan done · checked 0/1')
   expect(done).not.toContain('continue to clean up')
 })

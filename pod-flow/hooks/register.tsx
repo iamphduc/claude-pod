@@ -220,6 +220,16 @@ async function startRefreshing($: Dollar) {
   await refresh($)
 }
 
+/** Your resume after the hand-back's PR merged, `continue` or the command again: pod cleans up, and the plan is done, so its hand-back part folds to one line. */
+async function closeMergedHandBack($: Dollar) {
+  if (!(await read($, isActive))) return
+  const done = (await read($, lines)).map(l => (l.kind === 'halt' ? /^PR #(\d+) merged$/.exec(l.text)?.[1] : undefined)).find(Boolean)
+  if (done) {
+    await update($, handBackClosed, () => Number(done))
+    await refresh($)
+  }
+}
+
 async function activate($: Dollar) {
   await update($, isActive, () => true)
   // A new run starts from the docs: a plan the last run finished doesn't stand in for it.
@@ -240,19 +250,13 @@ export const register: Register = on => {
     return next(e)
   })
 
-  // Your `continue` after the hand-back's PR merged: the plan is done, so its hand-back part folds to one line.
   on('prompt.submit', async ($, e, next) => {
-    if (/^\s*continue\b/i.test(e.text) && (await read($, isActive))) {
-      const done = (await read($, lines)).map(l => (l.kind === 'halt' && l.status === 'done' ? /^PR #(\d+) merged$/.exec(l.text)?.[1] : undefined)).find(Boolean)
-      if (done) {
-        await update($, handBackClosed, () => Number(done))
-        await refresh($)
-      }
-    }
+    if (/^\s*continue\b/i.test(e.text)) await closeMergedHandBack($)
     return next(e)
   })
 
   on('skill.prompt', async ($, e, next) => {
+    if (/(^|:)(autopilot|code)$/.test(e.skill)) await closeMergedHandBack($)
     const result = await next(e)
     if (RUN_SKILL.test(e.skill)) await activate($)
     return result

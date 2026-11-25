@@ -890,7 +890,8 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
           ]
     if (isHandBack && pull && merged.includes(Number(pull[1]))) {
       // The hand-back's PR is in. Until your continue, pod still has to delete the plan branch and free its ports.
-      lines.push({ depth: 1, kind: 'halt', text: `PR #${pull[1]} merged`, status: 'done' })
+      // Waiting, not done, until then: the plan still has loose ends for you to let pod clear.
+      lines.push({ depth: 1, kind: 'halt', text: `PR #${pull[1]} merged`, status: isHandBackClosed ? 'done' : 'pushed' })
       const cleanUp: TreeLine[] = isHandBackClosed ? [] : [{ depth: 2, kind: 'hint', text: 'continue to clean up', status: 'waiting' }]
       return [...lines, ...cleanUp, ...appLines()]
     }
