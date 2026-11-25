@@ -141,21 +141,20 @@ agents/sprint-planner.md|<sprint-slug>-<slice-code>
 agents/sprint-planner.md|<sprint-slug>-w<N>
 agents/sprint-planner.md|127.0.0.1
 # plan
-skills/plan/template.md|# Plan:
-skills/plan/template.md|## How it fits together
-skills/plan/template.md|```mermaid
-skills/plan/template.md|| Sprint | Goal | Status | Depends on |
-skills/plan/template.md|## Look
-skills/plan/template.md|## Key decisions
-skills/plan/template.md|## Verification
-skills/plan/template.md|<slug>-look
+skills/plan/plan-template.md|# Plan:
+skills/plan/plan-template.md|## How it fits together
+skills/plan/plan-template.md|```mermaid
+skills/plan/plan-template.md|| Sprint | Goal | Status | Depends on |
+skills/plan/plan-template.md|## Look
+skills/plan/plan-template.md|## Key decisions
+skills/plan/plan-template.md|## Verification
+skills/plan/plan-template.md|<slug>-look
 skills/plan/SKILL.md|<slug>-overview.html
 skills/plan/SKILL.md|pinned to a version
 skills/plan/SKILL.md|Does this match what you want built? Reply with changes, or `ok`.
 skills/plan/SKILL.md|<slug>-look.html
 skills/plan/SKILL.md|<slug>-look-<N>.html
 skills/plan/SKILL.md|Plan not written yet — reply to continue.
-skills/plan/SKILL.md|grill-me
 skills/plan/SKILL.md|skills/plan/interview.md
 skills/plan/interview.md|❓ **Q1**
 skills/plan/interview.md|➡️

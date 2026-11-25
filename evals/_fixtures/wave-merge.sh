@@ -1,13 +1,14 @@
-#!/usr/bin/env bash
-# A pod project mid-plan: sprint one, wave 1, slice A1 dispatched. Its queue keeps an older Format line with no plan:, so the tag must come from the skill.
+# Autopilot at a wave merge; the brief and decisions.md say no CI. Used by: autopilot-no-ci-merges, autopilot-ci-from-repo.
+# The case adds its own files, then runs pod_commit.
 set -e
+. "$(dirname "${BASH_SOURCE[0]}")/pod-project.sh"
 git init -q -b main
 mkdir -p pod-docs/plans pod-docs/sprints/archive src
-printf '# pod docs\n\npod docs: 2\n' > pod-docs/README.md
-printf '# Codebase structure\n\n## What it is\n\nA command-line tool with no UI.\n\n## Smoke recipe\n\n`node src/index.js` prints hi.\n' > pod-docs/codebase-structure.md
-printf '# Handoff Queue\n\nFormat: `` - `[YYYY-MM-DD · TYPE · from → to · sprint: <slug> · slice: <code>]` <body> **Resolution:** pending ``\n\n---\n' > pod-docs/handoff-queue.md
+pod_readme
+printf '# Codebase structure\n\n## What it is\n\nA command-line tool with no UI.\n\n## CI\n\nnone\n\n## Smoke recipe\n\n`node src/index.js` prints hi.\nVerification: `node --test`\n' > pod-docs/codebase-structure.md
+pod_queue
 printf '# Features\n\n| Feature | How to prove it |\n|---|---|\n| greet | `node src/index.js` prints hi |\n' > pod-docs/features.md
-printf '# Decisions\n' > pod-docs/decisions.md
+printf '# Decisions\n\n## 2026-10-19 — CI: none\nContext: a prototype.\nDecision: no CI for now.\nConsequences: merges rest on the wave check.\n' > pod-docs/decisions.md
 cat > pod-docs/plans/demo.md <<'PLAN'
 # Plan: Demo
 
@@ -26,11 +27,12 @@ cat > pod-docs/sprints/one.md <<'SPRINT'
 
 _From plan: pod-docs/plans/demo.md · Slug: one · Status: active · Generated: 2026-10-02_
 
+<!-- autopilot-run: started=2026-10-27T09:00:00Z sprints=0 waves=1 -->
+
 ## Status board
 
 | Wave | Slice | Title | Branch | PR | Status | Confidence | Depends on |
 |------|-------|-------|--------|----|--------|------------|------------|
-| 1 | A1 | Greet by name | one-A1 | — | pending | — | — |
+| 1 | A1 | Greet by name | one-A1 | https://github.com/acme/demo/pull/12 | in review | high | — |
 SPRINT
 printf 'console.log("hi")\n' > src/index.js
-git add -A && git -c user.name=t -c user.email=t@t commit -qm init
