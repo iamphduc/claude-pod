@@ -80,7 +80,7 @@ One engineer builds the change test-first, the reviewer checks it, and you merge
 Every pod PR, this one included, opens with a review guide: the steps in the order they were built, each linked to its own diff and marked `Read` or `Skim`. The proof (tests, checks, browser rows) is folded below it. See [PR bodies](design.md#pr-bodies).
 
 **Options:**
-- `--merge-target=<branch>`: the branch the task branches off and merges to. Default: the branch you're on, so mid-plan a task goes into the plan branch. On a detached HEAD or a branch not on GitHub, your repo's default branch.
+- `--merge-target=<branch>`: the branch the task branches off and merges to. Default: the branch you're on, so mid-plan a task goes into the plan branch. On your default branch, a detached HEAD, or a branch not on GitHub: `merge-target` from `pod-docs/config.md`, so a `staging` target holds for tasks too.
 - `--no-review`: skip the reviewer, for a trivial change.
 - `--model=<model>`: run every agent of this task on that model.
 
@@ -180,7 +180,7 @@ browser: agent-browser
 ci: off
 ```
 
-- `merge-target`: the branch plans go to through their final PR. Empty: your repo's default branch. Don't change it while a plan runs: the plan's branch was cut from it. `/pod:task` doesn't use it: a task goes into the branch you're on.
+- `merge-target`: the branch plans go to through their final PR. Empty: your repo's default branch. Don't change it while a plan runs: the plan's branch was cut from it. `/pod:task` uses it only when you're on your default branch, a detached HEAD, or a branch not on GitHub; on any other branch, such as a plan branch, a task goes into that branch.
 - `browser`: `agent-browser`, `axi`, or `none`. Empty: pod checks `agent-browser`, and asks if it fails. `none` turns page checks off. pod fills it in when you answer its browser question.
 - `ci`: `on` or `off`. pod fills it in when you answer `/pod:init`'s CI offer.
 

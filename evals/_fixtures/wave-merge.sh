@@ -1,4 +1,4 @@
-# Autopilot at a wave merge; the brief and decisions.md say no CI. Used by: autopilot-no-ci-merges, autopilot-ci-from-repo.
+# Autopilot at a wave merge; the brief and config.md say no CI. Used by: autopilot-no-ci-merges, autopilot-ci-from-repo.
 # The case adds its own files, then runs pod_commit.
 set -e
 . "$(dirname "${BASH_SOURCE[0]}")/pod-project.sh"

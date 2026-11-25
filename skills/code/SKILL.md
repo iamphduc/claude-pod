@@ -44,7 +44,7 @@ You are the orchestrator. Each wave's engineers build in parallel; you combine t
 
 ### Preflight
 
-- **Before the first wave:** the **docs version** is current (per `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md`), the merge-target is on `origin` (none → tell the human to push it, `git push origin <default branch>:<merge-target>`, or to fix **Config**), and the `## Smoke recipe` is filled in. A lone `B1` in wave 1 writes it → check again before wave 2.
+- **Before the first wave:** the **docs version** is current (per `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md`), the merge-target is on `origin` (none → tell the human to push it, `git push origin origin/<default branch>:refs/heads/<merge-target>`, or to fix the flag or **Config**), and the `## Smoke recipe` is filled in. A lone `B1` in wave 1 writes it → check again before wave 2.
 - **Shell:** run pod's commands through Bash (Git Bash on Windows), and PowerShell only for the project's own scripts → `agent-browser` hangs when PowerShell captures its output.
 - **Browser:** **Config**'s `browser` is `none` → no page checks: no probe, and the wave check and **Look check** skip pages and say so. Else the project has a UI → prove its browser (`axi` if set, else `agent-browser`) opens and closes a page twice, each call under 30 seconds; the hang shows after a close, and `--version` proves nothing.
 - **Browser choice:** the probe fails → ask once with `AskUserQuestion` (**Install agent-browser**, **Use chrome-devtools-axi**, or **Stop**), prove the choice the same way, and write it to **Config** (`agent-browser` or `axi`); **Stop** writes nothing.

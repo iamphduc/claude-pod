@@ -9,7 +9,7 @@ Make one change into the branch the human is on, outside a plan's waves: one eng
 ## Args
 
 - `[task]`: the change.
-- `--merge-target=<branch>`: default: the parent repo's current branch, so a task mid-plan goes into the plan branch; a detached HEAD or a branch not on origin → origin's default branch, said in the hand-back. Pass it on.
+- `--merge-target=<branch>`: default: the parent repo's current branch, so a task mid-plan goes into the plan branch. On origin's default branch, a detached HEAD, or a branch not on origin → `merge-target` per **Config** in `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md`, said in the hand-back. Pass it on.
 - `--no-review`: skip the reviewer.
 - `--model=<model>`: the model for every agent.
 
@@ -23,6 +23,8 @@ Make one change into the branch the human is on, outside a plan's waves: one eng
 
 ### Set up
 
+- **Target:** work out the merge-target per `--merge-target` → not on origin → tell the human `git push origin origin/<default branch>:refs/heads/<merge-target>` and stop.
+
 - **Docs version:** a new task → check it per `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md` first.
 - **Browser:** the project has a UI → pick it as in `/pod:code`'s **Preflight** (`${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md`); with `axi` or `none`, pass that value to the engineer and reviewer.
 - **Ports:** claim a port base B as in **Preflight**, with `<parent-repo> task-<slug>` in the file → engineer B+10/B+11, reviewer B+20/B+21, your checks B/B+1. Delete the file after the merge.
@@ -31,7 +33,7 @@ Make one change into the branch the human is on, outside a plan's waves: one eng
 ### Build
 
 - **Model:** `--model` → the engineer runs on it. Else small work with a clear cause → `sonnet` when your model is above Sonnet; otherwise, or when unsure → no `model`, so it runs on your model.
-- **Engineer:** dispatch `pod:engineer` with the task → it sets itself up per its **Standalone** rules and keeps its worktree until the merge.
+- **Engineer:** dispatch `pod:engineer` with the task and the **merge-target branch**, always → it sets itself up per its **Standalone** rules and keeps its worktree until the merge.
 - **Edges:** write the brief → it names the edges the human would check, as they apply: the longest text, an empty and a full list, both themes, each branch.
 - **Concerns:** the engineer reports `Concerns` → they go to `pod-docs/handoff-queue.md` (`from: engineer`, no `sprint:`).
 - **PR:** the engineer pushes its branch, never the PR → open the PR yourself, once, with the whole body per `${CLAUDE_PLUGIN_ROOT}/skills/code/pr-template.md`, from its report and commits, starting with its **Door** line.
@@ -42,7 +44,7 @@ Make one change into the branch the human is on, outside a plan's waves: one eng
 - **Dispatch:** the full PR body is written, since the reviewer checks it → dispatch `pod:reviewer` (on `--model`, else no `model`) with `kind: task` and every field of its **Required dispatch context** (`${CLAUDE_PLUGIN_ROOT}/agents/reviewer.md`), as field lines `- **<field>:** <value>`, with a long item (the task, the Repro) in an indented block under its label.
 - **Incomplete:** `incomplete` → dispatch again with what it names; that isn't the fix pass.
 - **Pending:** the reviewer reports `PENDING`s → they go to the queue (`from: reviewer`, `to: human`), each body opening with the reviewer's label as `<when> (<why>):`, such as `someday (no repro):`.
-- **Fix pass:** `fix` → one fix pass: an engineer on the build's model in the same worktree and branch (the build engineer if it can still take a message, else a new one), with the task, its ports and browser, the PR URL, and **review findings** = the `FIX` lines.
+- **Fix pass:** `fix` → one fix pass: an engineer on the build's model in the same worktree and branch (the build engineer if it can still take a message, else a new one), with the task, its **merge-target branch**, its ports and browser, the PR URL, and **review findings** = the `FIX` lines.
 - **Round 2:** the fix pass is done → write the PR body again from its report, with its **Door** line and the fix commits (a one-way `undo:` also names them); then the reviewer again with `round: 2`, its round-1 findings, and the engineer's summary. Hand back, whatever the verdict.
 - **Verdict:** the reviewer returns one → it stays in its PR comment, never in the body.
 
