@@ -133,7 +133,7 @@ test('the turns of a spawned agent add up its tokens, and other loops add none',
 })
 
 test('the resume hint under a halt is drawn cyan, not dim', async ($, on) => {
-  const files = { ...docs(), 'pod-docs/handoff-queue.md': '- `[2026-10-06 · BLOCKED · orchestrator → human]` Gate 4: wave check failed **Resolution:** pending' }
+  const files = { ...docs(), 'pod-docs/handoff-queue.md': '- `[2026-10-06 · BLOCKED · orchestrator → human]` plan demo complete — final PR #20, review still failing **Resolution:** pending' }
   world(on, [], true, [], files)
   await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
   const pane = await $.ui.mount({ plugin: 'pod-flow', surface: 'terminal', component: 'Pane', requestId: 'pod-flow', props: { bodyColumns: 120 } as never })
@@ -560,34 +560,6 @@ test('the merge brings one soft reminder of the checks left; continue after it f
   const { text } = await run($, 'text')
   expect(text).toContain('✓ plan done · checked 0/1')
   expect(text).not.toContain('Run app')
-})
-
-// Autopilot never merges the final plan PR. An older run's gate 7 halt reads as the hand-back too: merge, then continue.
-test('an older gate 7 halt with the final plan PR open: merge it, then continue closes the plan', async ($, on) => {
-  const files = {
-    ...docs(),
-    'pod-docs/handoff-queue.md': '- `[2026-11-10 · PENDING · orchestrator → human · plan: demo]` gate 7 (plan-complete): plan demo is reviewed and waits for you in final PR https://github.com/me/demo/pull/16. **Resolution:** pending',
-  }
-  let state = 'OPEN'
-  const clock = world(on, [], true, [], files)
-  on('process.run', (_$, e) => ({ value: { exitCode: 0, stdout: e.argv.includes('body') ? '## Try it\n1. Open a saved book → it opens' : `${state}\n`, stderr: '' } as never }))
-  on('prompt.submit', (_$, e) => ({ text: e.text }) as never)
-  await $.skill.prompt({ skill: 'pod:autopilot', text: 'run' })
-  const open = (await run($, 'text')).text
-  expect(open).toContain('merge PR #16')
-  expect(open).not.toContain('to resume')
-  expect(open).toContain('Run app')
-  state = 'MERGED'
-  await clock.advance(31_000)
-  const merged = (await run($, 'text')).text
-  expect(merged).toContain('◐ PR #16 merged')
-  // pod still deletes the plan branch and frees its ports on your continue.
-  expect(merged).toContain('continue to clean up')
-  await $.prompt.submit({ text: 'continue' } as never)
-  const done = (await run($, 'text')).text
-  expect(done).toContain('✓ PR #16 merged')
-  expect(done).toContain('✓ plan done · checked 0/1')
-  expect(done).not.toContain('continue to clean up')
 })
 
 test('the first /pod-flow text already has the checklist, as under -p, where there is no second call', async ($, on) => {

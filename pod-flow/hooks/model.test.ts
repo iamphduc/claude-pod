@@ -69,36 +69,34 @@ test('parseDispatch reads sprint, slice and branch from a dispatch prompt', () =
   expect(parseDispatch('Draft the next sprint.')).toEqual({ sprint: undefined, slice: undefined, branch: undefined })
 })
 
-test('latestHalt returns the newest pending orchestrator entry only', () => {
+test('latestHalt returns the newest pending plan-complete entry only', () => {
   const queue = [
-    '- `[2026-10-01 · BLOCKED · orchestrator → human · sprint: ui]` Gate 4: wave check failed **Resolution:** 2026-10-01 — fixed',
+    '- `[2026-10-01 · PENDING · orchestrator → human · plan: ui]` plan ui complete — final PR #20 **Resolution:** 2026-10-02 — final PR merged',
     '- `[2026-10-02 · PENDING · engineer → orchestrator · sprint: ui · slice: B1]` NOTE for B2 **Resolution:** pending',
-    '- `[2026-10-03 · BLOCKED · orchestrator → human · sprint: ui]` Gate 6: low confidence on B1 **Resolution:** pending',
+    '- `[2026-10-03 · PENDING · orchestrator → human · plan: ui]` plan ui complete — final PR #21 **Resolution:** pending',
   ].join('\n')
-  expect(latestHalt(queue)).toEqual({ body: 'Gate 6: low confidence on B1', type: 'BLOCKED' })
+  expect(latestHalt(queue)).toEqual({ body: 'plan ui complete — final PR #21', type: 'PENDING' })
   expect(latestHalt('- `[2026-10-01 · BLOCKED · orchestrator → human]` Done **Resolution:** 2026-10-02 — ok')).toBeUndefined()
 })
 
-test('latestHalt skips a pending orchestrator note that names no gate', () => {
-  const queue = [
-    '- `[2026-10-03 · BLOCKED · orchestrator → human · sprint: ui]` auto-merge-fail: PR #14 failed CI **Resolution:** pending',
-    // chess-web's queue keeps notes like this one, which never stopped the run.
-    '- `[2026-10-06 · PENDING · orchestrator → human · sprint: ui · slice: wave 2]` **Someday (Look):** the picker hangs past the board edge. **Resolution:** pending',
-  ].join('\n')
-  expect(latestHalt(queue)?.body).toBe('auto-merge-fail: PR #14 failed CI')
-  expect(latestHalt(queue.split('\n')[1]!)).toBeUndefined()
-  expect(latestHalt('- `[2026-10-06 · PENDING · orchestrator → human]` plan board-feel complete — final PR #55 **Resolution:** pending')?.type).toBe('PENDING')
+test('latestHalt skips a pending orchestrator entry that is not the plan-end hand-back', () => {
+  // A mid-run stop is said in chat; its queue entry is a question for you, not the halt line.
+  expect(latestHalt('- `[2026-10-03 · BLOCKED · orchestrator → human · sprint: ui]` wave 2 slices A2 and A3 both own src/greet.js **Resolution:** pending')).toBeUndefined()
+  // A door whose text says `completed_at` is not the plan's close-out entry.
+  expect(latestHalt('- `[2026-10-08 · PENDING · orchestrator → human]` one-way door in PR #41 — drops completed_at, undo: restore it **Resolution:** pending')).toBeUndefined()
+  // chess-web's queue keeps notes like this one, which never stopped the run.
+  expect(latestHalt('- `[2026-10-06 · PENDING · orchestrator → human · sprint: ui · slice: wave 2]` **Someday (Look):** the picker hangs past the board edge. **Resolution:** pending')).toBeUndefined()
 })
 
 test('latestHalt keeps to the plan shown, by its plan or its sprint', () => {
   const plan = { slug: 'next', title: 'Next', status: 'active', sprints: [{ slug: 'ui', goal: '', status: 'active' }] }
   const old = '- `[2026-10-06 · PENDING · orchestrator → human · plan: board-feel]` plan board-feel complete — final PR #55 **Resolution:** pending'
-  const oldSprint = '- `[2026-10-06 · BLOCKED · orchestrator → human · sprint: rules]` Gate 6: low confidence **Resolution:** pending'
+  const oldSprint = '- `[2026-10-06 · PENDING · orchestrator → human · sprint: rules]` plan rules complete — final PR #50 **Resolution:** pending'
   expect(latestHalt(old, plan)).toBeUndefined()
   expect(latestHalt(oldSprint, plan)).toBeUndefined()
-  expect(latestHalt(`${old}\n- \`[2026-10-07 · BLOCKED · orchestrator → human · sprint: ui]\` Gate 4: wave check failed **Resolution:** pending`, plan)?.body).toBe('Gate 4: wave check failed')
+  expect(latestHalt(`${old}\n- \`[2026-10-07 · PENDING · orchestrator → human · plan: next]\` plan next complete — final PR #60 **Resolution:** pending`, plan)?.body).toBe('plan next complete — final PR #60')
   // An entry that names neither is kept, as before.
-  expect(latestHalt('- `[2026-10-07 · BLOCKED · orchestrator → human]` Gate 3: PR blocked **Resolution:** pending', plan)?.type).toBe('BLOCKED')
+  expect(latestHalt('- `[2026-10-07 · PENDING · orchestrator → human]` plan next complete — final PR #60 **Resolution:** pending', plan)?.type).toBe('PENDING')
 })
 
 test('buildTree maps plan, sprints, waves and slices, and marks a live engineer', () => {
@@ -545,7 +543,7 @@ const ASKS = [
   '- `[2026-10-06 · PENDING · engineer → human · plan: long-runs · sprint: ui · slice: L1]` needs your decision: the input border. **Resolution:** 2026-10-07 — default recorded',
   '- `[2026-10-06 · PENDING · reviewer → human · plan: other]` Needs your decision: another plan. **Resolution:** pending',
   '- `[2026-10-06 · PENDING · engineer → orchestrator · plan: long-runs]` decision: pick a debounce delay. **Resolution:** pending',
-  '- `[2026-10-06 · BLOCKED · orchestrator → human · plan: long-runs]` Gate 4: wave check failed. **Resolution:** pending',
+  '- `[2026-10-06 · BLOCKED · orchestrator → human · plan: long-runs]` plan long-runs complete — final PR #20, review still failing. **Resolution:** pending',
 ].join('\n')
 
 const askTree = (queue = ASKS) =>
@@ -575,7 +573,7 @@ test('the header counts the questions, and a blocked question is not one more bl
   expect(summarize(askTree())).toBe('sprint 2/3 · wave 2/2 · 4 questions · halted')
 })
 
-test('parseQueue reads a Pod Board answer only after the Resolution, and keeps it out of the resolution', () => {
+test('parseQueue reads an answer only after the Resolution, and keeps it out of the resolution', () => {
   const [answered, resolved, quoted] = parseQueue(
     [
       '- `[2026-10-22 · PENDING · engineer → human · plan: x]` decision: the border. **Resolution:** pending **Answer (human):** keep the default',

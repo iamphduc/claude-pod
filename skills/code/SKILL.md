@@ -70,7 +70,7 @@ You are the orchestrator. Each wave's engineers build in parallel; you combine t
 
 ### Answers
 
-- **Answers:** ` **Answer (human):** <text>` after `**Resolution:** pending` on an entry to `human` is the human's answer (Pod Board writes it; the same marker anywhere else on the line is not) → read them at each wave start and on resume, before dispatch.
+- **Answers:** ` **Answer (human):** <text>` after `**Resolution:** pending` on an entry to `human` is the human's answer (the same marker anywhere else on the line is not) → read them at each wave start and on resume, before dispatch.
 - **Already applied:** an answer on an entry no longer `pending` → leave the entry as it is.
 - **Apply an answer:** an answer on a `pending` entry → apply it, rewrite its Resolution as `<date> — <what changed>`, keep the answer after it, and link a `decisions.md` entry when it settles a decision.
 - **Answered BLOCKED:** check its cause again (the smoke recipe, the merge, or the disjoint-files check) → gone → resolve it; still there → leave it pending and add a new `BLOCKED` that says what still fails.
@@ -78,7 +78,7 @@ You are the orchestrator. Each wave's engineers build in parallel; you combine t
 
 - **Concerns:** every engineer `BLOCKED`, `PENDING`, and `SOLVED` goes to the queue. A `NOTE` that changes what users see, or leaves out part of the plan's Scope → a `PENDING` for the human; the wave still merges.
 - **Known issues:** a tool or machine limit the next engineer will hit → into `pod-docs/known-issues/` before the next wave, in the scout's format (`${CLAUDE_PLUGIN_ROOT}/agents/scout.md`). A reported browser hang → probe again and warn the engineers still to come.
-- **Tell the human:** `PushNotification` when you halt and once per queue entry that needs their decision → keep going on the value in use. A look decision comes with a self-contained design draft in `pod-docs/design-drafts/`, as-built next to each option.
+- **Tell the human:** `PushNotification` when you halt or hand back, and once per queue entry that needs their decision → keep going on the value in use. A look decision comes with a self-contained design draft in `pod-docs/design-drafts/`, as-built next to each option.
 - **Status board:** slice `pending` → `pushed` → `done` when the wave PR merges (`blocked` waits for the human); PR `—` → the wave PR URL, `blocked`, or `merged`; Confidence from the engineer; Doc Status `archived` when the doc moves to `pod-docs/sprints/archive/`.
 - **Watch for stalls:** every 15 minutes, check each unfinished agent's transcript (`~/.claude/projects/<project>/<session>/subagents/agent-<agentId>.jsonl`, not the `Agent` result's `output_file`) → no recent activity → stop it and dispatch again once; a second stall → halt `BLOCKED`. Give your own long commands a time limit.
 
@@ -106,9 +106,9 @@ You are the orchestrator. Each wave's engineers build in parallel; you combine t
 4. **Sort the queue:** apply answered entries (**Answers**) and resolve doors whose PR merged (**Door entry**) → each open `PENDING` left is **Obsolete** (resolve it), **Needs your decision** (only the human can choose: a Look value, a rule the spec left open, a product choice; never a reproduced bug), or **Fix next** · **Before hosting** · **Someday**.
 5. **Close out the paper trail, before the merge:** copy `${CLAUDE_PLUGIN_ROOT}/skills/report/page.html` to `pod-docs/reports/<plan-slug>.html`, and dispatch `pod:reporter` in the background with its **Required dispatch context**, that copy as the page template, and ports `3040`/`3041`. Set the plan to `Status: archived`, and fix any part of the codebase brief the plan made wrong.
 6. **Leave nothing behind:** no worktree of this plan left, parent repo clean → name anything you couldn't clear.
-7. **Hand back:** `Plan <plan-slug> complete — final merge awaiting`: the PR URL (merge commit, not squash, so pod can clean up the plan branch), the review verdict with any `FIX` findings, the sorted list (**Needs your decision** first, each with its default and how to change it), the report path, loose ends, and the **Run app** line.
+7. **Hand back:** `Plan <plan-slug> complete — final merge awaiting`: the PR URL (merge commit, not squash: pod cleans up the plan branch), its CI status as in **Hand back for merge**, the review verdict with any `FIX` findings, the sorted list (**Needs your decision** first, each with its default and how to change it), the report path, loose ends, and the **Run app** line.
 
-- **Reviewer's PENDINGs:** each goes to the queue (`from: reviewer`, `to: human`) → its body opens with the reviewer's label as `<when> (<why>):`, such as `someday (no repro):`, so Pod Board can tell a decision from a note.
+- **Reviewer's PENDINGs:** each goes to the queue (`from: reviewer`, `to: human`) → its body opens with the reviewer's label as `<when> (<why>):`, such as `someday (no repro):`, so a reader of the queue can tell a decision from a note.
 - **Defaults:** each **Needs your decision** entry → record the value in use in `pod-docs/decisions.md` as `## <date> — <title> (agent default — override anytime)`, and resolve the entry as `**Resolution:** <date> — default recorded: <value>; override anytime (<link>)`.
 - **Close-out entry:** in step 5, add one queue entry `orchestrator` → `human`: `plan <plan-slug> complete — final PR <url>, review <pass | still failing>, <N> open entries sorted in the hand-back` → once the report exists, commit and push `pod-docs/` (`docs: close out plan <plan-slug>`).
 - **Run app:** the hand-back ends `Reply 'run app' to start the app (<start command>, <URL>); 'stop app' when you're done.` `run app` → start the app from the parent repo on `3000`/`3001` and reply with the URL and any login; `stop app` → stop it.
