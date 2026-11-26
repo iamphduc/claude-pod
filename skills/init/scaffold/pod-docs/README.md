@@ -15,7 +15,7 @@ pod-docs/
 │
 │  Shared: you and the agents both read and write these
 ├── plans/                  plans; each keeps its resolved notes in a ## Queue log
-├── config.md               settings pod reads every run: merge target, browser, CI
+├── config.md               the branch plans merge into (merge-target)
 ├── decisions.md            your decisions, which agents must follow
 ├── handoff-queue.md        open notes between agents and you
 │

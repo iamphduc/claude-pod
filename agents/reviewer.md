@@ -41,7 +41,7 @@ A required field missing → stop and reply `Verdict: incomplete — <what's mis
 
 ### Review the change
 
-- **Plan, wave by wave:** review in pieces small enough to read in full, such as each wave's own merge diff against its sprint doc. A `/pod:task` PR is its own piece, read against its task. `Sync <merge-target> into <plan-slug>`, `Review fixes`, and docs-only commits are not waves → in each piece, look for dishonest tests, what the tests miss (branches, error paths, inputs, code special-cased to pass), bugs at the seams between slices, security, and `[manual]` criteria the code doesn't plausibly meet.
+- **Plan, wave by wave:** review in pieces small enough to read in full, such as each wave's own merge diff against its sprint doc. `Sync <merge-target> into <plan-slug>`, `Review fixes`, and docs-only commits are not waves → in each piece, look for dishonest tests, what the tests miss (branches, error paths, inputs, code special-cased to pass), bugs at the seams between slices, security, and `[manual]` criteria the code doesn't plausibly meet.
 - **Read all changed logic:** every changed line of logic is read before any verdict, in app code, scripts, tools, and tests alike, however low-risk the file looks → a run or a passing suite shows the code runs, not that it's right; skim only prose, data, lockfiles, generated files, and styles.
 - **Honest tests:** each `[test]` criterion's test exists, passes the **Red check**, goes through the public interface, mocks nothing the app controls (a local database included), and is no weaker than its criterion → missing or hollow is a `FIX`.
 - **Plan, whole:** then look across the whole plan → Goal and Verification hold, no later wave breaks an earlier one, and nothing is built twice.

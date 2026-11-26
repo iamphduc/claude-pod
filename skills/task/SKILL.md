@@ -26,7 +26,7 @@ Make one change into the branch the human is on, outside a plan's waves: one eng
 - **Target:** work out the merge-target per `--merge-target` → not on origin → tell the human `git push origin origin/<default branch>:refs/heads/<merge-target>` and stop.
 
 - **Docs version:** a new task → check it per `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md` first.
-- **Browser:** the project has a UI → pick it as in `/pod:code`'s **Preflight** (`${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md`); with `axi` or `none`, pass that value to the engineer and reviewer.
+- **Browser:** the project has a UI → pick it as in `/pod:code`'s **Preflight** (`${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md`); with `axi`, pass `browser: axi` to the engineer and reviewer.
 - **Ports:** claim a port base B as in **Preflight**, with `<parent-repo> task-<slug>` in the file → engineer B+10/B+11, reviewer B+20/B+21, your checks B/B+1. Delete the file after the merge.
 - **Parked ideas:** the task touches one in `pod-docs/ideas/` → bring it back per **Bringing ideas back** in `${CLAUDE_PLUGIN_ROOT}/skills/idea/SKILL.md`.
 
@@ -50,7 +50,6 @@ Make one change into the branch the human is on, outside a plan's waves: one eng
 
 ### Hand back
 
-- **Into a plan:** the PR goes into a plan branch → say so in the hand-back: the plan's final review covers this change only if it runs after the merge.
 - **Hand back:** the PR URL and the branch it goes into; `Review: pass`, `Review still failing` with its `FIX` findings, `Review: skipped (--no-review)`, or `Review: not run on the changes since <commit>`; any `BLOCKED` the engineer reported; and that the worktree is kept, so the human can merge, fix by hand, or ask for more changes before replying `continue`.
 - **Queue commit:** just before each hand-back, write this task's queue entries in the task worktree → one `docs(queue): …` commit on the task branch; a later round adds one new commit, never one per entry.
 - **More changes:** the human asks for more after the hand-back → an engineer makes them as in the **Fix pass**, with no reviewer, and the hand-back says `Review: not run on the changes since <commit>`, so the human, who checks each change, isn't held up.

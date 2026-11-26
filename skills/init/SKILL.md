@@ -20,11 +20,10 @@ Every pod skill reads this before touching pod's files. The current version is *
 
 ## Config
 
-`pod-docs/config.md` holds the project's settings: `merge-target`, `browser`, and `ci`, with their values and defaults in its table. Every pod skill reads a setting here before it uses it.
+`pod-docs/config.md` holds the project's `merge-target`: the branch plans go to through their final PR. pod reads it and never writes it; the human edits it.
 
-- **Missing:** no file, or an empty value → the default.
-- **Which value wins:** a flag, then this file, then the default. A plan's branch is cut from its merge-target, so keep `merge-target` the same until the plan ends. `/pod:task` uses it only from the default branch, a detached HEAD, or a branch not on origin: see its own default.
-- **Writing:** write a value only as the human's answer to its question, asked when the value is empty, not one the table lists, or failed its check; no file → create it from `${CLAUDE_PLUGIN_ROOT}/skills/init/scaffold/pod-docs/config.md` first. A flag never writes here.
+- **Which value wins:** a `--merge-target` flag, then this file, then origin's default branch. No file, or an empty value → the default.
+- **During a plan:** the plan's branch is cut from its merge-target, so keep it the same until the plan ends.
 
 ## Upgrade
 
@@ -41,7 +40,7 @@ Older docs → run each step from the found version up, in order, before the set
 - **Docs:** copy `${CLAUDE_PLUGIN_ROOT}/skills/init/scaffold/pod-docs/` into `pod-docs/`, skipping files that exist. An existing `pod-docs/README.md` with an older `pod docs:` line → set it to the current version. Report what was created and what was already there.
 - **Empty repo** (no application code): skip the scout and the CI offer; the plan's first sprint bootstraps.
 - **Map the project:** `pod-docs/codebase-structure.md` still has `<!-- … -->` placeholders, or `pod-docs/features.md` has no rows → dispatch `pod:scout` with only the repo root (its file has the rest) and relay its summary.
-- **CI:** the repo has no CI config (such as `.github/workflows/`), the brief's `## CI` is `none`, and **Config**'s `ci` is empty or holds a value other than `on` or `off`, or the human asks for CI → offer to add `.github/workflows/pod-ci.yml` (without CI, only the agents check the code). On a no, set `ci: off`, so no command asks again; on a yes, set `ci: on`. On a yes, write it as the **Bootstrap CI** rule in `${CLAUDE_PLUGIN_ROOT}/agents/sprint-planner.md` describes, for the brief's runtime (gitleaks is free for personal repos; an organization needs a `GITLEAKS_LICENSE` secret). Update `## CI`.
+- **CI:** the repo has no CI config (such as `.github/workflows/`), the brief's `## CI` is `none`, and `pod-docs/decisions.md` has no `## <date> — CI: none` entry, or the human asks for CI → offer to add `.github/workflows/pod-ci.yml` (without CI, only the agents check the code). On a no, record that entry, so no command asks again. On a yes, write it as the **Bootstrap CI** rule in `${CLAUDE_PLUGIN_ROOT}/agents/sprint-planner.md` describes, for the brief's runtime (gitleaks is free for personal repos; an organization needs a `GITLEAKS_LICENSE` secret). Update `## CI`.
 - **Tools:** `git` and `gh` are installed and `gh` is logged in → else report each missing one with its fix in **Ready to run**, e.g. `gh: not logged in — gh auth login`, and hold the GitHub steps until it's fixed.
 - **Browser** (projects with a UI): run `/pod:code`'s browser probe → it fails → report each missing piece in **Ready to run**, in install order, each with its command: Node.js 22 or later, `agent-browser`, then its Chrome (`agent-browser install`).
 - **Ready to run:** `/pod:code` and `/pod:autopilot` need an `origin` remote with the merge-target (per **Config**) on it; a merge-target missing there → `missing — git push origin origin/<default branch>:refs/heads/<merge-target>`. No GitHub repo → create one (private unless told otherwise) whose first commit comes from GitHub, and base the local branch on it; local commits but no `origin` → create the repo and push them. Anything else (an empty remote, a local file that clashes) → tell the human how to get a first commit there. Wait for a yes before each step. Report each as `ready` / `fixed` / `missing — <fix>`.

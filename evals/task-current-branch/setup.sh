@@ -5,7 +5,7 @@ set -e
 git init -q -b main
 mkdir -p pod-docs/plans
 pod_readme
-pod_config '' '' off
+pod_config
 printf '# Codebase structure\n\n## What it is\n\nA small CLI.\n\n## Smoke recipe\n\n`node --test`\n' > pod-docs/codebase-structure.md
 pod_decisions
 pod_queue

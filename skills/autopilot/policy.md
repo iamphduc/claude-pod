@@ -4,7 +4,7 @@
 
 ## Auto-merge criteria
 
-- The project has CI: CI config in the repo (such as `.github/workflows/`), or the brief's `## CI` isn't `none`. The repo wins over the brief and `ci: off` in `pod-docs/config.md`, since anyone can add CI without `/pod:init`.
+- The project has CI: CI config in the repo (such as `.github/workflows/`), or the brief's `## CI` isn't `none`. The repo wins over the brief and a `CI: none` decision, since anyone can add CI without `/pod:init`.
 - The project has CI → at least one check ran and every required check passes. Zero checks means CI didn't run, not a pass.
 - The project has CI, and its checks are still running or haven't started yet after a push → wait for them; that is neither a pass nor a fail.
 - GitHub reports the PR mergeable and clean, with no requested changes and no open review thread → anything else, a required human approval included, is gate 3.

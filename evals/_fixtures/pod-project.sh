@@ -20,9 +20,9 @@ pod_decisions() {
   printf '# Decisions\n' > pod-docs/decisions.md
 }
 
-# pod-docs/config.md: merge-target, browser, ci, in that order; an empty argument leaves the value empty.
+# pod-docs/config.md with the given merge-target; no argument leaves it empty.
 pod_config() {
-  printf '# pod config\n\nmerge-target: %s\nbrowser: %s\nci: %s\n' "${1:-}" "${2:-}" "${3:-}" > pod-docs/config.md
+  printf '# pod config\n\nmerge-target: %s\n' "${1:-}" > pod-docs/config.md
 }
 
 # Commit everything as the project's first commit.

@@ -16,7 +16,7 @@ For a human who wants to run each engineer in a terminal they can watch: find th
 
 **Docs version** first: check it per `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md`. An old version is the one check that halts.
 
-`origin` exists; the merge-target and the plan branch `<plan-slug>` (the sprint doc's `From plan:`) are on origin — plan branch missing → show how to create it off the merge-target; the wave's `Files owned` don't overlap (name any overlap); the browser per `/pod:code`'s **Preflight** (`${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md`) — reuse `browser` in `pod-docs/config.md`; ask only if it's empty.
+`origin` exists; the merge-target and the plan branch `<plan-slug>` (the sprint doc's `From plan:`) are on origin — plan branch missing → show how to create it off the merge-target; the wave's `Files owned` don't overlap (name any overlap); the browser per `/pod:code`'s **Preflight** (`${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md`) — reuse a recorded choice; ask only if none.
 
 ## The current wave
 
@@ -52,4 +52,4 @@ Git and GitHub are the record here, not the board, because the human runs the wa
    - browser:          <agent-browser | axi | none>
    ```
 
-   Print ports as numbers per `/pod:code`'s **Contracts** (base `3000`, row 1 → `3010`/`3011`); B/B+1 stay free for checking the wave head. `axi` or `none` → print it.
+   Print ports as numbers per `/pod:code`'s **Contracts** (base `3000`, row 1 → `3010`/`3011`); B/B+1 stay free for checking the wave head. `axi` → print `axi`.

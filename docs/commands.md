@@ -159,7 +159,7 @@ pod-docs/
 ├── teach/                  explanations of your code (/pod:teach)
 │
 │  Shared: you and the agents both read and write these
-├── config.md               settings pod reads every run: merge target, browser, CI
+├── config.md               the branch plans merge into (merge-target)
 ├── plans/                  plans; each keeps its resolved notes in a ## Queue log
 ├── decisions.md            your decisions, which agents must follow
 ├── handoff-queue.md        open notes between agents and you
@@ -172,19 +172,13 @@ pod-docs/
 └── sprints/                the current sprint, plus archive/ for finished ones
 ```
 
-**Settings.** `pod-docs/config.md` has three settings. Set one once, and every run uses it:
+**Merge target.** `pod-docs/config.md` holds one setting, the branch plans go to through their final PR:
 
 ```
 merge-target: staging
-browser: agent-browser
-ci: off
 ```
 
-- `merge-target`: the branch plans go to through their final PR. Empty: your repo's default branch. Don't change it while a plan runs: the plan's branch was cut from it. `/pod:task` uses it only when you're on your default branch, a detached HEAD, or a branch not on GitHub; on any other branch, such as a plan branch, a task goes into that branch.
-- `browser`: `agent-browser`, `axi`, or `none`. Empty: pod checks `agent-browser`, and asks if it fails. `none` turns page checks off. pod fills it in when you answer its browser question.
-- `ci`: `on` or `off`. pod fills it in when you answer `/pod:init`'s CI offer.
-
-A flag such as `--merge-target=main` changes a setting for one run and never writes to the file. An empty value or a missing file uses the default. An older `browser` or `CI: none` entry in `decisions.md` isn't read: pod asks once more and saves your answer here.
+Empty: your repo's default branch. A `--merge-target` flag changes it for one run only. Keep it the same while a plan runs, because the plan's branch was cut from it. `/pod:task` uses it only when you're on your default branch, a detached HEAD, or a branch not on GitHub; on any other branch, such as a plan branch, a task goes into that branch. pod never writes the file.
 
 Read each sprint doc before `/pod:code` starts it, even though agents keep it. That's your best chance to catch two slices that touch the same files.
 
