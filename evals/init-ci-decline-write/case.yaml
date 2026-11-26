@@ -1,5 +1,5 @@
 schema_version: "1.1"
 name: init-ci-decline-write
-tags: [init, smoke]
+tags: [init]
 context:
   scaffold_script: setup.sh
