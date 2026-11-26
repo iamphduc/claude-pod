@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# A pod project whose autopilot plan `friends` is closed out: the close-out entry names the final PR #20 to main, reviewed and open.
+# A pod project whose autopilot plan `friends` is closed out: final PR #20 is reviewed and open, but a required check failed and a protected main needs the human's approval. Autopilot still hands back as /pod:code does, with the CI status.
 set -e
 . "$(dirname "$0")/../_fixtures/pod-project.sh"
 git init -q -b friends

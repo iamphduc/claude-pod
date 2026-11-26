@@ -1,5 +1,5 @@
 schema_version: "1.1"
 name: queue-answer-resolved
-tags: [queue, dispatch]
+tags: [code, queue, dispatch]
 context:
   scaffold_script: setup.sh
