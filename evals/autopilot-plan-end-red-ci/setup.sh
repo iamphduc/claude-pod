@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# A pod project whose autopilot plan `friends` is closed out, but a check failed on the close-out commit of its final PR #20.
+# A pod project whose autopilot plan `friends` is closed out; a check failed on the close-out commit of its final PR #20. Autopilot hands back as /pod:code does, with the CI status.
 set -e
 . "$(dirname "$0")/../_fixtures/pod-project.sh"
 git init -q -b friends

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# A pod project on autopilot, sprint one, wave 1: A1's PR came back with low confidence, A2's merge needs #11 first.
+# A pod project on autopilot, sprint one, wave 1: A1's PR came back with low confidence, A2's merge was refused until #11 merges.
 set -e
 . "$(dirname "$0")/../_fixtures/pod-project.sh"
 git init -q -b main
