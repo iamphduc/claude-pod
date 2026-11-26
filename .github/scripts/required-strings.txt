@@ -107,6 +107,7 @@ skills/code/SKILL.md|<sprint-slug>-w<N>
 skills/code/SKILL.md|<plan-slug>-fix
 skills/code/SKILL.md|.claude/worktrees/
 skills/code/SKILL.md|## <date> — browser: <choice>
+skills/init/scaffold/pod-docs/config.md|merge-target:
 skills/code/SKILL.md|Port base:
 skills/code/SKILL.md|pod-ports
 skills/code/SKILL.md|## Queue log

@@ -54,7 +54,7 @@ For each wave, pod starts one engineer per slice, combines their work into one P
 Each plan claims its own port range (3000, 3100, …) and records it in the plan doc, so two pod runs on one machine, such as two repos overnight, never fight over ports. In a new JavaScript project, engineers use pnpm, so each install reuses one shared store; an existing project keeps the package manager its lockfile names.
 
 **Options:**
-- `--merge-target=<branch>`: the branch the final PR goes to. Default: your repo's default branch.
+- `--merge-target=<branch>`: the branch the final PR goes to. Default: `merge-target` in `pod-docs/config.md`, else your repo's default branch.
 
 ### `/pod:autopilot [slug]`: build without stopping for you
 
@@ -67,7 +67,7 @@ CI is optional but recommended. With CI, every check must pass before a merge. T
 Run one plan per session: after a plan completes, run `/clear` before the next `/pod:autopilot`. State lives on disk, so nothing is lost, and the next plan starts with a fresh context.
 
 **Options:**
-- `--merge-target=<branch>`: the branch the final PR goes to. Default: your repo's default branch.
+- `--merge-target=<branch>`: the branch the final PR goes to. Default: `merge-target` in `pod-docs/config.md`, else your repo's default branch.
 - `--max-sprints=N`: stop after N sprints. Default: no limit.
 - `--max-waves=N`: stop after N waves. Default: 20.
 - `--max-runtime=4h`: stop after this much time. Default: no limit.
@@ -80,7 +80,7 @@ One engineer builds the change test-first, the reviewer checks it, and you merge
 Every pod PR, this one included, opens with a review guide: the steps in the order they were built, each linked to its own diff and marked `Read` or `Skim`. The proof (tests, checks, browser rows) is folded below it. See [PR bodies](design.md#pr-bodies).
 
 **Options:**
-- `--merge-target=<branch>`: the branch the task branches off and merges to. Default: your repo's default branch.
+- `--merge-target=<branch>`: the branch the task branches off and merges to. Default: the branch you're on, so mid-plan a task goes into the plan branch. On your default branch, a detached HEAD, or a branch not on GitHub: `merge-target` from `pod-docs/config.md`, so a `staging` target holds for tasks too.
 - `--no-review`: skip the reviewer, for a trivial change.
 - `--model=<model>`: run every agent of this task on that model.
 
@@ -89,7 +89,7 @@ Every pod PR, this one included, opens with a review guide: the steps in the ord
 Works out the current wave and prints the commands plus one ready-to-paste prompt per slice. Open a terminal per slice, run `claude --agent pod:engineer`, and paste the prompt. Combining the work and opening the PR is up to you.
 
 **Options:**
-- `--merge-target=<branch>`: the branch the plan merges to. Default: your repo's default branch.
+- `--merge-target=<branch>`: the branch the plan merges to. Default: as in `/pod:code`.
 
 ### `/pod:report [slug]`: plan report
 
@@ -159,6 +159,7 @@ pod-docs/
 ├── teach/                  explanations of your code (/pod:teach)
 │
 │  Shared: you and the agents both read and write these
+├── config.md               the branch plans merge into (merge-target)
 ├── plans/                  plans; each keeps its resolved notes in a ## Queue log
 ├── decisions.md            your decisions, which agents must follow
 ├── handoff-queue.md        open notes between agents and you
@@ -170,6 +171,14 @@ pod-docs/
 ├── known-issues/           gotchas, one file each (e.g. "tests need Docker")
 └── sprints/                the current sprint, plus archive/ for finished ones
 ```
+
+**Merge target.** `pod-docs/config.md` holds one setting, the branch plans go to through their final PR:
+
+```
+merge-target: staging
+```
+
+Empty: your repo's default branch. A `--merge-target` flag changes it for one run only. Keep it the same while a plan runs, because the plan's branch was cut from it. `/pod:task` uses it only when you're on your default branch, a detached HEAD, or a branch not on GitHub; on any other branch, such as a plan branch, a task goes into that branch. pod never writes the file.
 
 Read each sprint doc before `/pod:code` starts it, even though agents keep it. That's your best chance to catch two slices that touch the same files.
 

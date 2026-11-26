@@ -12,7 +12,7 @@ Why pod checks work where it does, what each check covers, and what we chose not
 - **The plan branch keeps up with `main`.** At the start of each sprint, anything new on `main` is merged into the plan branch and smoke-tested, so conflicts show up small and early.
 - **CI is optional, and a real gate when it's there.** With CI, autopilot needs every check to pass and won't treat "no checks" as a pass; `/pod:init` offers a minimal workflow but doesn't require it, and a new repo gets CI only when you ask for it.
 - **Test first, real TDD.** Every success criterion names a test; engineers write it, watch it fail, then make it pass, and the tests decide when they're done. The reviewer checks the tests are honest and reviews what they don't cover.
-- **`/pod:task` PRs get the same reviewer.** They go straight to `main` with no plan around them, so each one is reviewed before it merges.
+- **`/pod:task` PRs get the same reviewer.** They go into the branch you're on, or from your default branch into `merge-target` from `pod-docs/config.md`, so each one is reviewed before it merges.
 
 ## The flow
 

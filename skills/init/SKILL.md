@@ -18,6 +18,13 @@ Every pod skill reads this before touching pod's files. The current version is *
 
 **Set up** means `pod-docs/codebase-structure.md` exists, the repo has an `origin`, and a first commit.
 
+## Config
+
+`pod-docs/config.md` holds the project's `merge-target`: the branch plans go to through their final PR. pod reads it and never writes it; the human edits it.
+
+- **Which value wins:** a `--merge-target` flag, then this file, then origin's default branch. No file, or an empty value → the default.
+- **During a plan:** the plan's branch is cut from its merge-target, so keep it the same until the plan ends.
+
 ## Upgrade
 
 Older docs → run each step from the found version up, in order, before the setup below. Show the human what will move and wait for a yes. Never run while a pod run is going in another session.
@@ -36,6 +43,6 @@ Older docs → run each step from the found version up, in order, before the set
 - **CI:** the repo has no CI config (such as `.github/workflows/`), the brief's `## CI` is `none`, and `pod-docs/decisions.md` has no `## <date> — CI: none` entry, or the human asks for CI → offer to add `.github/workflows/pod-ci.yml` (without CI, only the agents check the code). On a no, record that entry, so no command asks again. On a yes, write it as the **Bootstrap CI** rule in `${CLAUDE_PLUGIN_ROOT}/agents/sprint-planner.md` describes, for the brief's runtime (gitleaks is free for personal repos; an organization needs a `GITLEAKS_LICENSE` secret). Update `## CI`.
 - **Tools:** `git` and `gh` are installed and `gh` is logged in → else report each missing one with its fix in **Ready to run**, e.g. `gh: not logged in — gh auth login`, and hold the GitHub steps until it's fixed.
 - **Browser** (projects with a UI): run `/pod:code`'s browser probe → it fails → report each missing piece in **Ready to run**, in install order, each with its command: Node.js 22 or later, `agent-browser`, then its Chrome (`agent-browser install`).
-- **Ready to run:** `/pod:code` and `/pod:autopilot` need an `origin` remote with the merge-target on it. No GitHub repo → create one (private unless told otherwise) whose first commit comes from GitHub, and base the local branch on it; local commits but no `origin` → create the repo and push them. Anything else (an empty remote, a local file that clashes) → tell the human how to get a first commit there. Wait for a yes before each step. Report each as `ready` / `fixed` / `missing — <fix>`.
+- **Ready to run:** `/pod:code` and `/pod:autopilot` need an `origin` remote with the merge-target (per **Config**) on it; a merge-target missing there → `missing — git push origin origin/<default branch>:refs/heads/<merge-target>`. No GitHub repo → create one (private unless told otherwise) whose first commit comes from GitHub, and base the local branch on it; local commits but no `origin` → create the repo and push them. Anything else (an empty remote, a local file that clashes) → tell the human how to get a first commit there. Wait for a yes before each step. Report each as `ready` / `fixed` / `missing — <fix>`.
 
 Finish by telling the human to review the brief, `pod-docs/features.md`, and any new known issues (the **Smoke recipe** is required — engineers use it to run and check every slice), record decisions in `pod-docs/decisions.md` as they're made. Then run `/pod:plan` — or, if a plan already exists, `/pod:sprint` or `/pod:autopilot`.

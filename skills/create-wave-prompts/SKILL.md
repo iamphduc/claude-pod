@@ -10,7 +10,7 @@ For a human who wants to run each engineer in a terminal they can watch: find th
 
 - `[sprint-slug]`: none → the only active sprint doc.
 - `[wave]`: optional. Default: the current wave.
-- `--merge-target=<branch>`: default: origin's default branch.
+- `--merge-target=<branch>`: default: as in `/pod:code`.
 
 ## Checks — warn at the top, don't halt
 

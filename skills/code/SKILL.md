@@ -9,7 +9,7 @@ You are the orchestrator. Each wave's engineers build in parallel; you combine t
 ## Args
 
 - `[plan-slug]`: none → ask.
-- `--merge-target=<branch>`: default: origin's default branch.
+- `--merge-target=<branch>`: default: `merge-target` in `pod-docs/config.md` (per **Config** in `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md`).
 
 ## Guardrails
 
@@ -44,7 +44,7 @@ You are the orchestrator. Each wave's engineers build in parallel; you combine t
 
 ### Preflight
 
-- **Before the first wave:** the **docs version** is current (per `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md`), the merge-target is on `origin` (none → point to `/pod:init`), and the `## Smoke recipe` is filled in. A lone `B1` in wave 1 writes it → check again before wave 2.
+- **Before the first wave:** the **docs version** is current (per `${CLAUDE_PLUGIN_ROOT}/skills/init/SKILL.md`), the merge-target is on `origin` (none → tell the human to push it, `git push origin origin/<default branch>:refs/heads/<merge-target>`, or to fix the flag or **Config**), and the `## Smoke recipe` is filled in. A lone `B1` in wave 1 writes it → check again before wave 2.
 - **Shell:** run pod's commands through Bash (Git Bash on Windows), and PowerShell only for the project's own scripts → `agent-browser` hangs when PowerShell captures its output.
 - **Browser:** the project has a UI → prove a headless browser opens and closes a page twice, each call under 30 seconds; the hang shows after a close, and `--version` proves nothing. It passes → `browser: agent-browser`.
 - **Browser choice:** the probe fails → reuse a `## <date> — browser: <choice>` entry in `pod-docs/decisions.md`. None → ask once with `AskUserQuestion` (**Install agent-browser**, **Use chrome-devtools-axi**, or **Stop**), prove the choice the same way, and record it under that title. A recorded `devtools-mcp` is no longer offered → ask again.
