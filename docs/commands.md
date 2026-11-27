@@ -112,7 +112,7 @@ The tree opens beside the transcript when you start `/pod:autopilot` or `/pod:sh
 - `/pod-flow text`: print the tree as a few lines, for a narrow terminal.
 - `/pod-flow reset`: forget this session's agents, token counts, and folds.
 
-pod-flow only reads your `pod-docs/` files (or `docs/`, before you upgrade) and the session's agent list, and asks `gh` whether the final PR has merged. It needs a Claude Code build with function hooks, which are in early access, so expect rough edges.
+pod-flow only reads your `pod-docs/` files and the session's agent list, and asks `gh` whether the final PR has merged. It needs a Claude Code build with function hooks, which are in early access, so expect rough edges.
 
 ## Browser setup
 

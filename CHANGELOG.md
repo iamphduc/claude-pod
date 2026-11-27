@@ -2,6 +2,12 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.18.0 · pod-flow 0.6.0 — 2026-11-27
+
+- **The docs upgrade is removed; old projects get a hard stop.** pod's files moved from `docs/` to `pod-docs/` in October, and `/pod:init` carried the move since then. Every project that ran pod has moved. Now `/pod:init` no longer moves anything: a project still on the old layout (version 1) makes every pod command stop and change nothing, with `pod's docs here are version 1 (in docs/); this pod reads version 2. Run /pod:init with pod 0.17.1 to move them, then update pod.` **pod 0.17.1 is the required stop** for such a project, as GitLab and Terraform name a release you must pass through. `/pod:code` no longer commits old `docs/` paths with pod's setup.
+- **pod-flow:** reads only `pod-docs/`. Its fallback to an old project's `docs/` is removed, with its two tests.
+- **Eval:** `init-old-layout` now checks the stop: `/pod:init` creates no `pod-docs/`, leaves `docs/` as it is, and names pod 0.17.1.
+
 ## pod 0.17.1 — 2026-11-27
 
 - **`/pod:code` tells you how to start the next sprint.** At the end of a sprint it said "Reply 'continue' to start the next sprint", but `continue` found no sprint doc and sent you to `/pod:sprint`. It now says "Run /pod:sprint to draft the next sprint."

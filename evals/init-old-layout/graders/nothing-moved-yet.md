@@ -1,5 +1,5 @@
 ---
-# Init shows the move to pod-docs/ and waits for a yes: no file moves yet.
+# Init stops and changes nothing: no pod-docs/ is created.
 type: file_exists
 path: pod-docs/handoff-queue.md
 exists: false

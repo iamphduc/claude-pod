@@ -1,11 +1,11 @@
 ---
 name: init
-description: Use when the user types /pod:init or asks to set up pod in a project. Creates the project-owned docs in pod-docs/ (codebase brief, decisions, handoff queue, plans/sprints folders) without overwriting anything, and upgrades an older pod docs layout. Also when the user asks to update or migrate pod's docs.
+description: Use when the user types /pod:init or asks to set up pod in a project. Creates the project-owned docs in pod-docs/ (codebase brief, decisions, handoff queue, plans/sprints folders) without overwriting anything. Also when the user asks to update pod's docs.
 ---
 
 Set up the project's pod files so the other commands can run, then stop.
 
-**Guardrails:** never overwrite or delete an existing file; an upgrade only moves pod's own files. **Ask before anything that creates things off this machine** (a GitHub repo, a push). Commit nothing; `/pod:code` commits pod's setup to the plan branch.
+**Guardrails:** never overwrite or delete an existing file. **Ask before anything that creates things off this machine** (a GitHub repo, a push). Commit nothing; `/pod:code` commits pod's setup to the plan branch.
 
 ## Docs version
 
@@ -14,7 +14,7 @@ Every pod skill reads this before touching pod's files. The current version is *
 - `pod-docs/README.md` has a `pod docs: <N>` line → version N.
 - No such line, but `docs/codebase-structure.md` or `docs/handoff-queue.md` exists → version 1 (pod's files in `docs/`, before `pod-docs/`).
 - Neither → not set up: `/pod:init` sets it up; skills that only write to `pod-docs/` create what they need.
-- Older than 2 → any skill but this one stops and says: `pod's docs are version <N>; run /pod:init to update them to 2.` Newer than 2 → stop and ask the human to update the pod plugin.
+- Older than 2 → every skill, this one included, stops and changes nothing: `pod's docs here are version <N> (in docs/); this pod reads version 2. Run /pod:init with pod 0.17.1 to move them, then update pod.` Newer than 2 → stop and say: `pod's docs here are version <N>; this pod reads version 2. Update pod.`
 
 **Set up** means `pod-docs/codebase-structure.md` exists, the repo has an `origin`, and a first commit.
 
@@ -25,19 +25,9 @@ Every pod skill reads this before touching pod's files. The current version is *
 - **Which value wins:** a `--merge-target` flag, then this file, then origin's default branch. No file, or an empty value → the default.
 - **During a plan:** the plan's branch is cut from its merge-target, so keep it the same until the plan ends.
 
-## Upgrade
-
-Older docs → run each step from the found version up, in order, before the setup below. Show the human what will move and wait for a yes. Never run while a pod run is going in another session.
-
-**1 → 2:** pod's files move from `docs/` to `pod-docs/`, so the project's own `docs/` is its own again.
-- **Move** (with `git mv` when tracked) each of these that exists: `codebase-structure.md`, `decisions.md`, `features.md`, `handoff-queue.md`, `handoff-queue-archive.md`, `known-issues/`, `research/`, `plans/`, `sprints/`, `design-drafts/`, `reports/`. Nothing else in `docs/` moves. A target that already exists in `pod-docs/` → stop and report both paths.
-- **Fix links** inside the moved files: `docs/<one of those names>` → `pod-docs/<name>`, such as a sprint doc's `From plan:` line or a queue `Resolution` link.
-- **Tell the human** that `handoff-queue-archive.md` is no longer used: resolved queue entries now go to each plan doc's `## Queue log`, so they can delete it. List each file outside `pod-docs/` that still names an old path (`git grep -n` for them, such as `CLAUDE.md` or a CI workflow), and leave those files alone.
-- Then the **Docs** step below adds `README.md` and `ideas/`.
-
 ## Setup
 
-- **Docs:** copy `${CLAUDE_PLUGIN_ROOT}/skills/init/scaffold/pod-docs/` into `pod-docs/`, skipping files that exist. An existing `pod-docs/README.md` with an older `pod docs:` line → set it to the current version. Report what was created and what was already there.
+- **Docs:** copy `${CLAUDE_PLUGIN_ROOT}/skills/init/scaffold/pod-docs/` into `pod-docs/`, skipping files that exist. Report what was created and what was already there.
 - **Empty repo** (no application code): skip the scout and the CI offer; the plan's first sprint bootstraps.
 - **Map the project:** `pod-docs/codebase-structure.md` still has `<!-- … -->` placeholders, or `pod-docs/features.md` has no rows → dispatch `pod:scout` with only the repo root (its file has the rest) and relay its summary.
 - **CI:** the repo has no CI config (such as `.github/workflows/`), the brief's `## CI` is `none`, and `pod-docs/decisions.md` has no `## <date> — CI: none` entry, or the human asks for CI → offer to add `.github/workflows/pod-ci.yml` (without CI, only the agents check the code). On a no, record that entry, so no command asks again. On a yes, write it as the **Bootstrap CI** rule in `${CLAUDE_PLUGIN_ROOT}/agents/sprint-planner.md` describes, for the brief's runtime (gitleaks is free for personal repos; an organization needs a `GITLEAKS_LICENSE` secret). Update `## CI`.
