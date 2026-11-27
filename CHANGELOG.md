@@ -2,6 +2,13 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.15.1 — 2026-11-27
+
+- **`/pod:sprint` dispatches with the planner's own fields.** It sends the plan slug, `--max-width`, and `answers` as labelled fields. Decisions you give with the command or earlier in the chat, such as answers to what the last draft left for you, go in `answers`. Before, it passed your message as raw text, so a decision from earlier in the chat could be left out. New eval: `sprint-dispatch`.
+- **`/pod:sprint` hands back the whole draft.** It now gives the sprint doc's path, its waves and slices, each one-way door, and what the planner left for you. When the planner stops without a doc, it gives the reason instead of asking you to review a doc that doesn't exist.
+- **`/pod:code` tells you how to start the next sprint.** At the end of a sprint it said "Reply 'continue' to start the next sprint", but `continue` found no sprint doc and sent you to `/pod:sprint`. It now says "Run /pod:sprint to draft the next sprint."
+- `/pod:sprint` fits the skill template, and CI checks its shape.
+
 ## pod 0.15.0 — 2026-11-24
 
 - **Set the merge target once, in `pod-docs/config.md`.** Write `merge-target: staging`, and every plan goes there through its final PR, with no flag. A `--merge-target` flag changes it for one run only, and an empty value or a missing file means your default branch, so older projects keep working. Keep it the same while a plan runs: its branch was cut from it. If the branch isn't on GitHub yet, pod tells you the `git push` that creates it from GitHub's default branch. pod never writes the file.
