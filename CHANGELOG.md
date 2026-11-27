@@ -2,12 +2,15 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
-## pod 0.16.1 — 2026-11-27
+## pod 0.17.1 — 2026-11-27
 
-- **`/pod:sprint` dispatches with the planner's own fields.** It sends the plan slug, `--max-width`, and `answers` as labelled fields. Decisions you give with the command or earlier in the chat, such as answers to what the last draft left for you, go in `answers`. Before, it passed your message as raw text, so a decision from earlier in the chat could be left out. New eval: `sprint-dispatch`.
-- **`/pod:sprint` hands back the whole draft.** It now gives the sprint doc's path, its waves and slices, each one-way door, and what the planner left for you. When the planner stops without a doc, it gives the reason instead of asking you to review a doc that doesn't exist.
 - **`/pod:code` tells you how to start the next sprint.** At the end of a sprint it said "Reply 'continue' to start the next sprint", but `continue` found no sprint doc and sent you to `/pod:sprint`. It now says "Run /pod:sprint to draft the next sprint."
-- `/pod:sprint` fits the skill template, and CI checks its shape.
+- **`/pod:sprint` names the one-way doors.** Its hand-back passes on the planner's final output, with each one-way door. Before, a hand-back could leave them out.
+- **`/pod:sprint` fits the skill template.** It dispatches the planner with the planner's own fields (the plan slug, `--max-width`, and `answers`) instead of your message as raw text. Both give the same sprint. CI now checks its shape. New eval: `sprint-dispatch`.
+
+## pod 0.17.0 — 2026-11-26
+
+- **`/pod:create-wave-prompts` is removed.** It printed one prompt per slice for you to paste into your own terminals, then left the combining and the wave PR to you, so pod's file-ownership check, wave check, and wave fix never ran. It also kept its own copy of the engineer's dispatch fields, which had to change with `/pod:code`'s. To watch engineers work, use `/tasks` in the `/pod:code` or `/pod:autopilot` session and open an engineer's transcript.
 
 ## pod 0.16.0 · pod-flow 0.5.0 — 2026-11-26
 

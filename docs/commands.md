@@ -84,13 +84,6 @@ Every pod PR, this one included, opens with a review guide: the steps in the ord
 - `--no-review`: skip the reviewer, for a trivial change.
 - `--model=<model>`: run every agent of this task on that model.
 
-### `/pod:create-wave-prompts [sprint] [wave]`: run engineers yourself
-
-Works out the current wave and prints the commands plus one ready-to-paste prompt per slice. Open a terminal per slice, run `claude --agent pod:engineer`, and paste the prompt. Combining the work and opening the PR is up to you.
-
-**Options:**
-- `--merge-target=<branch>`: the branch the plan merges to. Default: as in `/pod:code`.
-
 ### `/pod:report [slug]`: plan report
 
 Writes an HTML report of a plan and opens it: where to look first, key features with screenshots, the proof for each criterion, risks and how to undo them, how the parts fit together as built, and the key decisions. Every report uses the same page skeleton, `skills/report/page.html`. At the end of a plan, the reporter also writes `pod-docs/feature-details/<feature>.md` for each feature the plan added or changed: how it works, why it's built that way, and what to watch out for. Later agents read these before they change a feature.

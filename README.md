@@ -43,7 +43,6 @@ In a monorepo, run pod from the repo root too. pod treats the whole repo as one 
 | Learn how a codebase, or one feature of it, works and why | `/pod:teach [topic]` |
 | Save an idea for later | `/pod:idea <idea>` |
 | Get a report on a finished plan | `/pod:report` |
-| Run each engineer myself in my own terminals | `/pod:create-wave-prompts` |
 
 Each command is explained in [docs/commands.md](docs/commands.md).
 
