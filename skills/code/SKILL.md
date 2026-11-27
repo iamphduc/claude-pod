@@ -94,7 +94,7 @@ You are the orchestrator. Each wave's engineers build in parallel; you combine t
   - **Agent context at hand-back:** <sum of each agent's reported `subagent_tokens`> — *each agent's final context size, not tokens billed*; say so wherever it's quoted
   ```
 
-- **Archive:** move the sprint doc to `pod-docs/sprints/archive/`, mark its plan row `done`, and commit and push `pod-docs/` → a `planned` row left → end `Sprint <sprint-slug> complete. Reply 'continue' to start the next sprint.` None → **Plan complete**.
+- **Archive:** move the sprint doc to `pod-docs/sprints/archive/`, mark its plan row `done`, and commit and push `pod-docs/` → a `planned` row left → end `Sprint <sprint-slug> complete. Run /pod:sprint to draft the next sprint.` None → **Plan complete**.
 
 ### Plan complete
 
