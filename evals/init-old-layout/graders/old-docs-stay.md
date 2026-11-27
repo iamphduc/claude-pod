@@ -1,6 +1,6 @@
 ---
 # pod's old files stay where they are in docs/.
-type: file_exists
-path: docs/handoff-queue.md
-exists: true
+type: regex
+target: { source: file, path: docs/handoff-queue.md }
+pattern: '# Handoff queue'
 ---
