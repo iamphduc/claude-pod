@@ -155,7 +155,7 @@ skills/plan/interview.md|Copyright (c) 2026 Matt Pocock
 skills/ship/SKILL.md|reply `go` to start autopilot
 # init
 skills/init/SKILL.md|pod docs: <N>
-skills/init/SKILL.md|Run /pod:init with pod 0.17 to move them
+skills/init/SKILL.md|moves with /pod:init on pod 0.17
 skills/init/SKILL.md|ready
 skills/init/scaffold/pod-docs/README.md|pod docs: 2
 skills/init/scaffold/pod-docs/features.md|| Feature | User reaches it by | Drive | Proof |
