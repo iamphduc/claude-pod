@@ -1,5 +1,5 @@
 schema_version: "1.1"
 name: idea-park
-tags: [smoke]
+tags: [idea]
 context:
   scaffold_script: setup.sh

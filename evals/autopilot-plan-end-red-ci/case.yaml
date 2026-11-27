@@ -1,5 +1,0 @@
-schema_version: "1.1"
-name: autopilot-plan-end-red-ci
-tags: [autopilot, queue, plan-complete]
-context:
-  scaffold_script: setup.sh
