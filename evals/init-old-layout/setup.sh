@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# A project still on pod docs version 1 (pod's files in docs/). The human asks to update; /pod:init stops and names pod 0.17.1.
+# A project still on pod docs version 1 (pod's files in docs/). The human asks to update; /pod:init stops and names pod 0.17.
 set -e
 . "$(dirname "$0")/../_fixtures/pod-project.sh"
 git init -q
