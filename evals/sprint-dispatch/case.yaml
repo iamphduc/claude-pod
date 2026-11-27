@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: sprint-dispatch
+tags: [sprint, dispatch]
+context:
+  scaffold_script: setup.sh
