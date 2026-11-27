@@ -14,7 +14,7 @@ Every pod skill reads this before touching pod's files. The current version is *
 - `pod-docs/README.md` has a `pod docs: <N>` line → version N.
 - No such line, but `docs/codebase-structure.md` or `docs/handoff-queue.md` exists → version 1 (pod's files in `docs/`, before `pod-docs/`).
 - Neither → not set up: `/pod:init` sets it up; skills that only write to `pod-docs/` create what they need.
-- Not version 2 → every skill, this one included, stops and changes nothing: `pod's docs here are version <N>; this pod reads version 2. Version 1 (in docs/) moves with /pod:init on pod 0.17; a newer one needs a newer pod.`
+- Not version 2 → every skill, this one included, stops and changes nothing: `pod's docs here are version <N>; this pod reads version 2.` Version 1 (in `docs/`) → add `To move them, run: node ${CLAUDE_PLUGIN_ROOT}/skills/init/upgrade-docs-v1.mjs` with the real path; newer → add `Update pod.`
 
 **Set up** means `pod-docs/codebase-structure.md` exists, the repo has an `origin`, and a first commit.
 

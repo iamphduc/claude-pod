@@ -4,9 +4,15 @@ Newest first. The `pod` and `pod-flow` plugins share this file. Each heading nam
 
 ## pod 0.18.0 · pod-flow 0.6.0 — 2026-11-27
 
-- **The docs upgrade is removed; old projects get a hard stop.** pod's files moved from `docs/` to `pod-docs/` in October, and `/pod:init` carried the move since then. Every project that ran pod has moved. Now `/pod:init` no longer moves anything: a project still on the old layout (version 1) makes every pod command stop and change nothing, with `pod's docs here are version 1; this pod reads version 2. Version 1 (in docs/) moves with /pod:init on pod 0.17; a newer one needs a newer pod.` **pod 0.17 is the required stop** for such a project: 0.17.1 or any later 0.17.x. GitLab and Terraform name a required release line the same way. `/pod:code` no longer commits old `docs/` paths with pod's setup.
+- **The docs upgrade is now a separate script.** pod's files moved from `docs/` to `pod-docs/` in October, and `/pod:init` carried the move as rules since then. Now a project still on the old layout (version 1) makes every pod command stop and change nothing, and name the script that moves it, as Tailwind (`npx @tailwindcss/upgrade`) and ESLint (`npx @eslint/migrate-config`) name theirs. From the project root:
+
+  ```
+  node <pod>/skills/init/upgrade-docs-v1.mjs
+  ```
+
+  pod's stop message gives the real path. The script needs a clean git tree. It `git mv`s only pod's files from `docs/` to `pod-docs/`, fixes the old links inside them, writes `pod-docs/README.md` with `pod docs: 2`, lists other files that still name an old path (such as `CLAUDE.md`), and commits nothing. It changes nothing when a file is in both folders or the project is already moved. Then commit, and run `/pod:init` to add any newer files. `/pod:code` no longer commits old `docs/` paths with pod's setup.
 - **pod-flow:** reads only `pod-docs/`. Its fallback to an old project's `docs/` is removed, with its two tests.
-- **Eval:** `init-old-layout` now checks the stop: `/pod:init` creates no `pod-docs/`, leaves `docs/` as it is, and names pod 0.17.
+- **Tests:** `.github/scripts/upgrade-docs-v1.test.mjs` runs the script on scratch repos in CI. The eval `init-old-layout` now checks the stop: `/pod:init` creates no `pod-docs/`, leaves `docs/` as it is, and names the script.
 
 ## pod 0.17.1 — 2026-11-27
 
