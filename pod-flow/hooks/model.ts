@@ -106,12 +106,8 @@ export function parseSprint(md: string, isArchived: boolean, fileSlug?: string):
   }
 }
 
-/** A halt entry names its gate, by number or by name (the gate table in skills/autopilot/policy.md). */
-const GATE = /\bgate\s*\d|blocked-concern|plan-review-fail|auto-merge-fail|inter-wave-verify|safety-bound|escalation-valve|plan-complete/i
-
 /**
- * The newest still-pending halt the orchestrator wrote, and its queue type: an entry that names a gate,
- * or the plan-complete hand-back. Its other pending notes (a "someday" idea) don't stop the run.
+ * The newest still-pending halt the orchestrator wrote, and its queue type: the plan-complete hand-back. Its other pending notes (a "someday" idea) don't stop the run.
  */
 export function latestHalt(queue: string, plan?: PlanDoc): { body: string; type: string } | undefined {
   const halt = parseQueue(queue)
@@ -121,7 +117,7 @@ export function latestHalt(queue: string, plan?: PlanDoc): { body: string; type:
   return halt && { body: halt.body, type: halt.type }
 }
 
-const isHalt = (e: QueueEntry) => e.isPending && /^orchestrator\b/i.test(e.route) && (GATE.test(e.body) || HAND_BACK.test(e.body))
+const isHalt = (e: QueueEntry) => e.isPending && /^orchestrator\b/i.test(e.route) && HAND_BACK.test(e.body)
 
 /** What only the person can answer: a BLOCKED entry, or a decision, product choice or one-way door, by how the body opens. */
 const ASKS = /^[^:]{0,40}\b(decision|product choice)\b|^one-way door/i
@@ -145,7 +141,7 @@ export function questionsFor(entries: QueueEntry[], plan: PlanDoc): QueueEntry[]
 const isForPlan = (entry: QueueEntry, plan: PlanDoc) =>
   entry.plan ? entry.plan === plan.slug : entry.sprint ? plan.sprints.some(s => s.slug === entry.sprint) : true
 
-/** What to do after a halt: a BLOCKED gate needs a fix first, a PENDING one only a resume (skills/autopilot/policy.md). */
+/** What to do after a halt: a BLOCKED one needs a fix first, a PENDING one only a resume. */
 export const resumeHint = (type: string | undefined): string[] =>
   type === 'BLOCKED' ? ['fix it first', 'then /pod:autopilot to resume'] : ['/pod:autopilot to resume']
 
@@ -158,11 +154,11 @@ export type QueueEntry = {
   body: string
   isPending: boolean
   resolution?: string
-  /** What the human wrote back from Pod Board: ` **Answer (human):** <text>`, after the Resolution. */
+  /** What the human wrote back: ` **Answer (human):** <text>`, after the Resolution. */
   answer?: string
 }
 
-/** Pod Board's answer marker. Counted only after `**Resolution:**`, so one quoted in a body is not an answer. */
+/** The human's answer marker. Counted only after `**Resolution:**`, so one quoted in a body is not an answer. */
 const ANSWER = /\s*\*\*Answer \(human\):\*\*\s*(.*)$/i
 
 /** The entries of the handoff queue: `- [date · TYPE · from → to · sprint: x · slice: y] body **Resolution:** …`. */
@@ -545,7 +541,8 @@ export function prefixes(lines: TreeLine[]): string[] {
   })
 }
 
-const HAND_BACK = /(complete|final PR|hand-?back|awaiting)/i
+/** The close-out entry that hands the plan back (`plan <slug> complete — final PR <url>` in skills/code/SKILL.md), at the start of the body only. */
+const HAND_BACK = /^\W*plan\s+\S+\s+complete\b/i
 
 export const QUIET_MS = 2 * 60 * 1000
 
@@ -752,7 +749,7 @@ export function buildTree({ plan, sprints, spawns, live, halt, haltType, now, la
   ]
 
   // First, what waits on you: in the chat, a question scrolls away under the run's own messages.
-  // One answered from Pod Board stays in view, marked answered, until pod applies it and fills in its Resolution.
+  // One the human answered stays in view, marked answered, until pod applies it and fills in its Resolution.
   const questions = questionsFor(queue, plan)
   if (questions.length > 0) {
     const waiting = questions.filter(e => !e.answer).length

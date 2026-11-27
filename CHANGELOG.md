@@ -2,12 +2,21 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
-## pod 0.15.1 — 2026-11-27
+## pod 0.16.1 — 2026-11-27
 
 - **`/pod:sprint` dispatches with the planner's own fields.** It sends the plan slug, `--max-width`, and `answers` as labelled fields. Decisions you give with the command or earlier in the chat, such as answers to what the last draft left for you, go in `answers`. Before, it passed your message as raw text, so a decision from earlier in the chat could be left out. New eval: `sprint-dispatch`.
 - **`/pod:sprint` hands back the whole draft.** It now gives the sprint doc's path, its waves and slices, each one-way door, and what the planner left for you. When the planner stops without a doc, it gives the reason instead of asking you to review a doc that doesn't exist.
 - **`/pod:code` tells you how to start the next sprint.** At the end of a sprint it said "Reply 'continue' to start the next sprint", but `continue` found no sprint doc and sent you to `/pod:sprint`. It now says "Run /pod:sprint to draft the next sprint."
 - `/pod:sprint` fits the skill template, and CI checks its shape.
+
+## pod 0.16.0 · pod-flow 0.5.0 — 2026-11-26
+
+- **Autopilot stops the way `/pod:code` stops: the gates are gone.** Autopilot still merges each wave PR that clears its bar. When a PR doesn't clear it (red CI, a review thread, a missing approval, a low-confidence slice, a one-way door), autopilot hands the PR back as `/pod:code` does, with the reason. A merge conflict, a failed wave check, or a `BLOCKED` slice halts, as in `/pod:code`. A refused merge is handed back too. A safety bound ends the turn and names the bound. Every hand-back now sends a notification, as a halt does. Before, autopilot had its own table of 5 gates, each with its own queue type and a `gate <N> (<name>): ` queue entry. Two ways to stop meant two sets of rules to keep in step, and most review findings in the last three releases came from where they met. The autopilot policy goes from 24 rules to 13, and `/pod:code` gains none.
+- **Autopilot's plan end is exactly `/pod:code`'s.** It no longer waits for CI on the final PR or halts when a check fails. The plan-end hand-back, in both modes, now gives the final PR's CI status (`passing`, `failing: <names>`, `pending`, or `no CI`), as a wave hand-back does. You merge the final PR yourself, so a red check was already in front of you.
+- **Gate 1's exception is gone.** A `BLOCKED` that only a test fixture or a doc fixes now halts like any other `BLOCKED`. `/pod:code` never had the exception.
+- **`Review fixes` PRs follow `/pod:code`.** Plan complete step 3 already merges them, so the autopilot policy no longer covers them.
+- **pod names no outside app.** Its rules, the queue template, and pod-flow no longer mention Pod Board. The queue formats stay the same: you answer an entry by adding ` **Answer (human):** <text>` by hand or with any tool.
+- **pod-flow:** the halt line is now only the plan-end hand-back. A mid-run stop shows in the chat and in the notification; an orchestrator `BLOCKED` entry in the queue shows under "needs you". Older `gate <N>` entries are no longer read as halts; resolve them by hand if they are still pending. Tests: the gate cases are replaced by plan-end cases, and the older gate 7 test is removed. The halt line now needs the close-out entry's own start, `plan <slug> complete`, so a door entry that says `completed_at` is no longer read as the hand-back. Evals: `queue-gate-halt` becomes `autopilot-hand-back` (a low-confidence PR and a refused merge both go back to you); `autopilot-plan-end-red-ci` now checks that the hand-back says the check failed; the plan-end evals no longer look for a gate entry.
 
 ## pod 0.15.0 — 2026-11-24
 
