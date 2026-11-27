@@ -2,6 +2,10 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.17.0 — 2026-11-26
+
+- **`/pod:create-wave-prompts` is removed.** It printed one prompt per slice for you to paste into your own terminals, then left the combining and the wave PR to you, so pod's file-ownership check, wave check, and wave fix never ran. It also kept its own copy of the engineer's dispatch fields, which had to change with `/pod:code`'s. To watch engineers work, use `/tasks` in the `/pod:code` or `/pod:autopilot` session and open an engineer's transcript.
+
 ## pod 0.16.0 · pod-flow 0.5.0 — 2026-11-26
 
 - **Autopilot stops the way `/pod:code` stops: the gates are gone.** Autopilot still merges each wave PR that clears its bar. When a PR doesn't clear it (red CI, a review thread, a missing approval, a low-confidence slice, a one-way door), autopilot hands the PR back as `/pod:code` does, with the reason. A merge conflict, a failed wave check, or a `BLOCKED` slice halts, as in `/pod:code`. A refused merge is handed back too. A safety bound ends the turn and names the bound. Every hand-back now sends a notification, as a halt does. Before, autopilot had its own table of 5 gates, each with its own queue type and a `gate <N> (<name>): ` queue entry. Two ways to stop meant two sets of rules to keep in step, and most review findings in the last three releases came from where they met. The autopilot policy goes from 24 rules to 13, and `/pod:code` gains none.

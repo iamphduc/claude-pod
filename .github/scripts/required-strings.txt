@@ -124,8 +124,6 @@ skills/code/SKILL.md|**Answer (human):**
 skills/code/SKILL.md|- **Answers:**
 # autopilot
 skills/autopilot/policy.md|<!-- autopilot-run: started=<ISO8601> sprints=<N> waves=<N> -->
-skills/create-wave-prompts/SKILL.md|claude --agent pod:engineer
-skills/create-wave-prompts/SKILL.md|.claude/worktrees/
 # sprint-planner
 agents/sprint-planner.md|_From plan: pod-docs/plans/<plan-slug>.md · Slug: <sprint-slug> · Status: <active | archived> · Generated: <YYYY-MM-DD>_
 agents/sprint-planner.md|| Wave | Slice | Title | Branch | PR | Status | Confidence | Depends on |

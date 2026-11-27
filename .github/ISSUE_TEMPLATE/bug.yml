@@ -24,7 +24,6 @@ body:
       options:
         - /pod:autopilot
         - /pod:code
-        - /pod:create-wave-prompts
         - /pod:idea
         - /pod:init
         - /pod:plan
