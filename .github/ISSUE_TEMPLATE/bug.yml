@@ -27,7 +27,6 @@ body:
         - /pod:idea
         - /pod:init
         - /pod:plan
-        - /pod:report
         - /pod:research
         - /pod:ship
         - /pod:sprint

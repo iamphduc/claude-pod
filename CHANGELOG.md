@@ -2,6 +2,11 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.20.0 — 2026-11-28
+
+- **`/pod:report` is removed.** `/pod:code` and `/pod:autopilot` write the plan report at plan end, and `/pod:report` repeated that step by hand, with less in it: no final PR, so no review verdict and no feature details. Every plan that reaches plan end still gets its report in `pod-docs/reports/`.
+- **The reporter has one mode.** Its **final PR** field is now required, so it always writes the feature details, and it no longer reads an old plan's `## Queue log`. The page template moved to `skills/code/report-page.html`.
+
 ## pod 0.19.0 — 2026-11-27
 
 - **`/pod:init` no longer offers CI.** It offered a CI workflow on every project without one and recorded a no as a `CI: none` decision, so it wouldn't ask again. Now it adds the workflow only when you ask `/pod:init` for CI, so there's no decision to record. A `CI: none` entry already in `pod-docs/decisions.md` does no harm. The evals `init-ci-declined` and `init-ci-decline-write` are replaced by `init-no-ci-offer` (no CI offer or question) and `init-ci-on-request` (asked for CI, `/pod:init` writes `pod-ci.yml` with the verify and secrets jobs and updates the brief's `## CI`).

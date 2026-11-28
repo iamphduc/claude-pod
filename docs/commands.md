@@ -49,7 +49,7 @@ Writes `pod-docs/sprints/<slug>.md` with slices grouped into waves. **Read it be
 
 ### `/pod:code [slug]`: build, one wave at a time
 
-For each wave, pod starts one engineer per slice, combines their work into one PR, starts the app to check it, and checks the look at desktop and phone sizes. Then it **stops for you to merge**. Reply `continue` for the next wave. When the plan is done, it opens the final PR to `main`. The **reviewer** checks it and fixes any blocking issues once. You also get an HTML report (`pod-docs/reports/<slug>.html`). Any question you didn't answer along the way is saved in `pod-docs/decisions.md` as an *agent default*, so you can change it later.
+For each wave, pod starts one engineer per slice, combines their work into one PR, starts the app to check it, and checks the look at desktop and phone sizes. Then it **stops for you to merge**. Reply `continue` for the next wave. When the plan is done, it opens the final PR to `main`. The **reviewer** checks it and fixes any blocking issues once. The **reporter** then writes an HTML report (`pod-docs/reports/<slug>.html`) and opens it: where to look first, key features with screenshots, the proof for each criterion, risks and how to undo them, how the parts fit together as built, and the key decisions. It also writes `pod-docs/feature-details/<feature>.md` for each feature the plan added or changed: how it works, why it's built that way, and what to watch out for. Later agents read these before they change a feature. Any question you didn't answer along the way is saved in `pod-docs/decisions.md` as an *agent default*, so you can change it later.
 
 Each plan claims its own port range (3000, 3100, …) and records it in the plan doc, so two pod runs on one machine, such as two repos overnight, never fight over ports. In a new JavaScript project, engineers use pnpm, so each install reuses one shared store; an existing project keeps the package manager its lockfile names.
 
@@ -83,10 +83,6 @@ Every pod PR, this one included, opens with a review guide: the steps in the ord
 - `--merge-target=<branch>`: the branch the task branches off and merges to. Default: the branch you're on, so mid-plan a task goes into the plan branch. On your default branch, a detached HEAD, or a branch not on GitHub: `merge-target` from `pod-docs/config.md`, so a `staging` target holds for tasks too.
 - `--no-review`: skip the reviewer, for a trivial change.
 - `--model=<model>`: run every agent of this task on that model.
-
-### `/pod:report [slug]`: plan report
-
-Writes an HTML report of a plan and opens it: where to look first, key features with screenshots, the proof for each criterion, risks and how to undo them, how the parts fit together as built, and the key decisions. Every report uses the same page skeleton, `skills/report/page.html`. At the end of a plan, the reporter also writes `pod-docs/feature-details/<feature>.md` for each feature the plan added or changed: how it works, why it's built that way, and what to watch out for. Later agents read these before they change a feature.
 
 ### `/pod:idea [idea]`: save an idea for later
 

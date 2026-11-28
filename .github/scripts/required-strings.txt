@@ -174,7 +174,6 @@ agents/reporter.md|## History
 agents/reporter.md|- **Report:**
 agents/reporter.md|- **Feature details:**
 agents/reporter.md|- **Gaps:**
-agents/reporter.md|## Queue log
 agents/reporter.md|How it fits together
 # researcher
 agents/researcher.md|- **topic**
