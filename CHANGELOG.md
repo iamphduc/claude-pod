@@ -5,7 +5,7 @@ Newest first. The `pod` and `pod-flow` plugins share this file. Each heading nam
 ## pod 0.19.0 — 2026-11-27
 
 - **`/pod:init` no longer offers CI.** It offered a CI workflow on every project without one and recorded a no as a `CI: none` decision, so it wouldn't ask again. Now it adds the workflow only when you ask `/pod:init` for CI, so there's no decision to record. A `CI: none` entry already in `pod-docs/decisions.md` does no harm. The evals `init-ci-declined` and `init-ci-decline-write` are replaced by `init-no-ci-offer` (no CI offer or question) and `init-ci-on-request` (asked for CI, `/pod:init` writes `pod-ci.yml` with the verify and secrets jobs and updates the brief's `## CI`).
-- **`/pod:init` no longer checks the browser or the merge-target.** `/pod:code` and `/pod:autopilot` check both before the first wave. When the browser probe fails and you pick **Install agent-browser**, pod installs in the order **Browser setup** in `docs/commands.md` gives: Node.js 22 or later, `agent-browser`, then its Chrome. On an empty repo, `/pod:init` still skips CI; the plan's first sprint adds it. `/pod:init` still creates the GitHub repo and its first commit when they're missing.
+- **`/pod:init` no longer checks the browser or the merge-target.** `/pod:code` and `/pod:autopilot` check both before the first wave. On an empty repo, `/pod:init` still skips CI; the plan's first sprint adds it. `/pod:init` still creates the GitHub repo and its first commit when they're missing.
 
 ## pod 0.18.0 · pod-flow 0.6.0 — 2026-11-27
 
