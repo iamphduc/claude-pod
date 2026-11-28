@@ -18,7 +18,7 @@ Creates pod's files in `pod-docs/` and never overwrites one that already exists.
 
 ### `/pod:ship <idea>`: everything in one go
 
-Runs research → plan → init (only if needed) → autopilot, so you never retype the idea. If the idea is one small change, it first offers to run it as `/pod:task` instead (so does `/pod:plan`). You still answer the plan interview. Before autopilot starts, it shows you the plan and waits for `go`, because autopilot merges without you. If it stops partway, run `/pod:ship` again and it picks up where it left off.
+Runs research → plan → init (only if needed) → autopilot, so you never retype the idea. If the idea is one small change, it runs it as `/pod:task` instead, without asking, and says why (`/pod:plan` asks first). You still answer the plan interview. Before autopilot starts, it shows you the plan and waits for `go`, because autopilot merges without you. If it stops partway, run `/pod:ship` again and it picks up where it left off.
 
 **Options:**
 - `--no-research`: skip the web research.

@@ -2,6 +2,10 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.20.0 — 2026-11-28
+
+- **`/pod:ship` runs a small idea as a task without asking.** Before, it stopped to ask "Run it as `/pod:task` instead of a plan?". Now, when the idea is one change, it says so and why in one line, then runs `/pod:task`. A task still ends in a reviewed PR that you merge. `/pod:plan` run on its own still asks. The new eval `ship-small-task` checks that a small idea gets no question and no interview, and that the task starts.
+
 ## pod 0.19.1 — 2026-11-28
 
 - **`/pod:ship` follows the skill template.** Its description says only when to use it, and the CI shape check now covers it. On a rerun it skips each step already done, and it no longer repeats `/pod:plan`'s own rules for ship. The go check is two steps: what it shows, then the `go` reply. Its behavior is the same as before, except that it no longer names its internal step numbers to you.
