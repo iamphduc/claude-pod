@@ -2,6 +2,10 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
+## pod 0.18.1 — 2026-11-27
+
+- **`/pod:ship` follows the skill template.** Its description says only when to use it, and the CI shape check now covers it. The go check is two steps: what it shows, then the `go` reply. Its rules are the same as before.
+
 ## pod 0.18.0 · pod-flow 0.6.0 — 2026-11-27
 
 - **The docs upgrade is now a separate script.** pod's files moved from `docs/` to `pod-docs/` in October, and `/pod:init` carried the move as rules since then. Now a project still on the old layout (version 1) makes every pod command stop and change nothing, and name the script that moves it, as Tailwind (`npx @tailwindcss/upgrade`) and ESLint (`npx @eslint/migrate-config`) name theirs. From the project root:
