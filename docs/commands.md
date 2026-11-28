@@ -14,7 +14,7 @@ The details behind the [README](../README.md): every command, the pod-flow pane,
 
 ### `/pod:init`: set up a project
 
-Creates pod's files in `pod-docs/` and never overwrites one that already exists. Run it again after an update to bring an older project's files up to date. The **scout** agent reads your codebase and writes a short guide to it (`pod-docs/codebase-structure.md`), including a **smoke recipe**: the steps to start the app and check it works. It also starts `pod-docs/features.md`: for each main feature, how to drive it and what proves it works. Each wave adds rows for what it builds, and the reviewer re-runs them at the end of each plan. Read what the scout wrote and fill in anything it left open. It can also add a basic CI workflow if you don't have one. Say no, and it records that and doesn't ask again.
+Creates pod's files in `pod-docs/` and never overwrites one that already exists. Run it again after an update to add any new files pod needs. The **scout** agent reads your codebase and writes a short guide to it (`pod-docs/codebase-structure.md`), including a **smoke recipe**: the steps to start the app and check it works. It also starts `pod-docs/features.md`: for each main feature, how to drive it and what proves it works. Each wave adds rows for what it builds, and the reviewer re-runs them at the end of each plan. Read what the scout wrote and fill in anything it left open. It can also add a basic CI workflow if you don't have one. Say no, and it records that and doesn't ask again.
 
 ### `/pod:ship <idea>`: everything in one go
 
@@ -112,7 +112,7 @@ The tree opens beside the transcript when you start `/pod:autopilot` or `/pod:sh
 - `/pod-flow text`: print the tree as a few lines, for a narrow terminal.
 - `/pod-flow reset`: forget this session's agents, token counts, and folds.
 
-pod-flow only reads your `pod-docs/` files (or `docs/`, before you upgrade) and the session's agent list, and asks `gh` whether the final PR has merged. It needs a Claude Code build with function hooks, which are in early access, so expect rough edges.
+pod-flow only reads your `pod-docs/` files and the session's agent list, and asks `gh` whether the final PR has merged. It needs a Claude Code build with function hooks, which are in early access, so expect rough edges.
 
 ## Browser setup
 
@@ -191,7 +191,13 @@ The first line runs inside Claude Code. The other two run in your terminal; skip
 
 To get updates without asking, turn on **Enable auto-update** for the `pod` marketplace under `/plugin` → **Marketplaces**. It's off by default for marketplaces outside Anthropic's.
 
-Updating never touches your `pod-docs/` files. When a new version changes their layout, pod stops and asks you to run `/pod:init`, which shows what will move and waits for your yes. Projects from pod 0.1.2 or earlier keep pod's files in `docs/`; `/pod:init` moves them to `pod-docs/` with `git mv` and leaves the rest of `docs/` alone. See [`CHANGELOG.md`](../CHANGELOG.md) for what changed.
+Updating never touches your `pod-docs/` files. Projects from pod 0.1.2 or earlier keep pod's files in `docs/`. On such a project, every pod command stops, changes nothing, and prints the command that moves them, with its real path:
+
+```
+node <pod>/skills/init/upgrade-docs-v1.js
+```
+
+Run it from the project root, with your changes committed first. It moves only pod's files from `docs/` to `pod-docs/` with `git mv`, fixes the old links inside them, writes `pod-docs/README.md`, lists your own files that still name an old path (such as `CLAUDE.md`), and commits nothing. Check the move with `git status`, commit it, then run `/pod:init` to add any newer files. See [`CHANGELOG.md`](../CHANGELOG.md) for what changed.
 
 **Other ways to install:** use a local clone with `/plugin marketplace add /path/to/claude-pod`, or try it for one session with `claude --plugin-dir /path/to/claude-pod`.
 

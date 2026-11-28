@@ -260,27 +260,6 @@ test('a session working in a worktree still reads the main checkout docs', async
   expect((await run($, 'text')).text).toBe('Demo · sprint 1/1 · wave 1/1\n● one')
 })
 
-// A project from before docs version 2 keeps pod's files in docs/.
-const oldLayout = (): Record<string, string> => ({
-  'docs/plans/demo.md': PLAN,
-  'docs/sprints/one.md': SPRINT.replace('From plan: pod-docs/plans', 'From plan: docs/plans'),
-})
-
-test('a project not upgraded yet still shows its tree from docs/', async ($, on) => {
-  world(on, [], true, [], oldLayout())
-  on('session.surfaces', () => ({ value: ['terminal' as const] }))
-  await run($, 'preview')
-  expect((await run($, 'text')).text).toBe('Demo · sprint 1/1 · wave 1/1\n● one')
-})
-
-test('once pod-docs/ has a plan, the old docs/ copy is ignored', async ($, on) => {
-  const old = Object.fromEntries(Object.entries(oldLayout()).map(([p, md]) => [p, md.replace('# Plan: Demo', '# Plan: Old')]))
-  world(on, [], true, [], { ...old, ...docs() })
-  on('session.surfaces', () => ({ value: ['terminal' as const] }))
-  await run($, 'preview')
-  expect((await run($, 'text')).text).toBe('Demo · sprint 1/1 · wave 1/1\n● one')
-})
-
 const close = (files: Record<string, string>) => {
   // What a run's close-out leaves: the plan archived, its sprint done and moved to the archive.
   files['pod-docs/plans/demo.md'] = PLAN.replace('Status: active', 'Status: archived').replace('| one | First | active |', '| one | First | done |')

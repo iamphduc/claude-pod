@@ -104,12 +104,6 @@ async function listNames($: Dollar, dir: string): Promise<{ name: string; mtimeM
   }
 }
 
-/** pod's docs folder: `pod-docs/` since docs version 2; a project not upgraded yet keeps its plans in `docs/`. */
-async function docsDir($: Dollar, root: string): Promise<string> {
-  const current = `${root}/pod-docs`
-  if ((await listNames($, `${current}/plans`)).length) return current
-  return (await listNames($, `${root}/docs/plans`)).length ? `${root}/docs` : current
-}
 
 /**
  * The newest plan not archived; else the one this run showed, which the run's close-out archived.
@@ -182,7 +176,7 @@ async function refresh($: Dollar): Promise<void> {
 async function buildLines($: Dollar) {
   // The main checkout's docs, even while the run works in one of its worktrees, whose copy of the board is old.
   const root = mainCheckout(await $.session.root())
-  const docs = await docsDir($, root)
+  const docs = `${root}/pod-docs`
   const plan = await planToShow($, docs)
   if (typeof plan === 'string') {
     await update($, lines, () => [])

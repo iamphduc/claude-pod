@@ -74,7 +74,7 @@ Engineers work **test-first** and check UI work in a real browser. The code is r
 claude plugin update pod@pod
 ```
 
-The first line runs inside Claude Code, the second in your terminal (also `claude plugin update pod-flow@pod` if you use it). Then run `/reload-plugins`. Updating never touches your `pod-docs/` files; if a new version changes their layout, pod asks you to run `/pod:init`. Auto-update and other ways to install are in [Updating](docs/commands.md#updating). See [CHANGELOG.md](CHANGELOG.md) for what changed.
+The first line runs inside Claude Code, the second in your terminal (also `claude plugin update pod-flow@pod` if you use it). Then run `/reload-plugins`. Updating never touches your `pod-docs/` files. A project from pod 0.1.2 or earlier keeps pod's files in `docs/`: pod stops on it and prints the command that moves them, see [Updating](docs/commands.md#updating). Auto-update and other ways to install are there too. See [CHANGELOG.md](CHANGELOG.md) for what changed.
 
 ## Learn more
 

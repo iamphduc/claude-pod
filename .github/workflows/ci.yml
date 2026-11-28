@@ -32,6 +32,8 @@ jobs:
       - name: Test pod-flow
         working-directory: pod-flow
         run: claude plugin test .
+      - name: Test the docs upgrade script
+        run: node --test .github/scripts/upgrade-docs-v1.test.js
 
   # A PR that changes what a plugin ships bumps its version and adds its changelog section.
   version:
