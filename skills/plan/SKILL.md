@@ -38,7 +38,7 @@ Turn the human's idea into a strategic plan at `pod-docs/plans/<slug>.md` that t
 - **Cover:** goal and success, scope in and out, what existing behavior or look changes, stack and constraints, trade-offs, and risks → don't ask what the docs, the code, or the human already settled.
 - **Rounds:** interview per `${CLAUDE_PLUGIN_ROOT}/skills/plan/interview.md`, in its format, even when the human has another grilling skill installed.
 - **Defaults:** ask whatever changes what gets built or how it looks → take a safe default for the rest, and list each one in Key decisions, marked `(default)`.
-- **Empty repo:** the repo is empty → sprint 1 starts with a bootstrap, with no CI: a new repo is often a prototype, and `/pod:init` adds CI later. Don't ask about CI; list `CI: none (default)` in Key decisions, or the human's own request for it.
+- **Empty repo:** the repo is empty → sprint 1 starts with a bootstrap, with no CI: a new repo is often a prototype, and the human can ask `/pod:init` for CI later. Don't ask about CI; list `CI: none (default)` in Key decisions, or the human's own request for it.
 
 ### Look
 
