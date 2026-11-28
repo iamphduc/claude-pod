@@ -1,11 +1,11 @@
-// Tests for skills/init/upgrade-docs-v1.mjs, on scratch git repos. Run: node --test .github/scripts/
-import { test } from 'node:test'
-import assert from 'node:assert/strict'
-import { execFileSync } from 'node:child_process'
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { dirname, join } from 'node:path'
-import { upgrade } from '../../skills/init/upgrade-docs-v1.mjs'
+// Tests for skills/init/upgrade-docs-v1.js, on scratch git repos. Run: node --test .github/scripts/upgrade-docs-v1.test.js
+const { test } = require('node:test')
+const assert = require('node:assert/strict')
+const { execFileSync } = require('node:child_process')
+const { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } = require('node:fs')
+const { tmpdir } = require('node:os')
+const { dirname, join } = require('node:path')
+const { upgrade } = require('../../skills/init/upgrade-docs-v1.js')
 
 const git = (root, ...args) =>
   execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', '-c', 'commit.gpgsign=false', ...args], { cwd: root, encoding: 'utf8' })

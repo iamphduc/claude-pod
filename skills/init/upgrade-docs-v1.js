@@ -1,19 +1,19 @@
 #!/usr/bin/env node
 // Moves a project's pod files from pod docs version 1 (in docs/) to version 2 (in pod-docs/).
-// Run it once, from the project root: node <pod>/skills/init/upgrade-docs-v1.mjs
+// Run it once, from the project root: node <pod>/skills/init/upgrade-docs-v1.js
+// CommonJS on purpose: with no package.json around it, every Node version reads a .js file this way.
 // It changes only pod's own files, commits nothing, and stops before it changes anything if it can't do the whole move.
-import { execFileSync } from 'node:child_process'
-import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+const { execFileSync } = require('node:child_process')
+const { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } = require('node:fs')
+const { join } = require('node:path')
 
 /** pod's files in a version-1 project. Nothing else in docs/ moves: the rest is the project's own. */
-export const POD_FILES = [
+const POD_FILES = [
   'codebase-structure.md', 'decisions.md', 'features.md', 'handoff-queue.md', 'handoff-queue-archive.md',
   'known-issues', 'research', 'plans', 'sprints', 'design-drafts', 'reports',
 ]
 
-const README = join(dirname(fileURLToPath(import.meta.url)), 'scaffold', 'pod-docs', 'README.md')
+const README = join(__dirname, 'scaffold', 'pod-docs', 'README.md')
 const OLD_PATH = new RegExp(`(?<![\\w./-])docs/(${POD_FILES.map(n => n.replace('.', '\\.')).join('|')})`, 'g')
 
 const git = (root, ...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
@@ -27,7 +27,7 @@ const markdownFiles = dir =>
   })
 
 /** Moves the files and returns what it did, as lines for the human. Throws, having changed nothing, when it can't. */
-export function upgrade(root) {
+function upgrade(root) {
   if (existsSync(join(root, 'pod-docs', 'README.md')) && /pod docs: \d+/.test(readFileSync(join(root, 'pod-docs', 'README.md'), 'utf8')))
     throw new Error('pod-docs/README.md already has a `pod docs:` line: nothing to move.')
   const found = POD_FILES.filter(name => existsSync(join(root, 'docs', name)))
@@ -61,7 +61,9 @@ export function upgrade(root) {
   ].filter(Boolean)
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+module.exports = { POD_FILES, upgrade }
+
+if (require.main === module) {
   try {
     console.log(upgrade(process.argv[2] ?? process.cwd()).join('\n'))
   } catch (error) {
