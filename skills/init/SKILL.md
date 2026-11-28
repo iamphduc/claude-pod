@@ -28,7 +28,7 @@ Every pod skill reads this before touching pod's files. The current version is *
 ## Setup
 
 - **Docs:** copy `${CLAUDE_PLUGIN_ROOT}/skills/init/scaffold/pod-docs/` into `pod-docs/`, skipping files that exist. Report what was created and what was already there.
-- **Empty repo** (no application code): skip the scout; the plan's first sprint bootstraps.
+- **Empty repo** (no application code): skip the scout and CI; the plan's first sprint bootstraps both.
 - **Map the project:** `pod-docs/codebase-structure.md` still has `<!-- … -->` placeholders, or `pod-docs/features.md` has no rows → dispatch `pod:scout` with only the repo root (its file has the rest) and relay its summary.
 - **CI:** the human asks for CI → add `.github/workflows/pod-ci.yml` as the **Bootstrap CI** rule in `${CLAUDE_PLUGIN_ROOT}/agents/sprint-planner.md` describes, for the brief's runtime (gitleaks is free for personal repos; an organization needs a `GITLEAKS_LICENSE` secret). Update `## CI`.
 - **Tools:** `git` and `gh` are installed and `gh` is logged in → else report each missing one with its fix in **Ready to run**, e.g. `gh: not logged in — gh auth login`, and hold the GitHub steps until it's fixed.
