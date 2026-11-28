@@ -4,7 +4,7 @@ Newest first. The `pod` and `pod-flow` plugins share this file. Each heading nam
 
 ## pod 0.18.1 — 2026-11-27
 
-- **`/pod:ship` follows the skill template.** Its description says only when to use it, and the CI shape check now covers it. The go check is two steps: what it shows, then the `go` reply. Its rules are the same as before.
+- **`/pod:ship` follows the skill template.** Its description says only when to use it, and the CI shape check now covers it. On a rerun it skips each step already done, and it no longer repeats `/pod:plan`'s own rules for ship. The go check is two steps: what it shows, then the `go` reply. Its behavior is the same as before, except that it no longer names its internal step numbers to you.
 
 ## pod 0.18.0 · pod-flow 0.6.0 — 2026-11-27
 
