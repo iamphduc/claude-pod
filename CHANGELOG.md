@@ -2,9 +2,14 @@
 
 Newest first. The `pod` and `pod-flow` plugins share this file. Each heading names the plugin versions it releases, and each merge to `main` that changes what a plugin ships is a release.
 
-## pod 0.18.1 — 2026-11-27
+## pod 0.19.1 — 2026-11-28
 
 - **`/pod:ship` follows the skill template.** Its description says only when to use it, and the CI shape check now covers it. On a rerun it skips each step already done, and it no longer repeats `/pod:plan`'s own rules for ship. The go check is two steps: what it shows, then the `go` reply. Its behavior is the same as before, except that it no longer names its internal step numbers to you.
+
+## pod 0.19.0 — 2026-11-27
+
+- **`/pod:init` no longer offers CI.** It offered a CI workflow on every project without one and recorded a no as a `CI: none` decision, so it wouldn't ask again. Now it adds the workflow only when you ask `/pod:init` for CI, so there's no decision to record. A `CI: none` entry already in `pod-docs/decisions.md` does no harm. The evals `init-ci-declined` and `init-ci-decline-write` are replaced by `init-no-ci-offer` (no CI offer or question) and `init-ci-on-request` (asked for CI, `/pod:init` writes `pod-ci.yml` with the verify and secrets jobs and updates the brief's `## CI`).
+- **`/pod:init` no longer checks the browser or the merge-target.** `/pod:code` and `/pod:autopilot` check both before the first wave. On an empty repo, `/pod:init` still skips CI; the plan's first sprint adds it. `/pod:init` still creates the GitHub repo and its first commit when they're missing.
 
 ## pod 0.18.0 · pod-flow 0.6.0 — 2026-11-27
 

@@ -1,4 +1,4 @@
-# A set-up pod project with no CI. Used by: init-ci-decline-write, init-ci-declined.
+# A set-up pod project with no CI. Used by: init-no-ci-offer, init-ci-on-request.
 # The case adds its own files, then runs pod_commit.
 set -e
 . "$(dirname "${BASH_SOURCE[0]}")/pod-project.sh"
